@@ -1,0 +1,57 @@
+﻿<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+FITS
+</name>
+</assembly>
+<members>
+<member name="T:Test.My.Resources.Resources">
+<summary>
+  A strongly-typed resource class, for looking up localized strings, etc.
+</summary>
+</member>
+<member name="P:Test.My.Resources.Resources.ResourceManager">
+<summary>
+  Returns the cached ResourceManager instance used by this class.
+</summary>
+</member>
+<member name="P:Test.My.Resources.Resources.Culture">
+<summary>
+  Overrides the current thread's CurrentUICulture property for all
+  resource lookups using this strongly typed resource class.
+</summary>
+</member>
+<member name="F:Test.cFITSReader.HeaderElementLength">
+<summary>Length of one header element.</summary>
+</member>
+<member name="F:Test.cFITSReader.HeaderBlockSize">
+<summary>Length of a header block - FITS files may contain an integer size of header blocks.</summary>
+</member>
+<member name="F:Test.cFITSReader.HeaderElements">
+<summary>Number of header elements per header block.</summary>
+</member>
+<member name="P:Test.cFITSReader.DataStartIdx">
+ <summary>0-based index of the first image data within the file.</summary>
+</member>
+<member name="M:Test.cFITSReader.ReadIn(System.String,System.Boolean,System.Double[0:,0:]@)">
+<summary>Read FITS data from the passed file.</summary>
+<param name="FileName">File name to load FITS data from.</param>
+<param name="UseBZeroScale">Use the BZERO and BSCALE value within the file for scaling - if OFF omit the data.</param>
+<param name="ImageData">Loaded image data processed by BZERO and BSCALE - if PointsToRead is passed, the matrix is 1xN where N is the number of entries in PointsToRead.</param>
+</member>
+<member name="M:Test.cFITSReader.ReadIn(System.String,System.Boolean,System.Double[0:,0:]@,System.Drawing.Point[])">
+<summary>Read FITS data from the passed file.</summary>
+<param name="FileName">File name to load FITS data from.</param>
+<param name="UseBZeroScale">Use the BZERO and BSCALE value within the file for scaling - if OFF omit the data.</param>
+<param name="ImageData">Loaded image data processed by BZERO and BSCALE - if PointsToRead is passed, the matrix is 1xN where N is the number of entries in PointsToRead.</param>
+<param name="PointsToRead">Vector of points to read on - pass an empty vector to read all values and generate a matrix for ImageData.</param>
+</member>
+<member name="M:Test.cFITSReader.FixSample(System.String,System.Collections.Generic.List{System.Drawing.Point}@,System.Int16[])">
+<summary>Change entries in the passed FileName FIT file.</summary>
+<param name="FileName">File to modify.</param>
+<param name="PointToWrite">List of points to be modified.</param>
+<param name="FixValues">Values to use for modification.</param>
+</member>
+</members>
+</doc>

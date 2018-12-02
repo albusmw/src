@@ -43,6 +43,77 @@ Public Class cFITSWriter
     Public Shared ReadOnly HeaderElements As Integer = HeaderBlockSize \ HeaderElementLength
 
     '================================================================================================
+    ' Byte
+    '================================================================================================
+
+    '''<summary>Write the passed ImageData matrix to a FITS file.</summary>
+    '''<param name="FileName">File to generate.</param>
+    '''<param name="ImageData">Data to write.</param>
+    '''<param name="BitPix">Bit per pixel.</param>
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Byte, ByVal BitPix As eBitPix) As Integer
+        Return Write(FileName, ImageData, BitPix, 0.0, 1.0, Nothing)
+    End Function
+
+    '''<summary>Write the passed ImageData matrix to a FITS file.</summary>
+    '''<param name="FileName">File to generate.</param>
+    '''<param name="ImageData">Data to write.</param>
+    '''<param name="BitPix">Bit per pixel.</param>
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Byte, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String())) As Integer
+        Return Write(FileName, ImageData, BitPix, 0.0, 1.0, CustomHeaderElements)
+    End Function
+
+    '''<summary>Write the passed ImageData matrix to a FITS file.</summary>
+    '''<param name="FileName">File to generate.</param>
+    '''<param name="ImageData">Data to write.</param>
+    '''<param name="BitPix">Bit per pixel.</param>
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Byte, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String())) As Integer
+
+        Dim RetVal As Integer = 0
+        Dim BaseOut As New System.IO.StreamWriter(FileName)
+        Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
+
+        'Load all header elements
+        Dim Header As New List(Of String)
+        Header.Add(FormatHeader("SIMPLE", "T"))
+        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
+        Header.Add(FormatHeader("NAXIS", "2"))
+        Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
+        Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
+        Header.Add(FormatHeader("BZERO", BZero.ToString.Trim.Replace(",", ".")))
+        Header.Add(FormatHeader("BSCALE", BScale.ToString.Trim.Replace(",", ".")))
+        AddCustomHeaders(Header, CustomHeaderElements)
+
+        'Write header
+        PadHeader(Header)
+        BaseOut.Write(Join(Header.ToArray, String.Empty))
+        BaseOut.Flush()
+
+        'Calculate scaler
+        Dim A As Double = 1 / BScale
+        Dim B As Double = -(BZero / BScale)
+
+        'Write content
+        Select Case BitPix
+            Case eBitPix.Byte
+                For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+                    For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                        BytesOut.Write(GetBytesToStore_BitPix8(ImageData(Idx2, Idx1), A, B, RetVal))
+                    Next Idx2
+                Next Idx1
+            Case Else
+                Throw New FITSWriterException("Conversion from Int32 to BitPix <" & CStr(CInt(BitPix)).Trim & "> is not supported!")
+        End Select
+
+        'Finish
+        BytesOut.Flush()
+        BaseOut.Close()
+
+        'Return number of conversion errors
+        Return RetVal
+
+    End Function
+
+    '================================================================================================
     ' Int16
     '================================================================================================
 
@@ -97,7 +168,7 @@ Public Class cFITSWriter
             Case eBitPix.Int16
                 For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
                     For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
-                        BytesOut.Write(GetBytesToStore_BitPix16(ImageData(Idx1, Idx2), A, B, RetVal))
+                        BytesOut.Write(GetBytesToStore_BitPix16(ImageData(Idx2, Idx1), A, B, RetVal))
                     Next Idx2
                 Next Idx1
             Case Else
@@ -174,23 +245,35 @@ Public Class cFITSWriter
                 Next Idx1
             Case eBitPix.Int32
                 '1-to-1 copy
-                For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
-                    For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
-                        BytesOut.Write(GetBytesToStore_BitPix32(ImageData(Idx2, Idx1), A, B, RetVal))
-                    Next Idx2
-                Next Idx1
+                If BZero = 0.0 And BScale = 1.0 Then
+                    'No scaling ...
+                    For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+                        For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                            Dim DataToWrite As Byte() = BitConverter.GetBytes(Int32ValueInvalid)
+                            BytesOut.Write(New Byte() {DataToWrite(3), DataToWrite(2), DataToWrite(1), DataToWrite(0)})
+                        Next Idx2
+                    Next Idx1
+                Else
+                    For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+                        For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                            BytesOut.Write(GetBytesToStore_BitPix32(ImageData(Idx2, Idx1), A, B, RetVal))
+                        Next Idx2
+                    Next Idx1
+                End If
             Case eBitPix.Single
                 'fixed to floating point
                 For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
                     For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
-                        Dim ImageBytes As Byte() = BitConverter.GetBytes(CSng(ImageData(Idx2, Idx1))) : Array.Reverse(ImageBytes) : BytesOut.Write(ImageBytes)
+                        Dim DataToWrite As Byte() = BitConverter.GetBytes(CSng(ImageData(Idx2, Idx1)))
+                        BytesOut.Write(New Byte() {DataToWrite(3), DataToWrite(2), DataToWrite(1), DataToWrite(0)})
                     Next Idx2
                 Next Idx1
             Case eBitPix.Double
                 'fixed to floating point
                 For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
                     For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
-                        Dim ImageBytes As Byte() = BitConverter.GetBytes(CDbl(ImageData(Idx2, Idx1))) : Array.Reverse(ImageBytes) : BytesOut.Write(ImageBytes)
+                        Dim DataToWrite As Byte() = BitConverter.GetBytes(CDbl(ImageData(Idx2, Idx1)))
+                        BytesOut.Write(New Byte() {DataToWrite(7), DataToWrite(6), DataToWrite(5), DataToWrite(4), DataToWrite(3), DataToWrite(2), DataToWrite(1), DataToWrite(0)})
                     Next Idx2
                 Next Idx1
             Case Else
@@ -252,38 +335,41 @@ Public Class cFITSWriter
                 'R
                 For Idx1 As Integer = 0 To ImageDataR.GetUpperBound(1)
                     For Idx2 As Integer = 0 To ImageDataR.GetUpperBound(0)
-                        BytesOut.Write(GetBytesToStore_BitPix8(ImageDataR(Idx1, Idx2), A, B, RetVal))
+                        BytesOut.Write(GetBytesToStore_BitPix8(ImageDataR(Idx2, Idx1), A, B, RetVal))
                     Next Idx2
                 Next Idx1
                 'G
                 For Idx1 As Integer = 0 To ImageDataG.GetUpperBound(1)
                     For Idx2 As Integer = 0 To ImageDataG.GetUpperBound(0)
-                        BytesOut.Write(GetBytesToStore_BitPix8(ImageDataG(Idx1, Idx2), A, B, RetVal))
+                        BytesOut.Write(GetBytesToStore_BitPix8(ImageDataG(Idx2, Idx1), A, B, RetVal))
                     Next Idx2
                 Next Idx1
                 'B
                 For Idx1 As Integer = 0 To ImageDataB.GetUpperBound(1)
                     For Idx2 As Integer = 0 To ImageDataB.GetUpperBound(0)
-                        BytesOut.Write(GetBytesToStore_BitPix8(ImageDataB(Idx1, Idx2), A, B, RetVal))
+                        BytesOut.Write(GetBytesToStore_BitPix8(ImageDataB(Idx2, Idx1), A, B, RetVal))
                     Next Idx2
                 Next Idx1
             Case eBitPix.Int32
                 'R
                 For Idx1 As Integer = 0 To ImageDataR.GetUpperBound(1)
                     For Idx2 As Integer = 0 To ImageDataR.GetUpperBound(0)
-                        Dim ImageBytes As Byte() = BitConverter.GetBytes(ImageDataR(Idx2, Idx1)) : Array.Reverse(ImageBytes) : BytesOut.Write(ImageBytes)
+                        Dim DataToWrite As Byte() = BitConverter.GetBytes(ImageDataR(Idx2, Idx1))
+                        BytesOut.Write(New Byte() {DataToWrite(3), DataToWrite(2), DataToWrite(1), DataToWrite(0)})
                     Next Idx2
                 Next Idx1
                 'G
                 For Idx1 As Integer = 0 To ImageDataG.GetUpperBound(1)
                     For Idx2 As Integer = 0 To ImageDataG.GetUpperBound(0)
-                        Dim ImageBytes As Byte() = BitConverter.GetBytes(ImageDataG(Idx2, Idx1)) : Array.Reverse(ImageBytes) : BytesOut.Write(ImageBytes)
+                        Dim DataToWrite As Byte() = BitConverter.GetBytes(ImageDataG(Idx2, Idx1))
+                        BytesOut.Write(New Byte() {DataToWrite(3), DataToWrite(2), DataToWrite(1), DataToWrite(0)})
                     Next Idx2
                 Next Idx1
                 'B
                 For Idx1 As Integer = 0 To ImageDataB.GetUpperBound(1)
                     For Idx2 As Integer = 0 To ImageDataB.GetUpperBound(0)
-                        Dim ImageBytes As Byte() = BitConverter.GetBytes(ImageDataB(Idx2, Idx1)) : Array.Reverse(ImageBytes) : BytesOut.Write(ImageBytes)
+                        Dim DataToWrite As Byte() = BitConverter.GetBytes(ImageDataB(Idx2, Idx1))
+                        BytesOut.Write(New Byte() {DataToWrite(3), DataToWrite(2), DataToWrite(1), DataToWrite(0)})
                     Next Idx2
                 Next Idx1
             Case Else
@@ -485,21 +571,21 @@ Public Class cFITSWriter
                 Dim ValueToStore As Byte = 0
                 For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
                     For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
-                        BytesOut.Write(GetBytesToStore_BitPix8(ImageData(Idx1, Idx2), A, B, RetVal))
+                        BytesOut.Write(GetBytesToStore_BitPix8(ImageData(Idx2, Idx1), A, B, RetVal))
                     Next Idx2
                 Next Idx1
             Case eBitPix.Int16
                 Dim ValueToStore As Int16 = 0
                 For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
                     For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
-                        BytesOut.Write(GetBytesToStore_BitPix16(ImageData(Idx1, Idx2), A, B, RetVal))
+                        BytesOut.Write(GetBytesToStore_BitPix16(ImageData(Idx2, Idx1), A, B, RetVal))
                     Next Idx2
                 Next Idx1
             Case eBitPix.Int32
                 Dim ValueToStore As Int32 = 0
                 For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
                     For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
-                        BytesOut.Write(GetBytesToStore_BitPix32(ImageData(Idx1, Idx2), A, B, RetVal))
+                        BytesOut.Write(GetBytesToStore_BitPix32(ImageData(Idx2, Idx1), A, B, RetVal))
                     Next Idx2
                 Next Idx1
             Case eBitPix.Single
@@ -560,8 +646,7 @@ Public Class cFITSWriter
             ErrorCount += 1
             RetVal = BitConverter.GetBytes(Int16ValueInvalid)
         End If
-        Array.Reverse(RetVal)
-        Return RetVal
+        Return New Byte() {RetVal(1), RetVal(0)}
     End Function
 
     Private Shared Function GetBytesToStore_BitPix32(ByVal Value As Double, ByVal A As Double, ByVal B As Double, ByRef ErrorCount As Integer) As Byte()
@@ -573,8 +658,7 @@ Public Class cFITSWriter
             ErrorCount += 1
             RetVal = BitConverter.GetBytes(Int32ValueInvalid)
         End If
-        Array.Reverse(RetVal)
-        Return RetVal
+        Return New Byte() {RetVal(3), RetVal(2), RetVal(1), RetVal(0)}
     End Function
 
     '''<summary>Add a custom header to the passed header element.</summary>

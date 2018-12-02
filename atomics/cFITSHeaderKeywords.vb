@@ -21,6 +21,14 @@ Public Structure eFITSKeywords
     Public Const [OBSERVER] As String = "OBSERVER"
     '''<summary>The value field shall contain a character string giving a name for the object observed.</summary>
     Public Const [OBJECT] As String = "OBJECT"
+    '''<summary>Clear aperture of the telescope [m].</summary>
+    Public Const [TELAPER] As String = "TELAPER"
+    '''<summary>Focal length of the telescope [m].</summary>
+    Public Const [TELFOC] As String = "TELFOC"
+    '''<summary>Plate scale of the telescope [arcsec/mm].</summary>
+    Public Const [TELSCALE] As String = "TELFOC"
+    '''<summary>Focus value (from logbook). Used when a single value is given in the logs.</summary>
+    Public Const [FOCUS] As String = "FOCUS"
 
     '''<summary>The value field shall contain a character string that gives the date on which the observation started, format 'yyyy-mm-dd', or 'yyyy-mm-ddThh:mm:ss.sss'.</summary>
     Public Const [DATE_OBS] As String = "DATE-OBS"
@@ -36,6 +44,19 @@ Public Structure eFITSKeywords
     Public Const [DEC] As String = "DEC"
     '''<summary>The value field gives the Right Ascension of the observation.  It may be expressed either as a floating point number in units of decimal degrees, or as a character string in 'HH:MM:SS.sss' format where the decimal point and number of fractional digits are optional.</summary>
     Public Const [RA] As String = "RA"
+
+    '''<summary>Pixel size [um] along axis 1.</summary>
+    Public Const [PIXSIZE1] As String = "PIXSIZE1"
+    '''<summary>Pixel size [um] along axis 2.</summary>
+    Public Const [PIXSIZE2] As String = "PIXSIZE2"
+    '''<summary>Plate size [cm] along axis 1.</summary>
+    Public Const [PLATESZ1] As String = "PLATESZ1"
+    '''<summary>Plate size [cm] along axis 2.</summary>
+    Public Const [PLATESZ2] As String = "PLATESZ2"
+    '''<summary>Field of view [°] along axis 1.</summary>
+    Public Const [FOV1] As String = "FOV1"
+    '''<summary>Field of view [°] along axis 1.</summary>
+    Public Const [FOV2] As String = "FOV2"
 
     '=============================================================================
     'Found in FITS and need additional comments

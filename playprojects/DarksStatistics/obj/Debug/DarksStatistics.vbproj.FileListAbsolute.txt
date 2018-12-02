@@ -1,0 +1,10 @@
+C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\DarksStatistics\bin\Debug\DarksStatistics.exe.config
+C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\DarksStatistics\bin\Debug\DarksStatistics.exe
+C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\DarksStatistics\bin\Debug\DarksStatistics.pdb
+C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\DarksStatistics\bin\Debug\DarksStatistics.xml
+C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\DarksStatistics\obj\Debug\DarksStatistics.vbprojResolveAssemblyReference.cache
+C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\DarksStatistics\obj\Debug\DarksStatistics.Resources.resources
+C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\DarksStatistics\obj\Debug\DarksStatistics.vbproj.GenerateResource.Cache
+C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\DarksStatistics\obj\Debug\DarksStatistics.exe
+C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\DarksStatistics\obj\Debug\DarksStatistics.xml
+C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\DarksStatistics\obj\Debug\DarksStatistics.pdb

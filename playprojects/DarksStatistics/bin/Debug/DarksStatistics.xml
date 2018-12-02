@@ -1,0 +1,270 @@
+﻿<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+DarksStatistics
+</name>
+</assembly>
+<members>
+<member name="T:DarksStatistics.My.Resources.Resources">
+<summary>
+  A strongly-typed resource class, for looking up localized strings, etc.
+</summary>
+</member>
+<member name="P:DarksStatistics.My.Resources.Resources.ResourceManager">
+<summary>
+  Returns the cached ResourceManager instance used by this class.
+</summary>
+</member>
+<member name="P:DarksStatistics.My.Resources.Resources.Culture">
+<summary>
+  Overrides the current thread's CurrentUICulture property for all
+  resource lookups using this strongly typed resource class.
+</summary>
+</member>
+<member name="T:DarksStatistics.cFITSHeaderChanger">
+<summary>Class to change and add FITS file header information.</summary>
+</member>
+<member name="F:DarksStatistics.cFITSHeaderChanger.HeaderElementLength">
+<summary>Length of one header element.</summary>
+</member>
+<member name="F:DarksStatistics.cFITSHeaderChanger.HeaderBlockSize">
+<summary>Length of a header block - FITS files may contain an integer size of header blocks.</summary>
+</member>
+<member name="F:DarksStatistics.cFITSHeaderChanger.HeaderElements">
+<summary>Number of header elements per header block.</summary>
+</member>
+<member name="T:DarksStatistics.eFITSKeywords">
+<summary>Class to provide FITS header keywords (elements and service functions).</summary>
+<remarks>See e.g. https://heasarc.gsfc.nasa.gov/docs/fcg/common_dict.html. </remarks>
+</member>
+<member name="F:DarksStatistics.eFITSKeywords.ORIGIN">
+<summary>The value field shall contain a character string identifying the organization or institution responsible for creating the FITS file.</summary>
+</member>
+<member name="F:DarksStatistics.eFITSKeywords.TELESCOP">
+<summary>The value field shall contain a character string identifying the telescope used to acquire the data associated with the header.</summary>
+</member>
+<member name="F:DarksStatistics.eFITSKeywords.INSTRUME">
+<summary>The value field shall contain a character string identifying the instrument used to acquire the data associated with the header.</summary>
+</member>
+<member name="F:DarksStatistics.eFITSKeywords.OBSERVER">
+<summary>The value field shall contain a character string identifying who acquired the data associated with the header.</summary>
+</member>
+<member name="F:DarksStatistics.eFITSKeywords.OBJECT">
+<summary>The value field shall contain a character string giving a name for the object observed.</summary>
+</member>
+<member name="F:DarksStatistics.eFITSKeywords.DATE_OBS">
+<summary>The value field shall contain a character string that gives the date on which the observation started, format 'yyyy-mm-dd', or 'yyyy-mm-ddThh:mm:ss.sss'.</summary>
+</member>
+<member name="F:DarksStatistics.eFITSKeywords.DATE_END">
+<summary>The value field shall contain a character string that gives the date on which the observation ended, format 'yyyy-mm-dd', or 'yyyy-mm-ddThh:mm:ss.sss'.</summary>
+</member>
+<member name="F:DarksStatistics.eFITSKeywords.TIME_OBS">
+<summary>The value field shall contain a character string that gives the time at which the observation started, format 'hh:mm:ss.sss'.</summary>
+</member>
+<member name="F:DarksStatistics.eFITSKeywords.TIME_END">
+<summary>The value field shall contain a character string that gives the time at which the observation ended, format 'hh:mm:ss.sss'.</summary>
+</member>
+<member name="F:DarksStatistics.eFITSKeywords.EXPTIME">
+<summary>The value field shall contain a floating point number giving the exposure time of the observation in units of seconds.</summary>
+</member>
+<member name="F:DarksStatistics.eFITSKeywords.DEC">
+<summary>The value field gives the declination of the observation. It may be expressed either as a floating point number in units of decimal degrees, or as a character string in 'dd:mm:ss.sss' format where the decimal point and number of fractional digits are optional.</summary>
+</member>
+<member name="F:DarksStatistics.eFITSKeywords.RA">
+<summary>The value field gives the Right Ascension of the observation.  It may be expressed either as a floating point number in units of decimal degrees, or as a character string in 'HH:MM:SS.sss' format where the decimal point and number of fractional digits are optional.</summary>
+</member>
+<member name="F:DarksStatistics.eFITSKeywords.CTYPE3">
+<summary>Used to color encoding.</summary>
+</member>
+<member name="M:DarksStatistics.cFITSKeywords.GetDate">
+<summary>Formated content for all "DATE..." fields, without time..</summary>
+</member>
+<member name="M:DarksStatistics.cFITSKeywords.GetDate(System.DateTime)">
+<summary>Formated content for all "DATE..." fields, without time..</summary>
+</member>
+<member name="M:DarksStatistics.cFITSKeywords.GetDateWithTime">
+<summary>Formated content for all "DATE..." fields, time..</summary>
+</member>
+<member name="M:DarksStatistics.cFITSKeywords.GetDateWithTime(System.DateTime)">
+<summary>Formated content for all "DATE..." fields, time..</summary>
+</member>
+<member name="F:DarksStatistics.cFITSReader.HeaderElementLength">
+<summary>Length of one header element.</summary>
+</member>
+<member name="F:DarksStatistics.cFITSReader.HeaderBlockSize">
+<summary>Length of a header block - FITS files may contain an integer size of header blocks.</summary>
+</member>
+<member name="F:DarksStatistics.cFITSReader.HeaderElements">
+<summary>Number of header elements per header block.</summary>
+</member>
+<member name="P:DarksStatistics.cFITSReader.DataStartIdx">
+ <summary>0-based index of the first image data within the file.</summary>
+</member>
+<member name="M:DarksStatistics.cFITSReader.ReadIn(System.String,System.Boolean,System.Double[0:,0:]@)">
+<summary>Read FITS data from the passed file.</summary>
+<param name="FileName">File name to load FITS data from.</param>
+<param name="UseBZeroScale">Use the BZERO and BSCALE value within the file for scaling - if OFF omit the data.</param>
+<param name="ImageData">Loaded image data processed by BZERO and BSCALE - if PointsToRead is passed, the matrix is 1xN where N is the number of entries in PointsToRead.</param>
+</member>
+<member name="M:DarksStatistics.cFITSReader.ReadIn(System.String,System.Boolean,System.Double[0:,0:]@,System.Drawing.Point[])">
+<summary>Read FITS data from the passed file.</summary>
+<param name="FileName">File name to load FITS data from.</param>
+<param name="UseBZeroScale">Use the BZERO and BSCALE value within the file for scaling - if OFF omit the data.</param>
+<param name="ImageData">Loaded image data processed by BZERO and BSCALE - if PointsToRead is passed, the matrix is 1xN where N is the number of entries in PointsToRead.</param>
+<param name="PointsToRead">Vector of points to read on - pass an empty vector to read all values and generate a matrix for ImageData.</param>
+</member>
+<member name="M:DarksStatistics.cFITSReader.FixSample(System.String,System.Collections.Generic.List{System.Drawing.Point}@,System.Int16[])">
+<summary>Change entries in the passed FileName FIT file.</summary>
+<param name="FileName">File to modify.</param>
+<param name="PointToWrite">List of points to be modified.</param>
+<param name="FixValues">Values to use for modification.</param>
+</member>
+<member name="T:DarksStatistics.cFITSWriter">
+<summary>Class to write 2-dimensional arrays as FITS data.</summary>
+</member>
+<member name="F:DarksStatistics.cFITSWriter.ByteValueInvalid">
+<summary>Value that is stored if the passed data could not be stored as byte value..</summary>
+</member>
+<member name="F:DarksStatistics.cFITSWriter.Int16ValueInvalid">
+<summary>Value that is stored if the passed data could not be stored as Int16 value..</summary>
+</member>
+<member name="F:DarksStatistics.cFITSWriter.Int32ValueInvalid">
+<summary>Value that is stored if the passed data could not be stored as Int32 value..</summary>
+</member>
+<member name="F:DarksStatistics.cFITSWriter.SingleValueInvalid">
+<summary>Value that is stored if the passed data could not be stored as Single value..</summary>
+</member>
+<member name="P:DarksStatistics.cFITSWriter.HeaderElementLength">
+<summary>Length of one header element.</summary>
+</member>
+<member name="P:DarksStatistics.cFITSWriter.HeaderBlockSize">
+<summary>Length of a header block - FITS files may contain an integer size of header blocks.</summary>
+</member>
+<member name="P:DarksStatistics.cFITSWriter.KeywordLength">
+<summary>Length of the keyword entry.</summary>
+</member>
+<member name="P:DarksStatistics.cFITSWriter.ValueLength">
+<summary>Length of the value entry.</summary>
+</member>
+<member name="F:DarksStatistics.cFITSWriter.HeaderElements">
+<summary>Number of header elements per header block.</summary>
+</member>
+<member name="M:DarksStatistics.cFITSWriter.Write(System.String,System.Int16[0:,0:]@,DarksStatistics.cFITSWriter.eBitPix)">
+<summary>Write the passed ImageData matrix to a FITS file.</summary>
+<param name="FileName">File to generate.</param>
+<param name="ImageData">Data to write.</param>
+<param name="BitPix">Bit per pixel.</param>
+</member>
+<member name="M:DarksStatistics.cFITSWriter.Write(System.String,System.Int16[0:,0:]@,DarksStatistics.cFITSWriter.eBitPix,System.Collections.Generic.List{System.String[]})">
+<summary>Write the passed ImageData matrix to a FITS file.</summary>
+<param name="FileName">File to generate.</param>
+<param name="ImageData">Data to write.</param>
+<param name="BitPix">Bit per pixel.</param>
+</member>
+<member name="M:DarksStatistics.cFITSWriter.Write(System.String,System.Int16[0:,0:]@,DarksStatistics.cFITSWriter.eBitPix,System.Double,System.Double,System.Collections.Generic.List{System.String[]})">
+<summary>Write the passed ImageData matrix to a FITS file.</summary>
+<param name="FileName">File to generate.</param>
+<param name="ImageData">Data to write.</param>
+<param name="BitPix">Bit per pixel.</param>
+</member>
+<member name="M:DarksStatistics.cFITSWriter.Write(System.String,System.Int32[0:,0:]@,DarksStatistics.cFITSWriter.eBitPix)">
+<summary>Write the passed ImageData matrix to a FITS file.</summary>
+<param name="FileName">File to generate.</param>
+<param name="ImageData">Data to write.</param>
+<param name="BitPix">Bit per pixel.</param>
+</member>
+<member name="M:DarksStatistics.cFITSWriter.Write(System.String,System.Int32[0:,0:]@,DarksStatistics.cFITSWriter.eBitPix,System.Collections.Generic.List{System.String[]})">
+<summary>Write the passed ImageData matrix to a FITS file.</summary>
+<param name="FileName">File to generate.</param>
+<param name="ImageData">Data to write.</param>
+<param name="BitPix">Bit per pixel.</param>
+</member>
+<member name="M:DarksStatistics.cFITSWriter.Write(System.String,System.Int32[0:,0:]@,DarksStatistics.cFITSWriter.eBitPix,System.Double,System.Double,System.Collections.Generic.List{System.String[]})">
+<summary>Write the passed ImageData matrix to a FITS file.</summary>
+<param name="FileName">File to generate.</param>
+<param name="ImageData">Data to write.</param>
+<param name="BitPix">Bit per pixel.</param>
+</member>
+<member name="M:DarksStatistics.cFITSWriter.Write(System.String,System.Int32[0:,0:]@,System.Int32[0:,0:]@,System.Int32[0:,0:]@,DarksStatistics.cFITSWriter.eBitPix,System.Collections.Generic.List{System.String[]})">
+<summary>Write the passed ImageData matrix to a color FITS file.</summary>
+<param name="FileName">File to generate.</param>
+<param name="ImageData">Data to write.</param>
+<param name="BitPix">Bit per pixel.</param>
+</member>
+<member name="M:DarksStatistics.cFITSWriter.Write(System.String,System.Int32[0:,0:]@,System.Int32[0:,0:]@,System.Int32[0:,0:]@,DarksStatistics.cFITSWriter.eBitPix,System.Double,System.Double,System.Collections.Generic.List{System.String[]})">
+<summary>Write the passed ImageData matrix to a color FITS file.</summary>
+<param name="FileName">File to generate.</param>
+<param name="ImageData">Data to write.</param>
+<param name="BitPix">Bit per pixel.</param>
+</member>
+<member name="M:DarksStatistics.cFITSWriter.Write(System.String,System.Single[0:,0:]@,DarksStatistics.cFITSWriter.eBitPix)">
+<summary>Write the passed ImageData matrix to a FITS file.</summary>
+<param name="FileName">File to generate.</param>
+<param name="ImageData">Data to write.</param>
+<param name="BitPix">Bit per pixel.</param>
+</member>
+<member name="M:DarksStatistics.cFITSWriter.Write(System.String,System.Single[0:,0:]@,System.Single[0:,0:]@,System.Single[0:,0:]@,System.Single,System.Single,DarksStatistics.cFITSWriter.eBitPix,System.Collections.Generic.List{System.String[]})">
+<summary>Write the passed ImageData matrix to a color FITS file.</summary>
+<param name="FileName">File to generate.</param>
+<param name="ImageData">Data to write.</param>
+<param name="BitPix">Bit per pixel.</param>
+</member>
+<member name="M:DarksStatistics.cFITSWriter.Write(System.String,System.Double[0:,0:]@,DarksStatistics.cFITSWriter.eBitPix)">
+<summary>Write the passed ImageData matrix to a FITS file.</summary>
+<param name="FileName">File to generate.</param>
+<param name="ImageData">Data to write.</param>
+<param name="BitPix">Bit per pixel.</param>
+</member>
+<member name="M:DarksStatistics.cFITSWriter.Write(System.String,System.Double[0:,0:]@,DarksStatistics.cFITSWriter.eBitPix,System.Double,System.Double,System.Collections.Generic.List{System.String[]})">
+<summary>Write the passed ImageData matrix to a FITS file.</summary>
+ <param name="FileName">File name to generate.</param>
+ <param name="ImageData">Image data to store.</param>
+ <param name="BitPix">Bit-per-pixel according to FITS standard.</param>
+ <param name="BZero">BZero   of the formular RealValue = BZero + (BScale * StoredValue).</param>
+ <param name="BScale">BScale of the formular RealValue = BZero + (BScale * StoredValue).</param>
+ <param name="CustomHeaderElements">Custom FITS elements to store.</param>
+ <returns>Number of values that could NOT be stored.</returns>
+</member>
+<member name="M:DarksStatistics.cFITSWriter.AddCustomHeaders(System.Collections.Generic.List{System.String}@,System.Collections.Generic.List{System.String[]}@)">
+<summary>Add a custom header to the passed header element.</summary>
+</member>
+<member name="M:DarksStatistics.cFITSWriter.PadHeader(System.Collections.Generic.List{System.String}@)">
+<summary>Ensure that the header length is conform with the FITS specification.</summary>
+</member>
+<member name="M:DarksStatistics.cImageFileFormatReader.UseDCRaw(System.String,System.String,System.String[]@)">
+ <summary>Use DCRAW.exe to convert a camera raw to a portable format.</summary>
+ <returns>Name of the converted file or empty string in case of an error.</returns>
+</member>
+<member name="M:DarksStatistics.cImageFileFormatReader.LoadTIFFData(System.String,System.Double[0:,0:]@)">
+ <summary>Read a TIFF file (16-bit).</summary>
+ <remarks>Requires a link to PresentationCore.</remarks>
+</member>
+<member name="M:DarksStatistics.cImageFileFormatReader.LoadPortableAnyMapNew(System.String@,System.Double[0:,0:]@,System.Int32)">
+ <summary>Read a Portable Anymap file (PNM / PBM / PGM / PPM).</summary>
+ <param name="FileName">File name to read in.</param>
+ <param name="ImageData">Data array to fill.</param>
+ <param name="ColorIdx">0-based color index in case of PixMap instead of GreyMap.</param>
+ <returns>TRUE if read was OK, FALSE else.</returns>
+ <remarks>Currently only "Portable Graymap Binary" is supported.</remarks>
+</member>
+<member name="T:DarksStatistics.cStatMultiThread">
+<summary>Class to calculate 2D matrix statistics multi-threaded.</summary>
+</member>
+<member name="T:DarksStatistics.cStatMultiThread.cStateObj">
+<summary>Object for each thread.</summary>
+</member>
+<member name="M:DarksStatistics.cStatMultiThread.Calculate(System.Int32,DarksStatistics.cStatMultiThread.cStateObj@)">
+<summary>Perform a calculation with the given number of threads.</summary>
+</member>
+<member name="M:DarksStatistics.cStatMultiThread.HistoCalc(System.Object)">
+<summary>Histogramm calculation itself.</summary>
+</member>
+<member name="M:DarksStatistics.cGenerics.SortDictionary``2(System.Collections.Generic.Dictionary{``0,``1}@)">
+<summary>Sort the passed dictionary according to T1 (key).</summary>
+</member>
+<member name="M:DarksStatistics.cGenerics.GetDictionaryKeyElement``2(System.Collections.Generic.Dictionary{``0,``1}@,System.Int32)">
+<summary>Sort the passed dictionary according to T1 (key).</summary>
+</member>
+</members>
+</doc>

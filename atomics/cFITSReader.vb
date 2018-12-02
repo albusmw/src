@@ -1,5 +1,6 @@
 ﻿Option Explicit On
 Option Strict On
+Imports AstroFlow
 
 Public Class cFITSReader
 
@@ -9,6 +10,9 @@ Public Class cFITSReader
     Const HeaderBlockSize As Integer = 2880
     '''<summary>Number of header elements per header block.</summary>
     Public Shared ReadOnly HeaderElements As Integer = HeaderBlockSize \ HeaderElementLength
+
+    '''<summary>Path to ipps.dll and ippvm.dll - if not set IPP will not be used.</summary>
+    Public Property IPPPath As String = String.Empty
 
     Private Interface IByteConverter
         Function Convert(ByRef Bytes() As Byte, ByVal Offset As Integer) As Double
@@ -32,6 +36,14 @@ Public Class cFITSReader
         End Function
     End Class
 
+    Public Class cByteConverter_Int32_Fast : Implements IByteConverter
+        Public Function Convert(ByRef RawData() As Byte, ByVal Offset As Integer) As Double Implements IByteConverter.Convert
+            Dim Val1 As Int32 = (CInt(RawData(0)) << 24) + (CInt(RawData(Offset + 1)) << 16) + (CInt(RawData(Offset + 2)) << 8) + (CInt(RawData(Offset + 3)))
+            'Dim Val2 As Int32 = BitConverter.ToInt32({RawData(Offset + 3), RawData(Offset + 2), RawData(Offset + 1), RawData(Offset)}, 0)
+            Return Val1
+        End Function
+    End Class
+
     Public Class cByteConverter_Single : Implements IByteConverter
         Public Function Convert(ByRef RawData() As Byte, ByVal Offset As Integer) As Double Implements IByteConverter.Convert
             Return BitConverter.ToSingle({RawData(Offset + 3), RawData(Offset + 2), RawData(Offset + 1), RawData(Offset)}, 0)
@@ -50,16 +62,17 @@ Public Class cFITSReader
         Public Comment As String
     End Structure
 
-    Private Class MyProps
-        Public Shared BitPix As Integer = 0
-        Public Shared BZERO As Double = 0.0
-        Public Shared BSCALE As Double = 1.0
-        Public Shared Width As Integer = -1
-        Public Shared Height As Integer = -1
-        Public Shared ColorValues As Integer = 0
-        Public Shared BytesPerSample As Integer = -1
-        Public Shared DataStartIdx As Integer = -1
+    Private Class cMyProps
+        Public BitPix As Integer = 0
+        Public BZERO As Double = 0.0
+        Public BSCALE As Double = 1.0
+        Public Width As Integer = -1
+        Public Height As Integer = -1
+        Public ColorValues As Integer = 0
+        Public BytesPerSample As Integer = -1
+        Public DataStartIdx As Integer = -1
     End Class
+    Private MyProps As New cMyProps
 
     Public ReadOnly Property BitPix() As Integer
         Get
@@ -109,7 +122,6 @@ Public Class cFITSReader
         End Get
     End Property
 
-
     Public Sub ReadIn(ByVal FileName As String, ByRef ImageData(,) As Double)
         ReadIn(FileName, True, ImageData, New System.Drawing.Point() {})
     End Sub
@@ -130,55 +142,75 @@ Public Class cFITSReader
     Public Sub ReadIn(ByVal FileName As String, ByVal UseBZeroScale As Boolean, ByRef ImageData(,) As Double, ByVal PointsToRead As System.Drawing.Point())
 
         'TODO: Read-in start offset seems to be incorrect
-
         Dim BaseIn As New System.IO.StreamReader(FileName)
-        Dim BlocksRead As Integer = 0
 
-        Dim EndReached As Boolean = False
-        Dim HeaderEntries As New List(Of sHeaderElement)
-        Do
-            Dim Buffer As Char() : ReDim Buffer(HeaderBlockSize - 1)
-            Dim Header As String = String.Empty
-            Do
-                'If the header is empty but the END tag is not yet found, read again
-                If Header.Length = 0 Then
-                    BaseIn.ReadBlock(Buffer, 0, Buffer.Length)
-                    BlocksRead += 1
-                    Header = New String(Buffer)
-                End If
-                Dim NewLine As String = Header.Substring(0, HeaderElementLength)
-                Header = Header.Substring(HeaderElementLength)
-                If NewLine.StartsWith("END") Then
-                    EndReached = True
-                Else
-                    Dim NewHeaderElement As sHeaderElement = Nothing
-                    NewHeaderElement.Element = NewLine.Substring(0, 8).Trim
-                    NewLine = NewLine.Substring(10)
-                    Dim Splitted As String() = Split(NewLine, "/")
-                    NewHeaderElement.Value = Splitted(0).Trim
-                    If Splitted.Length > 1 Then NewHeaderElement.Comment = Splitted(1)
-                    HeaderEntries.Add(NewHeaderElement)
-                    Select Case NewHeaderElement.Element
-                        Case "BITPIX" : MyProps.BitPix = CInt(NewHeaderElement.Value)
-                        Case "NAXIS1" : MyProps.Width = CInt(NewHeaderElement.Value)
-                        Case "NAXIS2" : MyProps.Height = CInt(NewHeaderElement.Value)
-                        Case "NAXIS3" : MyProps.ColorValues = CInt(NewHeaderElement.Value)
-                        Case "BZERO" : MyProps.BZERO = Val(NewHeaderElement.Value.Replace(",", "."))
-                        Case "BSCALE" : MyProps.BSCALE = Val(NewHeaderElement.Value.Replace(",", "."))
-                    End Select
-                End If
-            Loop Until EndReached = True
-        Loop Until EndReached = True
+        'Read header elements
+        Dim HeaderEntries As List(Of sHeaderElement) = ReadHeader(BaseIn)
 
+        'Calculate data stream properties
         Dim StartOffset As Long = BaseIn.BaseStream.Position
         Dim StreamLength As Long = BaseIn.BaseStream.Length
         Dim TotalByte As Long = StreamLength - StartOffset
-
         BaseIn.Close()
 
-        'Read content
-        MyProps.DataStartIdx = BlocksRead * HeaderBlockSize
+        'Read data content
         ReadDataContent(FileName, MyProps.DataStartIdx, ImageData, BitPix, UseBZeroScale, Width, Height, PointsToRead)
+
+    End Sub
+
+    '''<summary>Read FITS data from the passed file.</summary>
+    '''<param name="FileName">File name to load FITS data from.</param>
+    '''<param name="ImageData">Loaded image data processed by BZERO and BSCALE - if PointsToRead is passed, the matrix is 1xN where N is the number of entries in PointsToRead.</param>
+    Public Sub ReadIn(ByVal FileName As String, ByRef ImageData(,) As Int32)
+
+        'TODO: Read-in start offset seems to be incorrect
+        Dim BaseIn As New System.IO.StreamReader(FileName)
+
+        'Read header elements
+        Dim HeaderEntries As List(Of sHeaderElement) = ReadHeader(BaseIn)
+
+        'Calculate data stream properties
+        Dim StartOffset As Long = BaseIn.BaseStream.Position
+        Dim StreamLength As Long = BaseIn.BaseStream.Length
+        Dim TotalByte As Long = StreamLength - StartOffset
+        BaseIn.Close()
+
+        'Read data content
+        ReadDataContent(FileName, MyProps.DataStartIdx, ImageData, BitPix, Width, Height)
+
+    End Sub
+
+    '''<summary>Read FITS data from the passed file - only in case BitPix is 32.</summary>
+    Private Sub ReadDataContent(ByVal FileName As String, ByVal StartPosition As Integer, ByRef ImageData(,) As Int32, ByVal BitPix As Integer, ByVal Width As Integer, ByVal Height As Integer)
+
+        Dim Stopper As New Stopwatch
+        Stopper.Reset() : Stopper.Start()
+
+        'Delete content and exit if format is wrong
+        ImageData = {}
+        If BitPix <> 32 Then Exit Sub
+
+        'Open reader and position to start
+        Dim DataReader As New System.IO.BinaryReader(System.IO.File.OpenRead(FileName))
+        DataReader.BaseStream.Position = DataStartIdx
+
+        'Read all data
+        ReDim ImageData(Width - 1, Height - 1)
+        For H As Integer = 0 To Height - 1
+            For W As Integer = 0 To Width - 1
+                ImageData(W, H) = DataReader.ReadInt32
+            Next W
+        Next H
+
+        'Convert format
+        Dim X As New cIntelIPP(IPPPath & "ipps.dll", IPPPath & "ippvm.dll")
+        X.SwapBytes(ImageData)
+
+        'Close data stream
+        DataReader.Close()
+
+        Stopper.Stop()
+        Debug.Print("Reading FITS data content took " & Stopper.ElapsedMilliseconds.ToString.Trim & " ms")
 
     End Sub
 
@@ -205,7 +237,7 @@ Public Class cFITSReader
             Case 16
                 MyProps.BytesPerSample = 2 : Converter = New cByteConverter_Int16
             Case 32
-                MyProps.BytesPerSample = 4 : Converter = New cByteConverter_Int32
+                MyProps.BytesPerSample = 4 : Converter = New cByteConverter_Int32_Fast
             Case -32
                 MyProps.BytesPerSample = 4 : Converter = New cByteConverter_Single
             Case -64
@@ -280,5 +312,55 @@ Public Class cFITSReader
         DataWriter.Flush()
         DataWriter.Close()
     End Sub
+
+    '==================================================================================================================
+    'INTERNAL HELPER FUNCTIONS
+    '==================================================================================================================
+
+    '''<summary>Get a list of all header elements.</summary>
+    Private Function ReadHeader(ByRef BaseIn As System.IO.StreamReader) As List(Of sHeaderElement)
+
+        Dim EndReached As Boolean = False
+        Dim RetVal As New List(Of sHeaderElement)
+        Dim BlocksRead As Integer = 0
+
+        Do
+            Dim Buffer As Char() : ReDim Buffer(HeaderBlockSize - 1)
+            Dim Header As String = String.Empty
+            Do
+                'If the header is empty but the END tag is not yet found, read again
+                If Header.Length = 0 Then
+                    BaseIn.ReadBlock(Buffer, 0, Buffer.Length)
+                    BlocksRead += 1
+                    Header = New String(Buffer)
+                End If
+                Dim NewLine As String = Header.Substring(0, HeaderElementLength)
+                Header = Header.Substring(HeaderElementLength)
+                If NewLine.StartsWith("END") Then
+                    EndReached = True
+                Else
+                    Dim NewHeaderElement As sHeaderElement = Nothing
+                    NewHeaderElement.Element = NewLine.Substring(0, 8).Trim
+                    NewLine = NewLine.Substring(10)
+                    Dim Splitted As String() = Split(NewLine, "/")
+                    NewHeaderElement.Value = Splitted(0).Trim
+                    If Splitted.Length > 1 Then NewHeaderElement.Comment = Splitted(1)
+                    RetVal.Add(NewHeaderElement)
+                    Select Case NewHeaderElement.Element
+                        Case "BITPIX" : MyProps.BitPix = CInt(NewHeaderElement.Value)
+                        Case "NAXIS1" : MyProps.Width = CInt(NewHeaderElement.Value)
+                        Case "NAXIS2" : MyProps.Height = CInt(NewHeaderElement.Value)
+                        Case "NAXIS3" : MyProps.ColorValues = CInt(NewHeaderElement.Value)
+                        Case "BZERO" : MyProps.BZERO = Val(NewHeaderElement.Value.Replace(",", "."))
+                        Case "BSCALE" : MyProps.BSCALE = Val(NewHeaderElement.Value.Replace(",", "."))
+                    End Select
+                End If
+            Loop Until EndReached = True
+        Loop Until EndReached = True
+
+        MyProps.DataStartIdx = BlocksRead * HeaderBlockSize
+        Return RetVal
+
+    End Function
 
 End Class
