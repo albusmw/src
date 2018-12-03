@@ -1,6 +1,5 @@
 ﻿Option Explicit On
 Option Strict On
-Imports AstroFlow
 
 Public Class cFITSReader
 
