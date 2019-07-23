@@ -2,7 +2,7 @@ Option Explicit On
 Option Strict On
 
 '''<summary>Class to provide FITS header keywords (elements and service functions).</summary>
-'''<remarks>See e.g. https://heasarc.gsfc.nasa.gov/docs/fcg/common_dict.html. </remarks>
+'''<remarks>See e.g. https://heasarc.gsfc.nasa.gov/docs/fcg/common_dict.html and https://diffractionlimited.com/help/maximdl/FITS_File_Header_Definitions.htm. </remarks>
 Public Structure eFITSKeywords
 
     Public Const [SIMPLE] As String = "SIMPLE"          'Primary HDU
@@ -10,6 +10,16 @@ Public Structure eFITSKeywords
     Public Const [NAXIS] As String = "NAXIS"            'Primary HDU
     Public Const [NAXIS1] As String = "NAXIS1"          'Primary HDU
     Public Const [END] As String = "END"                'Primary HDU
+
+    '''<summary>Zero point in scaling equation.</summary>
+    Public Const [BZERO] As String = "BZERO"
+
+    'Alphabetic order ...
+
+    '''<summary>If present the image has a valid Bayer color pattern.</summary>
+    Public Const [BAYERPAT] As String = "BAYERPAT"
+    '''<summary>Type of color sensor Bayer array or zero for monochrome.</summary>
+    Public Const [COLORTYP] As String = "COLORTYP"
 
     '''<summary>The value field shall contain a character string identifying the organization or institution responsible for creating the FITS file.</summary>
     Public Const [ORIGIN] As String = "ORIGIN"
@@ -58,11 +68,26 @@ Public Structure eFITSKeywords
     '''<summary>Field of view [°] along axis 1.</summary>
     Public Const [FOV2] As String = "FOV2"
 
+    '''<summary>Actual measured sensor temperature at the start of exposure in degrees C. Absent if temperature is not available.</summary>
+    Public Const [CCDTEMP] As String = "CCD-TEMP"
+    '''<summary>CCD temperature setpoint in degrees C. Absent if setpoint was not entered.</summary>
+    Public Const [SETTEMP] As String = "SET-TEMP"
+    '''<summary>Focuser temperature readout in degrees C, if available.</summary>
+    Public Const [FOCUSTEM] As String = "FOCUSTEM"
+    '''<summary>Type of image: Light Frame, Bias Frame, Dark Frame, Flat Frame, or Tricolor Image.</summary>
+    Public Const [IMAGETYP] As String = "IMAGETYP"
+    '''<summary>Electronic gain in photoelectrons per ADU.</summary>
+    Public Const [EGAIN] As String = "EGAIN"
+
     '=============================================================================
     'Found in FITS and need additional comments
 
     '''<summary>Used to color encoding.</summary>
     Public Const [CTYPE3] As String = "CTYPE3"
+    '''<summary>Configured GAIN value of the camera.</summary>
+    Public Const [GAIN] As String = "GAIN"
+
+
 
 End Structure
 
