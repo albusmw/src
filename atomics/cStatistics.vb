@@ -7,7 +7,7 @@ Public Class cStatistics
     '================================================================================
 
     '''<summary>Center analyzed region.</summary>
-    Public ReadOnly Property Center() As PointF
+    Public ReadOnly Property Center() As System.Drawing.PointF
         Get
             Return MyCenter
         End Get
@@ -19,7 +19,7 @@ Public Class cStatistics
             Return MyCenter.X.ToString.Trim & ":" & MyCenter.Y.ToString.Trim
         End Get
     End Property
-    Private MyCenter As PointF
+    Private MyCenter As System.Drawing.PointF
 
     '''<summary>Size of the analyzed region.</summary>
     Public ReadOnly Property DetailSizeFormated() As String
@@ -158,7 +158,7 @@ Public Class cStatistics
         Pixels = MyWidth * MyHeight
 
         'Set center
-        MyCenter = New PointF(CSng(X_left + (MyWidth / 2)), CSng(Y_top + (MyHeight / 2)))
+        MyCenter = New System.Drawing.PointF(CSng(X_left + (MyWidth / 2)), CSng(Y_top + (MyHeight / 2)))
 
         'Reset
         MyMaximum = Double.MinValue
@@ -223,7 +223,7 @@ Public Class cStatistics
         Pixels = MyWidth * MyHeight
 
         'Set center
-        MyCenter = New PointF(CSng(X_left + (MyWidth / 2)), CSng(Y_top + (MyHeight / 2)))
+        MyCenter = New System.Drawing.PointF(CSng(X_left + (MyWidth / 2)), CSng(Y_top + (MyHeight / 2)))
 
         'Reset
         MyMaximum = Double.MinValue
