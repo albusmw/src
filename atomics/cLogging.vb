@@ -8,7 +8,7 @@ Public Class cLogging
     Private MyLastEntry As String = String.Empty
     Private Content As New List(Of String)
     Private Stopper(MaxCallDepth) As Stopwatch
-    Private StopperPtr As Integer = 0
+    Private StopperPtr As Integer = -1
     Private StopperContext As String = String.Empty
 
     '''<summary>Call when entering a certain function.</summary>
@@ -40,6 +40,10 @@ Public Class cLogging
     End Sub
 
     Public Sub ShowLog()
+        ShowLog(12)
+    End Sub
+
+    Public Sub ShowLog(ByVal FontSize As Integer)
         Dim FormToShow As New Windows.Forms.Form
         Dim TextB As New Windows.Forms.TextBox
         With TextB
@@ -47,7 +51,7 @@ Public Class cLogging
             .Dock = Windows.Forms.DockStyle.Fill
             .ScrollBars = Windows.Forms.ScrollBars.Both
             .Text = Join(Content.ToArray, System.Environment.NewLine)
-            .Font = New Drawing.Font("Courier New", 16)
+            .Font = New Drawing.Font("Courier New", FontSize)
         End With
         FormToShow.Controls.Add(TextB)
         FormToShow.WindowState = Windows.Forms.FormWindowState.Maximized

@@ -5,57 +5,7 @@ Option Strict On
 'Atomic source file for image processing functions
 '==================================================================================================================
 
-Public Class ImageProcessing
-
-    Const OneUInt32 As UInt32 = CType(1, UInt32)
-
-    '''<summary>Calculate basic bayer statistics on the passed data matrix.</summary>
-    '''<param name="Data">Matrix of data - 2D matrix what contains the raw sensor data.</param>
-    '''<param name="OffsetX">0-based X offset where to start from.</param>
-    '''<param name="OffsetY">0-based Y offset where to start from.</param>
-    '''<param name="SteppingX">Step size in X direction - typically 2 for a normal RGGB bayer matrix.</param>
-    '''<param name="SteppingY">Step size in X direction - typically 2 for a normal RGGB bayer matrix.</param>
-    '''<returns>A sorted dictionary which contains all found values of type T in the Data matrix and its count.</returns>
-    Public Shared Function BayerStatistics(Of T)(ByRef Data(,) As T) As Dictionary(Of T, UInt32)(,)
-
-        'Count all values
-        Dim RetVal(1, 1) As Dictionary(Of T, UInt32)
-        For Idx1 As Integer = 0 To 1
-            For Idx2 As Integer = 0 To 1
-                RetVal(Idx1, Idx2) = BayerStatistics(Data, Idx1, 2, Idx2, 2)
-            Next Idx2
-        Next Idx1
-
-        Return RetVal
-
-    End Function
-
-
-    '''<summary>Calculate basic bayer statistics on the passed data matrix.</summary>
-    '''<param name="Data">Matrix of data - 2D matrix what contains the raw sensor data.</param>
-    '''<param name="OffsetX">0-based X offset where to start from.</param>
-    '''<param name="OffsetY">0-based Y offset where to start from.</param>
-    '''<param name="SteppingX">Step size in X direction - typically 2 for a normal RGGB bayer matrix.</param>
-    '''<param name="SteppingY">Step size in X direction - typically 2 for a normal RGGB bayer matrix.</param>
-    '''<returns>A sorted dictionary which contains all found values of type T in the Data matrix and its count.</returns>
-    Public Shared Function BayerStatistics(Of T)(ByRef Data(,) As T, ByVal OffsetX As Integer, ByVal SteppingX As Integer, ByVal OffsetY As Integer, ByVal SteppingY As Integer) As Dictionary(Of T, UInt32)
-
-        'Count all values
-        Dim AllValues As New Dictionary(Of T, UInt32)
-        For Idx1 As Integer = OffsetX To Data.GetUpperBound(0) Step SteppingX
-            For Idx2 As Integer = OffsetY To Data.GetUpperBound(1) Step SteppingY
-                Dim PixelValue As T = Data(Idx1, Idx2)
-                If AllValues.ContainsKey(PixelValue) = False Then
-                    AllValues.Add(PixelValue, OneUInt32)
-                Else
-                    AllValues(PixelValue) += OneUInt32
-                End If
-            Next Idx2
-        Next Idx1
-
-        Return SortDictionary(AllValues)
-
-    End Function
+Public Class ImageProcessing   
 
     '''<summary>Calculate a color-balanced flat image.</summary>
     '''<remarks>Color balance is done by multiplying with the median values.</remarks>

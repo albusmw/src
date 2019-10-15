@@ -2,6 +2,7 @@
 Option Strict On
 
 '''<summary>Use this class to dynamically call any IPP DLL.</summary>
+'''<see cref=">https://software.intel.com/en-us/ipp-dev-guide"/>
 Partial Public Class cIntelIPP
 
 #Region "Handles and constructors"
@@ -71,7 +72,7 @@ Partial Public Class cIntelIPP
 
     Friend Shared Function GetPtr(Of T)(ByRef Array() As T) As IntPtr
         Try
-            Return System.Runtime.InteropServices.Marshal.UnsafeAddrOfPinnedArrayElement(Array, 0)
+            Return GetPtr(Array, 0)
         Catch ex As Exception
             Return Nothing
         End Try
@@ -85,7 +86,14 @@ Partial Public Class cIntelIPP
     End Function
     Friend Shared Function GetPtr(Of T)(ByRef Array(,) As T) As IntPtr
         Try
-            Return System.Runtime.InteropServices.Marshal.UnsafeAddrOfPinnedArrayElement(Array, 0)
+            Return GetPtr(Array, 0)
+        Catch ex As Exception
+            Return Nothing
+        End Try
+    End Function
+    Friend Shared Function GetPtr(Of T)(ByRef Array(,) As T, ByRef Offset As Integer) As IntPtr
+        Try
+            Return System.Runtime.InteropServices.Marshal.UnsafeAddrOfPinnedArrayElement(Array, Offset)
         Catch ex As Exception
             Return Nothing
         End Try
@@ -111,6 +119,7 @@ Partial Public Class cIntelIPP
 #Region "Delegates"
     Private Delegate Function Call_Single_IntPtr_Integer(ByVal val As Single, ByVal pSrcDst As IntPtr, ByVal len As Integer) As IppStatus
     Private Delegate Function Call_IntPtr_IntPtr_Integer(ByVal pSrc As IntPtr, ByVal pDst As IntPtr, ByVal len As Integer) As IppStatus
+    Private Delegate Function Call_IntPtr_Integer_IntPtr_Integer(ByVal pSrc As IntPtr, ByVal len As Integer, ByVal pMin As IntPtr, ByVal scaleFactor As Integer) As IppStatus
     Private Delegate Function Call_IntPtr_IntPtr_Integer_IppRoundMode_Integer(ByVal pSrc As IntPtr, ByVal pDst As IntPtr, ByVal len As Integer, ByVal rndMode As IppRoundMode, ByVal scaleFactor As Integer) As IppStatus
     Private Delegate Function Call_IntPtr_Integer_IntPtr_IntPtr(ByVal pSrc As IntPtr, ByVal len As Integer, ByVal pMin As IntPtr, ByVal pMax As IntPtr) As IppStatus
     Private Delegate Function Call_Double_IntPtr_Integer(ByVal val As Double, ByVal pSrcDst As IntPtr, ByVal len As Integer) As IppStatus
@@ -438,6 +447,22 @@ Partial Public Class cIntelIPP
 
     '==========================================================================================================================================================
 
+    'Sum
+    '''<summary>Computes the sum of the elements of a vector.</summary>
+    '''<param name="ArraySrc">Array to calculate sum from.</param>
+    '''<param name="TotalSum">Sum of all elements.</param>
+    Public Function Sum(ByRef ArraySrc(,) As Short, ByRef TotalSum As Integer) As IppStatus
+        Dim FunctionName As String = "ippsSum_16s32s_Sfs"
+        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
+        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(Call_IntPtr_Integer_IntPtr_Integer))
+        Dim ArrayDst(0) As Integer
+        Dim RetVal As IppStatus = CType(Caller.DynamicInvoke(GetPtr(ArraySrc), ArraySrc.Length, GetPtr(ArrayDst), 0), IppStatus)
+        TotalSum = ArrayDst(0)
+        Return RetVal
+    End Function
+
+    '==========================================================================================================================================================
+
     'DivC
     Public Function DivC(ByRef Array(,) As Double, ByRef ScaleFactor As Double) As IppStatus
         Dim FunctionName As String = "ippsDivC_64f_I"
@@ -572,8 +597,6 @@ Partial Public Class cIntelIPP
         Return CType(Caller.DynamicInvoke(GetPtr(Array), Array.Length), IppStatus)
     End Function
 
-
-
     Public Function Sin(ByRef ArrayIn(,) As Double) As IppStatus
         Dim FunctionName As String = "ippsSin_64f_A53"
         Dim FunPtr As IntPtr = GetProcAddress(ippvmHandle, FunctionName)
@@ -583,6 +606,44 @@ Partial Public Class cIntelIPP
         Dim RetVal As IppStatus = CType(Caller.DynamicInvoke(GetPtr(ArrayIn), GetPtr(InPlace), ArrayIn.Length), IppStatus)
         ArrayIn = Copy(InPlace)
         Return RetVal
+    End Function
+
+    '==========================================================================================================================================================
+    ' EXTENDED FUNCTIONS
+    '==========================================================================================================================================================
+
+    '''<summary>Computes the sum of the elements of a vector.</summary>
+    '''<param name="ArraySrc">Array to calculate sum from.</param>
+    '''<param name="TotalSum">Sum of all elements.</param>
+    '''<remarks>Function ippsSum_16s32s_Sfs is calles with scaling factor 0 and sliced.</remarks>
+    Public Function Sum(ByRef ArraySrc(,) As Short, ByRef TotalSum As Long) As IppStatus
+        Dim FunctionName As String = "ippsSum_16s32s_Sfs"
+        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
+        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(Call_IntPtr_Integer_IntPtr_Integer))
+        TotalSum = 0
+        Dim ArrayDst(0) As Integer
+
+        Dim ArraySrcGAC As Runtime.InteropServices.GCHandle = Runtime.InteropServices.GCHandle.Alloc(ArraySrc, Runtime.InteropServices.GCHandleType.Pinned)
+        Dim ArrayDstGAC As Runtime.InteropServices.GCHandle = Runtime.InteropServices.GCHandle.Alloc(ArrayDst, Runtime.InteropServices.GCHandleType.Pinned)
+
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim SliceSize As Integer = Short.MaxValue - 1
+        Try
+            For Idx As Integer = 0 To CInt(ArraySrc.LongLength) Step SliceSize
+                Dim Length As Integer = SliceSize : If Idx + Length > CInt(ArraySrc.LongLength) Then Length = CInt(ArraySrc.LongLength) - Idx
+                RetVal = CType(Caller.DynamicInvoke(GetPtr(ArraySrc, Idx), Length, GetPtr(ArrayDst), 0), IppStatus)
+                TotalSum += ArrayDst(0)
+            Next Idx
+        Catch ex As Exception
+            TotalSum = 0
+            Return IppStatus.Err
+        End Try
+
+        'Clean-up and exit
+        ArraySrcGAC.Free()
+        ArrayDstGAC.Free()
+        Return RetVal
+
     End Function
 
 End Class
