@@ -85,7 +85,7 @@ Public Class ImageProcessing
                 If DiffHisto.ContainsKey(Diff) = False Then
                     DiffHisto.Add(Diff, 1)
                 Else
-                    DiffHisto(Diff) += OneUInt32
+                    DiffHisto(Diff) += OneMore
                 End If
                 LastEntry = Entry
             End If
