@@ -127,6 +127,8 @@ Namespace AstroNET
             RetVal.DifferentValueCount = Histogram.Count
             'Calculate statistics
             Dim SumSampleCount As Long = 0
+            Dim MeanSum As UInt64 = 0
+            Dim MeanPow2Sum As UInt64 = 0
             Dim Lim_Pct5 As Long = CLng(RetVal.Samples * 0.05)
             Dim Lim_Pct25 As Long = CLng(RetVal.Samples * 0.25)
             Dim Lim_Pct50 As Long = CLng(RetVal.Samples * 0.5)
@@ -135,11 +137,11 @@ Namespace AstroNET
             For Each PixelValue As UInt16 In Histogram.Keys
                 Dim HistCount As UInteger = Histogram(PixelValue)
                 SumSampleCount += HistCount
-                Dim WeightCount As Double = (PixelValue * HistCount)
-                Dim WeightPow2 As Double = (CDbl(PixelValue) * CDbl(PixelValue)) * CDbl(HistCount)
+                Dim WeightCount As UInt64 = (CType(PixelValue, UInt64) * CType(HistCount, UInt64))
+                Dim WeightPow2 As UInt64 = (CType(PixelValue, UInt64) * CType(PixelValue, UInt64)) * CType(HistCount, UInt64)
                 SamplesProcessed += HistCount
-                RetVal.Mean += WeightCount
-                RetVal.MeanPow2 += WeightPow2
+                MeanSum += WeightCount
+                MeanPow2Sum += WeightPow2
                 If PixelValue > RetVal.Max Then RetVal.Max = PixelValue
                 If PixelValue < RetVal.Min Then RetVal.Min = PixelValue
                 If SamplesProcessed >= RetVal.Samples \ 2 Then RetVal.Median = PixelValue
@@ -150,8 +152,8 @@ Namespace AstroNET
                 If SumSampleCount >= Lim_Pct95 And RetVal.Percentile.ContainsKey(95) = False Then RetVal.Percentile.Add(95, PixelValue)
             Next PixelValue
             RetVal.StdDev = Math.Sqrt(((RetVal.MeanPow2) - ((RetVal.Mean * RetVal.Mean) / RetVal.Samples)) / (RetVal.Samples - 1))
-            RetVal.Mean /= RetVal.Samples
-            RetVal.MeanPow2 /= RetVal.Samples
+            RetVal.Mean = MeanSum / RetVal.Samples
+            RetVal.MeanPow2 = MeanPow2Sum / RetVal.Samples
             Return RetVal
         End Function
 
