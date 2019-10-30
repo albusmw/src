@@ -5,7 +5,7 @@ Option Strict On
 Public Class cImageDisplay
 
     '''<summary>Get an color-mapped bitmap image from the given image data.</summary>
-    Public Function CalculateImageFromData(ByRef ImageData(,) As Int32) As cLockBitmap
+    Public Shared Function CalculateImageFromData(ByRef ImageData(,) As Int32) As cLockBitmap
 
         Dim Width As Integer = ImageData.GetUpperBound(0) + 1
         Dim Height As Integer = ImageData.GetUpperBound(1) + 1
