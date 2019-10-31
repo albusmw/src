@@ -5,36 +5,35 @@ Option Strict On
 'All other modules with statistics should not be used any more and put their code here
 'Old modules:
 ' - C:\GIT\src\atomics\cStatistics.vb
-'
-'TODO:
-' - Run multi-threaded with C:\GIT\src\atomics\cStatMultiThread.vb code
 Namespace AstroNET
 
     Public Class Statistics
 
+        Public Data(,) As UInt16
+
         Private Const OneUInt32 As UInt32 = CType(1, UInt32)
 
-        Public Structure sTotalStat(Of T)
+        Public Structure sTotalStat
             '''<summary>Full-resolution histogram data - bayer data.</summary>
-            Public BayerHistograms(,) As Dictionary(Of T, UInt32)
+            Public BayerHistograms(,) As Dictionary(Of UInt16, UInt32)
             '''<summary>Full-resolution histogram data - mono data.</summary>
-            Public MonochromHistogram As Dictionary(Of T, UInt32)
+            Public MonochromHistogram As Dictionary(Of UInt16, UInt32)
             '''<summary>Statistics for each channel.</summary>
-            Public BayerStatistics(,) As sSingleChannelStatistics(Of T)
+            Public BayerStatistics(,) As sSingleChannelStatistics
             '''<summary>Statistics for each channel.</summary>
-            Public MonoStatistics As sSingleChannelStatistics(Of T)
+            Public MonoStatistics As sSingleChannelStatistics
         End Structure
 
         '''<summary>Statistic information of one channel (RGB or total).</summary>
-        Public Structure sSingleChannelStatistics(Of T)
+        Public Structure sSingleChannelStatistics
             '''<summary>Number of total samples (pixels) in the data set.</summary>
             Public Samples As Long
             '''<summary>Maximum value occured.</summary>
-            Public Max As T
+            Public Max As UInt16
             '''<summary>Minimum value occured.</summary>
-            Public Min As T
+            Public Min As UInt16
             '''<summary>Value where half of the samples are below and half are above.</summary>
-            Public Median As T
+            Public Median As UInt16
             '''<summary>Arithmetic mean value.</summary>
             Public Mean As Double
             '''<summary>Mean value of squared values.</summary>
@@ -46,8 +45,8 @@ Namespace AstroNET
             '''<summary>Percentile.</summary>
             Public Percentile As Dictionary(Of Byte, UInt16)
             '''<summary>Init all inner variables.</summary>
-            Public Shared Function InitForShort() As sSingleChannelStatistics(Of UInt16)
-                Dim RetVal As New sSingleChannelStatistics(Of UInt16)
+            Public Shared Function InitForShort() As sSingleChannelStatistics
+                Dim RetVal As New sSingleChannelStatistics
                 RetVal.Samples = 0
                 RetVal.Max = UInt16.MinValue
                 RetVal.Min = UInt16.MaxValue
@@ -61,18 +60,18 @@ Namespace AstroNET
         End Structure
 
         '''<summary>Calculate the image statistics of the passed image data.</summary>
-        Public Shared Function ImageStatistics(ByRef Data(,) As UInt16) As sTotalStat(Of UInt16)
-            Dim RetVal As New sTotalStat(Of UInt16)
-            'Calculate a bayer statistics (also for mono data - if thread-based this may even speed up ...)
-            RetVal.BayerHistograms = BayerStatistics(Data, 2, 2)
+        Public Function ImageStatistics() As sTotalStat
+            Dim RetVal As New sTotalStat
+            'Calculate a 2x2 bayer statistics (also for mono data - if thread-based this may even speed up ...)
+            RetVal.BayerHistograms = BayerStatistics()
             'Add all other data (mono histo and statistics)
             CalculateAllFromBayerStatistics(RetVal)
             Return RetVal
         End Function
 
         '''<summary>Combine 2 SingleChannelStatistics elements (e.g. to calculate the aggregated statistic for multi-frame capture).</summary>
-        Public Shared Function CombineStatistics(ByVal StatA As sTotalStat(Of UInt16), ByVal StatB As sTotalStat(Of UInt16)) As sTotalStat(Of UInt16)
-            Dim RetVal As New sTotalStat(Of UInt16)
+        Public Function CombineStatistics(ByVal StatA As sTotalStat, ByVal StatB As sTotalStat) As sTotalStat
+            Dim RetVal As New sTotalStat
             '1.) Combine to 2 histograms
             ReDim RetVal.BayerHistograms(StatA.BayerHistograms.GetUpperBound(0), StatA.BayerHistograms.GetUpperBound(1))
             For BayIdx1 As Integer = 0 To StatA.BayerHistograms.GetUpperBound(0)
@@ -93,7 +92,7 @@ Namespace AstroNET
                             End If
                         Next PixelValue
                     End If
-                    RetVal.BayerHistograms(BayIdx1, BayIdx2) = SortDictionary(RetVal.BayerHistograms(BayIdx1, BayIdx2))
+                    RetVal.BayerHistograms(BayIdx1, BayIdx2) = cGenerics.SortDictionary(RetVal.BayerHistograms(BayIdx1, BayIdx2))
                 Next BayIdx2
             Next BayIdx1
             CalculateAllFromBayerStatistics(RetVal)
@@ -101,7 +100,7 @@ Namespace AstroNET
         End Function
 
         '''<summary>Calculate all statistic data (mono histo and statistics) from the passed bayer statistics.</summary>
-        Private Shared Sub CalculateAllFromBayerStatistics(ByRef RetVal As sTotalStat(Of UInt16))
+        Private Sub CalculateAllFromBayerStatistics(ByRef RetVal As sTotalStat)
             'Calculate a monochromatic statistics from the bayer histograms
             RetVal.MonochromHistogram = CombineBayerToMonoStatistics(RetVal.BayerHistograms)
             'Calculate the bayer channel statistics from the bayer histogram
@@ -116,8 +115,8 @@ Namespace AstroNET
         End Sub
 
         '''<summary>Calculate the statistic data from the passed histogram data.</summary>
-        Private Shared Function CalcStatisticFromHistogram(ByRef Histogram As Dictionary(Of UInt16, UInt32)) As sSingleChannelStatistics(Of UInt16)
-            Dim RetVal As sSingleChannelStatistics(Of UInt16) = sSingleChannelStatistics(Of UInt16).InitForShort()
+        Private Function CalcStatisticFromHistogram(ByRef Histogram As Dictionary(Of UInt16, UInt32)) As sSingleChannelStatistics
+            Dim RetVal As sSingleChannelStatistics = sSingleChannelStatistics.InitForShort()
             Dim SamplesProcessed As UInt32 = 0
             'Count number of samples
             For Each PixelValue As UInt16 In Histogram.Keys
@@ -158,7 +157,7 @@ Namespace AstroNET
         End Function
 
         '''<summary>Combine all bayer statistics to a monochromatic statistic of all pixel of the image.</summary>
-        Public Shared Function CombineBayerToMonoStatistics(Of T)(ByRef BayerHistData(,) As Dictionary(Of T, UInt32)) As Dictionary(Of T, UInt32)
+        Public Function CombineBayerToMonoStatistics(Of T)(ByRef BayerHistData(,) As Dictionary(Of T, UInt32)) As Dictionary(Of T, UInt32)
             Dim RetVal As New Dictionary(Of T, UInt32)
             For Idx1 As Integer = 0 To BayerHistData.GetUpperBound(0)
                 For Idx2 As Integer = 0 To BayerHistData.GetUpperBound(1)
@@ -171,7 +170,7 @@ Namespace AstroNET
                     Next KeyIdx
                 Next Idx2
             Next Idx1
-            Return SortDictionary(RetVal)
+            Return cGenerics.SortDictionary(RetVal)
         End Function
 
         '''<summary>Calculate basic bayer statistics on the passed data matrix.</summary>
@@ -179,63 +178,19 @@ Namespace AstroNET
         '''<param name="XEntries">Number of different X entries - 1 for B/W, 2 for normal RGGB, other values are exotic.</param>
         '''<param name="YEntries">Number of different Y entries - 1 for B/W, 2 for normal RGGB, other values are exotic.</param>
         '''<returns>A sorted dictionary which contains all found values of type T in the Data matrix and its count.</returns>
-        Public Shared Function BayerStatistics(Of T)(ByRef Data(,) As T, ByVal XEntries As Integer, ByVal YEntries As Integer) As Dictionary(Of T, UInt32)(,)
+        Public Function BayerStatistics() As Dictionary(Of UInt16, UInt32)(,)
 
             'Count all values
-            Dim RetVal(XEntries - 1, YEntries - 1) As Dictionary(Of T, UInt32)
-            For Idx1 As Integer = 0 To XEntries - 1
-                For Idx2 As Integer = 0 To YEntries - 1
-                    RetVal(Idx1, Idx2) = BayerStatistics(Data, Idx1, XEntries, Idx2, YEntries)
+            Dim RetVal(1, 1) As Dictionary(Of UInt16, UInt32)
+            Dim StatMultiThread As New cStatMultiThread(Of UInt16)
+            Dim Results As New cStatMultiThread(Of UInt16).cStateObj(Of UInt16)
+            StatMultiThread.Data = Data
+            StatMultiThread.Calculate(4, Results)
+            For Idx1 As Integer = 0 To 1
+                For Idx2 As Integer = 0 To 1
+                    RetVal(Idx1, Idx2) = Results.HistDataBayer(Idx1, Idx2)
                 Next Idx2
             Next Idx1
-
-            Return RetVal
-
-        End Function
-
-        '''<summary>Calculate basic bayer statistics on the passed data matrix.</summary>
-        '''<param name="Data">Matrix of data - 2D matrix what contains the raw sensor data.</param>
-        '''<param name="OffsetX">0-based X offset where to start from.</param>
-        '''<param name="OffsetY">0-based Y offset where to start from.</param>
-        '''<param name="SteppingX">Step size in X direction - typically 2 for a normal RGGB bayer matrix.</param>
-        '''<param name="SteppingY">Step size in X direction - typically 2 for a normal RGGB bayer matrix.</param>
-        '''<returns>A sorted dictionary which contains all found values of type T in the Data matrix and its count.</returns>
-        Public Shared Function BayerStatistics(Of T)(ByRef Data(,) As T, ByVal OffsetX As Integer, ByVal SteppingX As Integer, ByVal OffsetY As Integer, ByVal SteppingY As Integer) As Dictionary(Of T, UInt32)
-
-            'Count all values
-            Dim AllValues As New Dictionary(Of T, UInt32)
-            For Idx1 As Integer = OffsetX To Data.GetUpperBound(0) Step SteppingX
-                For Idx2 As Integer = OffsetY To Data.GetUpperBound(1) Step SteppingY
-                    Dim PixelValue As T = Data(Idx1, Idx2)
-                    If AllValues.ContainsKey(PixelValue) = False Then
-                        AllValues.Add(PixelValue, OneUInt32)
-                    Else
-                        AllValues(PixelValue) += OneUInt32
-                    End If
-                Next Idx2
-            Next Idx1
-
-            Return SortDictionary(AllValues)
-
-        End Function
-
-        '================================================================================
-
-        '''<summary>Sort the passed dictionary according to T1 (key).</summary>
-        Private Shared Function SortDictionary(Of T1, T2)(ByRef Hist As Dictionary(Of T1, T2)) As Dictionary(Of T1, T2)
-
-            'Generate a list
-            Dim KeyList As New List(Of T1)
-            For Each Entry As T1 In Hist.Keys
-                KeyList.Add(Entry)
-            Next Entry
-            'Sort keys
-            KeyList.Sort()
-            'Re-generate dictionary
-            Dim RetVal As New Dictionary(Of T1, T2)
-            For Each Entry As T1 In KeyList
-                RetVal.Add(Entry, Hist(Entry))
-            Next Entry
 
             Return RetVal
 

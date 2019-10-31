@@ -13,12 +13,17 @@ Public Class cFITSWriter
     '''<summary>Value that is stored if the passed data could not be stored as Single value..</summary>
     Private Const SingleValueInvalid As Single = Single.NaN
 
+    Private Shared UInt16Table As Dictionary(Of UInt16, Byte())
+
+    Private Const BZeroNotUsed As Double = 0.0
+    Private Const BScaleNotUsed As Double = 1.0
+    Private Const Int16UsignedToFITS As Int32 = 32768
+
     Public Class FITSWriterException : Inherits Exception
         Public Sub New(ByVal Message As String)
             MyBase.New(Message)
         End Sub
     End Class
-
 
     '- Header data that are directly dependant on the concent are stored automatically
     '- Additional data are passed as list of vectors
@@ -51,7 +56,7 @@ Public Class cFITSWriter
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
     Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Byte, ByVal BitPix As eBitPix) As Integer
-        Return Write(FileName, ImageData, BitPix, 0.0, 1.0, Nothing)
+        Return Write(FileName, ImageData, BitPix, BZeroNotUsed, 1.0, Nothing)
     End Function
 
     '''<summary>Write the passed ImageData matrix to a FITS file.</summary>
@@ -59,7 +64,7 @@ Public Class cFITSWriter
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
     Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Byte, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String())) As Integer
-        Return Write(FileName, ImageData, BitPix, 0.0, 1.0, CustomHeaderElements)
+        Return Write(FileName, ImageData, BitPix, BZeroNotUsed, BScaleNotUsed, CustomHeaderElements)
     End Function
 
     '''<summary>Write the passed ImageData matrix to a FITS file.</summary>
@@ -122,7 +127,7 @@ Public Class cFITSWriter
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
     Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int16, ByVal BitPix As eBitPix) As Integer
-        Return Write(FileName, ImageData, BitPix, 0.0, 1.0, Nothing)
+        Return Write(FileName, ImageData, BitPix, BZeroNotUsed, BScaleNotUsed, Nothing)
     End Function
 
     '''<summary>Write the passed ImageData matrix to a FITS file.</summary>
@@ -130,7 +135,7 @@ Public Class cFITSWriter
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
     Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int16, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String())) As Integer
-        Return Write(FileName, ImageData, BitPix, 0.0, 1.0, CustomHeaderElements)
+        Return Write(FileName, ImageData, BitPix, BZeroNotUsed, BScaleNotUsed, CustomHeaderElements)
     End Function
 
     '''<summary>Write the passed ImageData matrix to a FITS file.</summary>
@@ -185,6 +190,97 @@ Public Class cFITSWriter
     End Function
 
     '================================================================================================
+    ' UInt16
+    '================================================================================================
+
+    '''<summary>Write the passed ImageData matrix to a FITS file.</summary>
+    '''<param name="FileName">File to generate.</param>
+    '''<param name="ImageData">Data to write.</param>
+    '''<param name="BitPix">Bit per pixel.</param>
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt16, ByVal BitPix As eBitPix) As Integer
+        Return Write(FileName, ImageData, BitPix, Int16UsignedToFITS + 1, BScaleNotUsed, Nothing)
+    End Function
+
+    '''<summary>Write the passed ImageData matrix to a FITS file.</summary>
+    '''<param name="FileName">File to generate.</param>
+    '''<param name="ImageData">Data to write.</param>
+    '''<param name="BitPix">Bit per pixel.</param>
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt16, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String())) As Integer
+        Return Write(FileName, ImageData, BitPix, Int16UsignedToFITS + 1, BScaleNotUsed, CustomHeaderElements)
+    End Function
+
+    '''<summary>Write the passed ImageData matrix to a FITS file.</summary>
+    '''<param name="FileName">File to generate.</param>
+    '''<param name="ImageData">Data to write.</param>
+    '''<param name="BitPix">Bit per pixel.</param>
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt16, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String())) As Integer
+
+        Dim RetVal As Integer = 0
+        Dim BaseOut As New System.IO.StreamWriter(FileName)
+        Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
+
+        'Init table for conversion of UIn16 values to bytes to write
+        If IsNothing(UInt16Table) = True Then
+            UInt16Table = New Dictionary(Of UShort, Byte())
+            For InDat As UInt16 = UInt16.MinValue To UInt16.MaxValue - 1
+                UInt16Table.Add(InDat, GetBytesToStore(CType(InDat - Int16UsignedToFITS, Int16)))
+            Next InDat
+            UInt16Table.Add(UInt16.MaxValue, GetBytesToStore(CType(UInt16.MaxValue - Int16UsignedToFITS, Int16)))
+        End If
+
+        'Load all header elements
+        Dim Header As New List(Of String)
+        Header.Add(FormatHeader("SIMPLE", "T"))
+        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
+        Header.Add(FormatHeader("NAXIS", "2"))
+        Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
+        Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
+        Header.Add(FormatHeader("BZERO", BZero.ToString.Trim.Replace(",", ".")))
+        Header.Add(FormatHeader("BSCALE", BScale.ToString.Trim.Replace(",", ".")))
+        AddCustomHeaders(Header, CustomHeaderElements)
+
+        'Write header
+        PadHeader(Header)
+        BaseOut.Write(Join(Header.ToArray, String.Empty))
+        BaseOut.Flush()
+
+        'Calculate scaler
+        Dim A As Double = 1 / BScale
+        Dim B As Double = -(BZero / BScale)
+
+        'Write content
+        Select Case BitPix
+            Case eBitPix.Int16
+                If BZero = Int16UsignedToFITS + 1 And BScale = BScaleNotUsed Then
+                    'Write "as is" without any additional calculation (as there is no scaling ...)
+                    'The only scaling needed is to subtrace 32768 in order to get a Int16 for the UInt16 ...
+                    For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+                        For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                            BytesOut.Write(UInt16Table(ImageData(Idx2, Idx1)))
+                        Next Idx2
+                    Next Idx1
+                Else
+                    'Write with scaling and offset taken into account
+                    For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+                        For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                            BytesOut.Write(GetBytesToStore_BitPix16(ImageData(Idx2, Idx1), A, B, RetVal))
+                        Next Idx2
+                    Next Idx1
+                End If
+            Case Else
+                Throw New FITSWriterException("Conversion from Int32 to BitPix <" & CStr(CInt(BitPix)).Trim & "> is not supported!")
+        End Select
+
+        'Finish
+        BytesOut.Flush()
+        BaseOut.Close()
+
+        'Return number of conversion errors
+        Return RetVal
+
+    End Function
+
+    '================================================================================================
     ' Int32
     '================================================================================================
 
@@ -193,7 +289,7 @@ Public Class cFITSWriter
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
     Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int32, ByVal BitPix As eBitPix) As Integer
-        Return Write(FileName, ImageData, BitPix, 0.0, 1.0, Nothing)
+        Return Write(FileName, ImageData, BitPix, BZeroNotUsed, BScaleNotUsed, Nothing)
     End Function
 
     '''<summary>Write the passed ImageData matrix to a FITS file.</summary>
@@ -201,7 +297,7 @@ Public Class cFITSWriter
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
     Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int32, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String())) As Integer
-        Return Write(FileName, ImageData, BitPix, 0.0, 1.0, CustomHeaderElements)
+        Return Write(FileName, ImageData, BitPix, BZeroNotUsed, BScaleNotUsed, CustomHeaderElements)
     End Function
 
     '''<summary>Write the passed ImageData matrix to a FITS file.</summary>
@@ -294,7 +390,7 @@ Public Class cFITSWriter
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
     Public Shared Function Write(ByVal FileName As String, ByRef ImageDataR(,) As Int32, ByRef ImageDataG(,) As Int32, ByRef ImageDataB(,) As Int32, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String())) As Integer
-        Return Write(FileName, ImageDataR, ImageDataG, ImageDataB, BitPix, 0.0, 1.0, Nothing)
+        Return Write(FileName, ImageDataR, ImageDataG, ImageDataB, BitPix, BZeroNotUsed, BScaleNotUsed, Nothing)
     End Function
 
     '''<summary>Write the passed ImageData matrix to a color FITS file.</summary>
@@ -394,7 +490,7 @@ Public Class cFITSWriter
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
     Public Shared Sub Write(ByVal FileName As String, ByRef ImageData(,) As Single, ByVal BitPix As eBitPix)
-        Write(FileName, ImageData, BitPix, 0.0, 1.0, Nothing)
+        Write(FileName, ImageData, BitPix, BZeroNotUsed, BScaleNotUsed, Nothing)
     End Sub
 
     Public Shared Sub Write(ByVal FileName As String, ByRef ImageData(,) As Single, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String()))
@@ -536,7 +632,7 @@ Public Class cFITSWriter
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
     Public Shared Sub Write(ByVal FileName As String, ByRef ImageData(,) As Double, ByVal BitPix As eBitPix)
-        Write(FileName, ImageData, BitPix, 0.0, 1.0, Nothing)
+        Write(FileName, ImageData, BitPix, BZeroNotUsed, BScaleNotUsed, Nothing)
     End Sub
 
     '''<summary>Write the passed ImageData matrix to a FITS file.</summary>
@@ -636,6 +732,16 @@ Public Class cFITSWriter
     '======================================================================================================================================================
     ' Helper functions (private)
     '======================================================================================================================================================
+
+    Private Shared Function GetBytesToStore(ByVal Value As Int16) As Byte()
+        Dim RetVal As Byte() = BitConverter.GetBytes(Value)
+        Return New Byte() {RetVal(1), RetVal(0)}
+    End Function
+
+    Private Shared Function GetBytesToStore(ByVal Value As UInt16) As Byte()
+        Dim RetVal As Byte() = BitConverter.GetBytes(Value)
+        Return New Byte() {RetVal(1), RetVal(0)}
+    End Function
 
     Private Shared Function GetBytesToStore_BitPix8(ByVal Value As Double, ByVal A As Double, ByVal B As Double, ByRef ErrorCount As Integer) As Byte
         Dim Scaled As Double = (A * Value) + B
