@@ -252,12 +252,17 @@ Public Class cFITSWriter
         Select Case BitPix
             Case eBitPix.Int16
                 If BZero = Int16UsignedToFITS + 1 And BScale = BScaleNotUsed Then
-                    'Write "as is" without any additional calculation (as there is no scaling ...)
-                    'The only scaling needed is to subtrace 32768 in order to get a Int16 for the UInt16 ...
+                    'Write "as is" without any additional calculation (as there is no scaling ...); the only scaling needed is to subtrace 32768 in order to get a Int16 for the UInt16 ...
+                    'We write the data blockwise to speed up writing ...
+                    Dim Block(((ImageData.GetUpperBound(0) + 1) * 2) - 1) As Byte
+                    Dim BlockPtr As Integer = 0
                     For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
                         For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
-                            BytesOut.Write(UInt16Table(ImageData(Idx2, Idx1)))
+                            Dim Val(1) As Byte : Val = UInt16Table(ImageData(Idx2, Idx1))
+                            Block(BlockPtr) = Val(0) : Block(BlockPtr + 1) = Val(1)
+                            BlockPtr += 2
                         Next Idx2
+                        BytesOut.Write(Block) : BlockPtr = 0
                     Next Idx1
                 Else
                     'Write with scaling and offset taken into account

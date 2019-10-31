@@ -9,7 +9,7 @@ Namespace AstroNET
 
     Public Class Statistics
 
-        Public Data(,) As UInt16
+        Public DataProcessor As New cStatMultiThread(Of UInt16)
 
         Private Const OneUInt32 As UInt32 = CType(1, UInt32)
 
@@ -182,10 +182,8 @@ Namespace AstroNET
 
             'Count all values
             Dim RetVal(1, 1) As Dictionary(Of UInt16, UInt32)
-            Dim StatMultiThread As New cStatMultiThread(Of UInt16)
             Dim Results As New cStatMultiThread(Of UInt16).cStateObj(Of UInt16)
-            StatMultiThread.Data = Data
-            StatMultiThread.Calculate(4, Results)
+            DataProcessor.Calculate(4, Results)
             For Idx1 As Integer = 0 To 1
                 For Idx2 As Integer = 0 To 1
                     RetVal(Idx1, Idx2) = Results.HistDataBayer(Idx1, Idx2)
