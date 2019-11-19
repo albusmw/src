@@ -274,8 +274,12 @@ Public Class cFITSReader
         DataReader.Read(AllRawData, 0, AllRawData.Length)
         Dim RawDataPtr As Integer = 0
 
+        'Check if all data should be read
+        Dim ReadAllData As Boolean = False
+        If IsNothing(PointsToRead) = True Then ReadAllData = True Else If PointsToRead.Length = 0 Then ReadAllData = True
+
         'Read data - first select if all points must be read or only a dedicated number of points
-        If PointsToRead.Length = 0 Then
+        If ReadAllData Then
             'Read all data
             ReDim ImageData(Width - 1, Height - 1)
             If (FITSHeaderParser.BZERO <> 0 Or FITSHeaderParser.BSCALE <> 1) And UseBZeroScale = True Then
@@ -319,6 +323,61 @@ Public Class cFITSReader
 
         Stopper.Stop()
         Debug.Print("Reading FITS data content took " & Stopper.ElapsedMilliseconds.ToString.Trim & " ms")
+
+    End Sub
+
+    '''<summary>Read FITS data from the passed file, and do not apply any scaling indicated.</summary>
+    '''<param name="FileName">File name to load FITS data from.</param>
+    '''<param name="ImageData">Loaded image data as-is.</param>
+    Public Sub ReadInRaw(ByVal FileName As String, ByRef ImageData(,) As Int32)
+
+        'TODO: Read-in start offset seems to be incorrect
+        Dim BaseIn As New System.IO.StreamReader(FileName)
+
+        'Read header elements
+        Dim HeaderEntries As List(Of sHeaderElement) = ReadHeader(BaseIn)
+
+        'Calculate data stream properties
+        Dim StartOffset As Long = BaseIn.BaseStream.Position
+        Dim StreamLength As Long = BaseIn.BaseStream.Length
+        Dim TotalByte As Long = StreamLength - StartOffset
+        BaseIn.Close()
+
+        'Open reader and position to start
+        Dim DataReader As New System.IO.BinaryReader(System.IO.File.OpenRead(FileName))
+        DataReader.BaseStream.Position = DataStartIdx
+
+        'Set image and buffer add data
+        Dim PtrStepping As Integer = BitPix \ 8
+        Dim AllRawData As Byte() : ReDim AllRawData((Height * Width * PtrStepping) - 1)
+        DataReader.Read(AllRawData, 0, AllRawData.Length)
+
+        'Read all data
+        ReDim ImageData(Width - 1, Height - 1)
+        Dim RawDataPtr As Integer = 0
+        Select Case BitPix
+            Case 8
+                For H As Integer = 0 To Height - 1
+                    For W As Integer = 0 To Width - 1
+                        ImageData(W, H) = AllRawData(RawDataPtr)
+                        RawDataPtr += PtrStepping
+                    Next W
+                Next H
+            Case 16
+                For H As Integer = 0 To Height - 1
+                    For W As Integer = 0 To Width - 1
+                        ImageData(W, H) = BitConverter.ToInt16({AllRawData(RawDataPtr + 1), AllRawData(RawDataPtr)}, 0)
+                        RawDataPtr += PtrStepping
+                    Next W
+                Next H
+            Case 32
+                For H As Integer = 0 To Height - 1
+                    For W As Integer = 0 To Width - 1
+                        ImageData(W, H) = BitConverter.ToInt32({AllRawData(RawDataPtr + 3), AllRawData(RawDataPtr + 2), AllRawData(RawDataPtr + 1), AllRawData(RawDataPtr)}, 0)
+                        RawDataPtr += PtrStepping
+                    Next W
+                Next H
+        End Select
 
     End Sub
 
