@@ -335,7 +335,7 @@ Public Class cFITSReader
         Dim BaseIn As New System.IO.StreamReader(FileName)
 
         'Read header elements
-        Dim HeaderEntries As List(Of sHeaderElement) = ReadHeader(BaseIn)
+        Dim HeaderEntries As List(Of cFITSHeaderParser.sHeaderElement) = ReadHeader(BaseIn)
 
         'Calculate data stream properties
         Dim StartOffset As Long = BaseIn.BaseStream.Position
@@ -348,31 +348,31 @@ Public Class cFITSReader
         DataReader.BaseStream.Position = DataStartIdx
 
         'Set image and buffer add data
-        Dim PtrStepping As Integer = BitPix \ 8
-        Dim AllRawData As Byte() : ReDim AllRawData((Height * Width * PtrStepping) - 1)
+        Dim PtrStepping As Integer = FITSHeaderParser.BitPix \ 8
+        Dim AllRawData As Byte() : ReDim AllRawData((FITSHeaderParser.Height * FITSHeaderParser.Width * PtrStepping) - 1)
         DataReader.Read(AllRawData, 0, AllRawData.Length)
 
         'Read all data
-        ReDim ImageData(Width - 1, Height - 1)
+        ReDim ImageData(FITSHeaderParser.Width - 1, FITSHeaderParser.Height - 1)
         Dim RawDataPtr As Integer = 0
-        Select Case BitPix
+        Select Case FITSHeaderParser.BitPix
             Case 8
-                For H As Integer = 0 To Height - 1
-                    For W As Integer = 0 To Width - 1
+                For H As Integer = 0 To FITSHeaderParser.Height - 1
+                    For W As Integer = 0 To FITSHeaderParser.Width - 1
                         ImageData(W, H) = AllRawData(RawDataPtr)
                         RawDataPtr += PtrStepping
                     Next W
                 Next H
             Case 16
-                For H As Integer = 0 To Height - 1
-                    For W As Integer = 0 To Width - 1
+                For H As Integer = 0 To FITSHeaderParser.Height - 1
+                    For W As Integer = 0 To FITSHeaderParser.Width - 1
                         ImageData(W, H) = BitConverter.ToInt16({AllRawData(RawDataPtr + 1), AllRawData(RawDataPtr)}, 0)
                         RawDataPtr += PtrStepping
                     Next W
                 Next H
             Case 32
-                For H As Integer = 0 To Height - 1
-                    For W As Integer = 0 To Width - 1
+                For H As Integer = 0 To FITSHeaderParser.Height - 1
+                    For W As Integer = 0 To FITSHeaderParser.Width - 1
                         ImageData(W, H) = BitConverter.ToInt32({AllRawData(RawDataPtr + 3), AllRawData(RawDataPtr + 2), AllRawData(RawDataPtr + 1), AllRawData(RawDataPtr)}, 0)
                         RawDataPtr += PtrStepping
                     Next W
