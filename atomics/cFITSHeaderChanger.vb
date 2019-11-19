@@ -25,6 +25,16 @@ Public Class cFITSHeaderChanger
         End Function
     End Structure
 
+    '''<summary>Search a specific keyword in the passed list of header elements.</summary>
+    '''<param name="HeaderElements">Header elements.</param>
+    '''<param name="KeyWordToSearch">Keyword to search for.</param>
+    Public Shared Function GetHeaderValue(ByRef HeaderElements As List(Of sHeaderElement), ByVal KeyWordToSearch As String) As String
+        For Each Entry As sHeaderElement In HeaderElements
+            If Entry.Keyword.Trim = KeyWordToSearch Then Return Entry.Value
+        Next Entry
+        Return String.Empty
+    End Function
+
     Public Event Log(ByVal Text As String)
 
     Public ReadOnly Property HeaderElementsRead() As Integer
@@ -72,6 +82,8 @@ Public Class cFITSHeaderChanger
 
         Dim RetVal As New List(Of sHeaderElement)
 
+        If System.IO.File.Exists(File) = True Then
+
         'Open original file and create new list of header elements
         Dim FITS_stream As System.IO.FileStream = System.IO.File.OpenRead(File)
 
@@ -83,7 +95,7 @@ Public Class cFITSHeaderChanger
             Dim SingleLine As String = System.Text.ASCIIEncoding.ASCII.GetString(HeaderBytes)
 
             'Exit on END detected
-            If SingleLine.StartsWith("END") Then
+            If SingleLine.Trim.StartsWith("END") Then
                 Exit Do
             End If
 
@@ -93,7 +105,7 @@ Public Class cFITSHeaderChanger
                 'Get the keyword and the value
                 Dim HeaderElement As sHeaderElement
                 HeaderElement.Keyword = SingleLine.Substring(0, 8)
-                HeaderElement.Value = SingleLine.Substring(10)
+                HeaderElement.Value = SingleLine.Substring(9)
                 HeaderElement.Comment = String.Empty
                 If HeaderElement.Value.Contains("/") Then
                     Dim SepPos As Integer = HeaderElement.Value.IndexOf("/")
@@ -108,6 +120,8 @@ Public Class cFITSHeaderChanger
             If FITS_stream.Position = FITS_stream.Length Then Exit Do
 
         Loop Until 1 = 0
+
+        End If
 
         Return RetVal
 

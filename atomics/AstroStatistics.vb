@@ -54,6 +54,7 @@ Namespace AstroNET
                 RetVal.MeanPow2 = 0
                 RetVal.StdDev = Double.NaN
                 RetVal.DifferentValueCount = 0
+                RetVal.Median = UInt16.MinValue
                 RetVal.Percentile = New Dictionary(Of Byte, UInt16)
                 Return RetVal
             End Function
@@ -143,7 +144,7 @@ Namespace AstroNET
                 MeanPow2Sum += WeightPow2
                 If PixelValue > RetVal.Max Then RetVal.Max = PixelValue
                 If PixelValue < RetVal.Min Then RetVal.Min = PixelValue
-                If SamplesProcessed >= RetVal.Samples \ 2 Then RetVal.Median = PixelValue
+                If SamplesProcessed >= RetVal.Samples \ 2 And RetVal.Median = UInt16.MinValue Then RetVal.Median = PixelValue
                 If SumSampleCount >= Lim_Pct5 And RetVal.Percentile.ContainsKey(5) = False Then RetVal.Percentile.Add(5, PixelValue)
                 If SumSampleCount >= Lim_Pct25 And RetVal.Percentile.ContainsKey(25) = False Then RetVal.Percentile.Add(25, PixelValue)
                 If SumSampleCount >= Lim_Pct50 And RetVal.Percentile.ContainsKey(50) = False Then RetVal.Percentile.Add(50, PixelValue)

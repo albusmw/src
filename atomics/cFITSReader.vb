@@ -1,17 +1,24 @@
 ﻿Option Explicit On
 Option Strict On
 
+'''<summary>Class to read in FITS data.</summary>
 Public Class cFITSReader
 
     '''<summary>Length of one header element.</summary>
     Const HeaderElementLength As Integer = 80
     '''<summary>Length of a header block - FITS files may contain an integer size of header blocks.</summary>
     Const HeaderBlockSize As Integer = 2880
+
     '''<summary>Number of header elements per header block.</summary>
     Public Shared ReadOnly HeaderElements As Integer = HeaderBlockSize \ HeaderElementLength
 
     '''<summary>Path to ipps.dll and ippvm.dll - if not set IPP will not be used.</summary>
     Public Property IPPPath As String = String.Empty
+
+    '''<summary>Index where to start reading in the FITS data.</summary>
+    Private DataStartIdx As Integer = -1
+
+    Private Shared Int16ToUInt16 As New Dictionary(Of Int16, UInt16)
 
     Private Interface IByteConverter
         Function Convert(ByRef Bytes() As Byte, ByVal Offset As Integer) As Double
@@ -55,71 +62,19 @@ Public Class cFITSReader
         End Function
     End Class
 
-    Public Structure sHeaderElement
-        Public Element As String
-        Public Value As String
-        Public Comment As String
-    End Structure
+    Private FITSHeaderParser As cFITSHeaderParser = Nothing
 
-    Private Class cMyProps
-        Public BitPix As Integer = 0
-        Public BZERO As Double = 0.0
-        Public BSCALE As Double = 1.0
-        Public Width As Integer = -1
-        Public Height As Integer = -1
-        Public ColorValues As Integer = 0
-        Public BytesPerSample As Integer = -1
-        Public DataStartIdx As Integer = -1
-    End Class
-    Private MyProps As New cMyProps
-
-    Public ReadOnly Property BitPix() As Integer
-        Get
-            Return MyProps.BitPix
-        End Get
-    End Property
-
-    Public ReadOnly Property BZERO() As Double
-        Get
-            Return MyProps.BZERO
-        End Get
-    End Property
-
-
-    Public ReadOnly Property BSCALE() As Double
-        Get
-            Return MyProps.BSCALE
-        End Get
-    End Property
-
-
-    Public ReadOnly Property Width() As Integer
-        Get
-            Return MyProps.Width
-        End Get
-    End Property
-
-
-    Public ReadOnly Property Height() As Integer
-        Get
-            Return MyProps.Height
-        End Get
-    End Property
-
-
-    Public ReadOnly Property BytesPerSample() As Integer
-        Get
-            Return MyProps.BytesPerSample
-        End Get
-    End Property
-
-
-    ''' <summary>0-based index of the first image data within the file.</summary>
-    Public ReadOnly Property DataStartIdx() As Integer
-        Get
-            Return MyProps.DataStartIdx
-        End Get
-    End Property
+    Public Sub New()
+        'Build a dictionary for all Int16 values and the corresponding UInt16 values
+        If Int16ToUInt16.Count = 0 Then
+            For RawValue As Int16 = Int16.MinValue To Int16.MaxValue
+                Dim Bytes As Byte() = BitConverter.GetBytes(RawValue)
+                Dim Int32Value As Int16 = BitConverter.ToInt16({Bytes(1), Bytes(0)}, 0)
+                Int16ToUInt16.Add(RawValue, CUShort(Int32Value + 32768))
+                If RawValue = Int16.MaxValue Then Exit For
+            Next RawValue
+        End If
+    End Sub
 
     Public Sub ReadIn(ByVal FileName As String, ByRef ImageData(,) As Double)
         ReadIn(FileName, True, ImageData, New System.Drawing.Point() {})
@@ -144,7 +99,7 @@ Public Class cFITSReader
         Dim BaseIn As New System.IO.StreamReader(FileName)
 
         'Read header elements
-        Dim HeaderEntries As List(Of sHeaderElement) = ReadHeader(BaseIn)
+        FITSHeaderParser = New cFITSHeaderParser(ReadHeader(BaseIn))
 
         'Calculate data stream properties
         Dim StartOffset As Long = BaseIn.BaseStream.Position
@@ -153,9 +108,75 @@ Public Class cFITSReader
         BaseIn.Close()
 
         'Read data content
-        ReadDataContent(FileName, MyProps.DataStartIdx, ImageData, BitPix, UseBZeroScale, Width, Height, PointsToRead)
+        ReadDataContent(FileName, DataStartIdx, ImageData, FITSHeaderParser.BitPix, UseBZeroScale, FITSHeaderParser.Width, FITSHeaderParser.Height, PointsToRead)
 
     End Sub
+
+    '================================================================================================================================================================
+    ' Read UInt16 data
+    '================================================================================================================================================================
+
+    '''<summary>Read FITS data from the passed file.</summary>
+    '''<param name="FileName">File name to load FITS data from.</param>
+    '''<param name="ImageData">Loaded image data processed by BZERO and BSCALE - if PointsToRead is passed, the matrix is 1xN where N is the number of entries in PointsToRead.</param>
+    Public Function ReadInUInt16(ByVal FileName As String) As UInt16(,)
+
+        'TODO: Read-in start offset seems to be incorrect
+        Dim BaseIn As New System.IO.StreamReader(FileName)
+
+        'Read header elements
+        FITSHeaderParser = New cFITSHeaderParser(ReadHeader(BaseIn))
+
+        'Calculate data stream properties
+        Dim StartOffset As Long = BaseIn.BaseStream.Position
+        Dim StreamLength As Long = BaseIn.BaseStream.Length
+        Dim TotalByte As Long = StreamLength - StartOffset
+        BaseIn.Close()
+
+        'Read data content
+        Return ReadDataContentUInt16(FileName, DataStartIdx)
+
+    End Function
+
+    '''<summary>Read FITS data from the passed file - only in case BitPix is 32.</summary>
+    Private Function ReadDataContentUInt16(ByVal FileName As String, ByVal StartPosition As Integer) As UInt16(,)
+
+        Dim Stopper As New Stopwatch
+        Stopper.Reset() : Stopper.Start()
+
+        'Delete content and exit if format is wrong
+        Dim ImageData(,) As UInt16 = {}
+        If FITSHeaderParser.BitPix <> 16 Then Return New UInt16(,) {}
+        If FITSHeaderParser.BZERO <> 32768 Then Return New UInt16(,) {}
+        If FITSHeaderParser.BSCALE <> 1 Then Return New UInt16(,) {}
+
+        'Open reader and position to start
+        Dim DataReader As New System.IO.BinaryReader(System.IO.File.OpenRead(FileName))
+        DataReader.BaseStream.Position = DataStartIdx
+
+        'Read all data
+        ReDim ImageData(FITSHeaderParser.Width - 1, FITSHeaderParser.Height - 1)
+        Dim SinglePixel As Int16 = 0
+        For H As Integer = 0 To FITSHeaderParser.Height - 1
+            For W As Integer = 0 To FITSHeaderParser.Width - 1
+                SinglePixel = DataReader.ReadInt16
+                ImageData(W, H) = FITSToUnsigned(SinglePixel)
+            Next W
+        Next H
+
+        'Close data stream
+        DataReader.Close()
+
+        Stopper.Stop()
+        Debug.Print("Reading FITS data content took " & Stopper.ElapsedMilliseconds.ToString.Trim & " ms")
+
+        Return ImageData
+
+    End Function
+
+    '================================================================================================================================================================
+    ' Read Int32 data
+    '================================================================================================================================================================
 
     '''<summary>Read FITS data from the passed file.</summary>
     '''<param name="FileName">File name to load FITS data from.</param>
@@ -166,7 +187,7 @@ Public Class cFITSReader
         Dim BaseIn As New System.IO.StreamReader(FileName)
 
         'Read header elements
-        Dim HeaderEntries As List(Of sHeaderElement) = ReadHeader(BaseIn)
+        FITSHeaderParser = New cFITSHeaderParser(ReadHeader(BaseIn))
 
         'Calculate data stream properties
         Dim StartOffset As Long = BaseIn.BaseStream.Position
@@ -175,7 +196,7 @@ Public Class cFITSReader
         BaseIn.Close()
 
         'Read data content
-        ReadDataContent(FileName, MyProps.DataStartIdx, ImageData, BitPix, Width, Height)
+        ReadDataContent(FileName, DataStartIdx, ImageData, FITSHeaderParser.BitPix, FITSHeaderParser.Width, FITSHeaderParser.Height)
 
     End Sub
 
@@ -213,6 +234,10 @@ Public Class cFITSReader
 
     End Sub
 
+    '================================================================================================================================================================
+    ' Read any data to an Double matrix
+    '================================================================================================================================================================
+
     Private Sub ReadDataContent(ByVal FileName As String, ByVal StartPosition As Integer, ByRef ImageData(,) As Double, ByVal BitPix As Integer, ByVal UseBZeroScale As Boolean, ByVal Width As Integer, ByVal Height As Integer, ByVal PointsToRead As System.Drawing.Point())
 
         'Performance comments:
@@ -230,21 +255,22 @@ Public Class cFITSReader
 
         'Get number of bytes per value and the converter to be used
         Dim Converter As IByteConverter = Nothing
+        Dim BytesPerSample As Integer = -1
         Select Case BitPix
             Case 8
-                MyProps.BytesPerSample = 1 : Converter = New cByteConverter_Byte
+                BytesPerSample = 1 : Converter = New cByteConverter_Byte
             Case 16
-                MyProps.BytesPerSample = 2 : Converter = New cByteConverter_Int16
+                BytesPerSample = 2 : Converter = New cByteConverter_Int16
             Case 32
-                MyProps.BytesPerSample = 4 : Converter = New cByteConverter_Int32_Fast
+                BytesPerSample = 4 : Converter = New cByteConverter_Int32_Fast
             Case -32
-                MyProps.BytesPerSample = 4 : Converter = New cByteConverter_Single
+                BytesPerSample = 4 : Converter = New cByteConverter_Single
             Case -64
-                MyProps.BytesPerSample = 8 : Converter = New cByteConverter_Double
+                BytesPerSample = 8 : Converter = New cByteConverter_Double
         End Select
 
         'Set image and buffer data
-        Dim AllRawData As Byte() : ReDim AllRawData((Height * Width * MyProps.BytesPerSample) - 1)
+        Dim AllRawData As Byte() : ReDim AllRawData((Height * Width * BytesPerSample) - 1)
         DataReader.Read(AllRawData, 0, AllRawData.Length)
         Dim RawDataPtr As Integer = 0
 
@@ -252,11 +278,11 @@ Public Class cFITSReader
         If PointsToRead.Length = 0 Then
             'Read all data
             ReDim ImageData(Width - 1, Height - 1)
-            If (BZERO <> 0 Or BSCALE <> 1) And UseBZeroScale = True Then
+            If (FITSHeaderParser.BZERO <> 0 Or FITSHeaderParser.BSCALE <> 1) And UseBZeroScale = True Then
                 'Scaling
                 For H As Integer = 0 To Height - 1
                     For W As Integer = 0 To Width - 1
-                        ImageData(W, H) = BZERO + (BSCALE * Converter.Convert(AllRawData, RawDataPtr))
+                        ImageData(W, H) = FITSHeaderParser.BZERO + (FITSHeaderParser.BSCALE * Converter.Convert(AllRawData, RawDataPtr))
                         RawDataPtr += BytesPerSample
                     Next W
                 Next H
@@ -273,11 +299,11 @@ Public Class cFITSReader
         Else
             'Read only specific points
             ReDim ImageData(PointsToRead.Length - 1, 0)
-            If (BZERO <> 0 Or BSCALE <> 1) And UseBZeroScale = True Then
+            If (FITSHeaderParser.BZERO <> 0 Or FITSHeaderParser.BSCALE <> 1) And UseBZeroScale = True Then
                 'Scaling
                 For Idx As Integer = 0 To PointsToRead.Length - 1
                     RawDataPtr = BytesPerSample * ((PointsToRead(Idx).Y * Width) + PointsToRead(Idx).X)
-                    ImageData(Idx, 0) = BZERO + (BSCALE * Converter.Convert(AllRawData, RawDataPtr))
+                    ImageData(Idx, 0) = FITSHeaderParser.BZERO + (FITSHeaderParser.BSCALE * Converter.Convert(AllRawData, RawDataPtr))
                 Next Idx
             Else
                 'No scaling
@@ -296,15 +322,15 @@ Public Class cFITSReader
 
     End Sub
 
-    '''<summary>Change entries in the passed FileName FIT file.</summary>
-    '''<param name="FileName">File to modify.</param>
+    '''<summary>Change pixel in the passed FIT file.</summary>
+    '''<param name="FileName">FITS file to modify.</param>
     '''<param name="PointToWrite">List of points to be modified.</param>
     '''<param name="FixValues">Values to use for modification.</param>
     Public Sub FixSample(ByVal FileName As String, ByRef PointToWrite As List(Of System.Drawing.Point), ByVal FixValues As Int16())
         Dim DataWriter As New System.IO.BinaryWriter(System.IO.File.OpenWrite(FileName))
         For Idx As Integer = 0 To PointToWrite.Count - 1
             Dim BytesToWrite As Byte() = BitConverter.GetBytes(FixValues(Idx))
-            Dim PixelOffsetPtr As Integer = BytesPerSample * ((PointToWrite(Idx).Y * Width) + PointToWrite(Idx).X)
+            Dim PixelOffsetPtr As Integer = FITSHeaderParser.BytesPerSample * ((PointToWrite(Idx).Y * FITSHeaderParser.Width) + PointToWrite(Idx).X)
             DataWriter.Seek(DataStartIdx + PixelOffsetPtr, IO.SeekOrigin.Begin)
             DataWriter.Write(BytesToWrite(1)) : DataWriter.Write(BytesToWrite(0))
         Next Idx
@@ -317,10 +343,10 @@ Public Class cFITSReader
     '==================================================================================================================
 
     '''<summary>Get a list of all header elements.</summary>
-    Private Function ReadHeader(ByRef BaseIn As System.IO.StreamReader) As List(Of sHeaderElement)
+    Private Function ReadHeader(ByRef BaseIn As System.IO.StreamReader) As List(Of cFITSHeaderParser.sHeaderElement)
 
         Dim EndReached As Boolean = False
-        Dim RetVal As New List(Of sHeaderElement)
+        Dim RetVal As New List(Of cFITSHeaderParser.sHeaderElement)
         Dim BlocksRead As Integer = 0
 
         Do
@@ -338,28 +364,32 @@ Public Class cFITSReader
                 If NewLine.StartsWith("END") Then
                     EndReached = True
                 Else
-                    Dim NewHeaderElement As sHeaderElement = Nothing
+                    Dim NewHeaderElement As cFITSHeaderParser.sHeaderElement = Nothing
                     NewHeaderElement.Element = NewLine.Substring(0, 8).Trim
                     NewLine = NewLine.Substring(10)
                     Dim Splitted As String() = Split(NewLine, "/")
                     NewHeaderElement.Value = Splitted(0).Trim
                     If Splitted.Length > 1 Then NewHeaderElement.Comment = Splitted(1)
                     RetVal.Add(NewHeaderElement)
-                    Select Case NewHeaderElement.Element
-                        Case "BITPIX" : MyProps.BitPix = CInt(NewHeaderElement.Value)
-                        Case "NAXIS1" : MyProps.Width = CInt(NewHeaderElement.Value)
-                        Case "NAXIS2" : MyProps.Height = CInt(NewHeaderElement.Value)
-                        Case "NAXIS3" : MyProps.ColorValues = CInt(NewHeaderElement.Value)
-                        Case "BZERO" : MyProps.BZERO = Val(NewHeaderElement.Value.Replace(",", "."))
-                        Case "BSCALE" : MyProps.BSCALE = Val(NewHeaderElement.Value.Replace(",", "."))
-                    End Select
                 End If
             Loop Until EndReached = True
         Loop Until EndReached = True
 
-        MyProps.DataStartIdx = BlocksRead * HeaderBlockSize
+        DataStartIdx = BlocksRead * HeaderBlockSize
         Return RetVal
 
+    End Function
+
+    '''<summary>Convert the passed Int32 value to a UInt32 value for FITS files with BScale=1 and BOffset=32768.</summary>
+    Private Function FITSToUnsigned(ByRef RawData As Int32) As UInt32
+        Dim Bytes As Byte() = BitConverter.GetBytes(RawData)
+        Dim Int32Value As Int32 = BitConverter.ToInt32({Bytes(3), Bytes(2), Bytes(1), Bytes(0)}, 0)
+        Return CUInt(Int32Value + 32768)
+    End Function
+
+    '''<summary>Convert the passed Int16 value to a UInt16 value for FITS files with BScale=1 and BOffset=32768.</summary>
+    Private Function FITSToUnsigned(ByRef RawData As Int16) As UInt16
+        Return Int16ToUInt16(RawData)
     End Function
 
 End Class
