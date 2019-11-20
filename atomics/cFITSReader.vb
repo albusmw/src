@@ -18,8 +18,6 @@ Public Class cFITSReader
     '''<summary>Index where to start reading in the FITS data.</summary>
     Private DataStartIdx As Integer = -1
 
-    Private Shared Int16ToUInt16 As New Dictionary(Of Int16, UInt16)
-
     Private Interface IByteConverter
         Function Convert(ByRef Bytes() As Byte, ByVal Offset As Integer) As Double
     End Interface
@@ -63,18 +61,6 @@ Public Class cFITSReader
     End Class
 
     Private FITSHeaderParser As cFITSHeaderParser = Nothing
-
-    Public Sub New()
-        'Build a dictionary for all Int16 values and the corresponding UInt16 values
-        If Int16ToUInt16.Count = 0 Then
-            For RawValue As Int16 = Int16.MinValue To Int16.MaxValue
-                Dim Bytes As Byte() = BitConverter.GetBytes(RawValue)
-                Dim Int32Value As Int16 = BitConverter.ToInt16({Bytes(1), Bytes(0)}, 0)
-                Int16ToUInt16.Add(RawValue, CUShort(Int32Value + 32768))
-                If RawValue = Int16.MaxValue Then Exit For
-            Next RawValue
-        End If
-    End Sub
 
     Public Sub ReadIn(ByVal FileName As String, ByRef ImageData(,) As Double)
         ReadIn(FileName, True, ImageData, New System.Drawing.Point() {})
@@ -141,11 +127,7 @@ Public Class cFITSReader
     '''<summary>Read FITS data from the passed file - only in case BitPix is 32.</summary>
     Private Function ReadDataContentUInt16(ByVal FileName As String, ByVal StartPosition As Integer) As UInt16(,)
 
-        Dim Stopper As New Stopwatch
-        Stopper.Reset() : Stopper.Start()
-
         'Delete content and exit if format is wrong
-        Dim ImageData(,) As UInt16 = {}
         If FITSHeaderParser.BitPix <> 16 Then Return New UInt16(,) {}
         If FITSHeaderParser.BZERO <> 32768 Then Return New UInt16(,) {}
         If FITSHeaderParser.BSCALE <> 1 Then Return New UInt16(,) {}
@@ -154,21 +136,21 @@ Public Class cFITSReader
         Dim DataReader As New System.IO.BinaryReader(System.IO.File.OpenRead(FileName))
         DataReader.BaseStream.Position = DataStartIdx
 
-        'Read all data
-        ReDim ImageData(FITSHeaderParser.Width - 1, FITSHeaderParser.Height - 1)
-        Dim SinglePixel As Int16 = 0
+        'Read data block-wise
+        Dim ImageData(FITSHeaderParser.Width - 1, FITSHeaderParser.Height - 1) As UInt16
+        DataReader.BaseStream.Position = DataStartIdx
+        Dim Bytes((FITSHeaderParser.Width * FITSHeaderParser.Height * 2) - 1) As Byte
+        Bytes = DataReader.ReadBytes(Bytes.Length)
+        Dim BytesPtr As Integer = 0
         For H As Integer = 0 To FITSHeaderParser.Height - 1
             For W As Integer = 0 To FITSHeaderParser.Width - 1
-                SinglePixel = DataReader.ReadInt16
-                ImageData(W, H) = FITSToUnsigned(SinglePixel)
+                ImageData(W, H) = CUShort(BitConverter.ToInt16({Bytes(BytesPtr + 1), Bytes(BytesPtr)}, 0) + 32768)
+                BytesPtr += 2
             Next W
         Next H
 
         'Close data stream
         DataReader.Close()
-
-        Stopper.Stop()
-        Debug.Print("Reading FITS data content took " & Stopper.ElapsedMilliseconds.ToString.Trim & " ms")
 
         Return ImageData
 
@@ -444,11 +426,6 @@ Public Class cFITSReader
         Dim Bytes As Byte() = BitConverter.GetBytes(RawData)
         Dim Int32Value As Int32 = BitConverter.ToInt32({Bytes(3), Bytes(2), Bytes(1), Bytes(0)}, 0)
         Return CUInt(Int32Value + 32768)
-    End Function
-
-    '''<summary>Convert the passed Int16 value to a UInt16 value for FITS files with BScale=1 and BOffset=32768.</summary>
-    Private Function FITSToUnsigned(ByRef RawData As Int16) As UInt16
-        Return Int16ToUInt16(RawData)
     End Function
 
 End Class
