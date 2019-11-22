@@ -2,6 +2,7 @@
 Option Strict On
 
 '''<summary>Calculate a histogram with "full X axis resolution".</summary>
+'''<remarks>Should no longer be used; used AstroStatistics.vb instread ...</remarks>
 Public Class cStatistics
 
     '================================================================================

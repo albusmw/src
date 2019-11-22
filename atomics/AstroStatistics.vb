@@ -9,10 +9,21 @@ Namespace AstroNET
 
     Public Class Statistics
 
+        '''<summary>Path to ipps.dll and ippvm.dll - if not set IPP will not be used.</summary>
+        Public Shared Property IPPPath As String = String.Empty
+
+        '''<summary>Instance of Intel IPP library call.</summary>
+        Private IntelIPP As cIntelIPP = Nothing
+
         Public DataProcessor As New cStatMultiThread(Of UInt16)
 
         Private Const OneUInt32 As UInt32 = CType(1, UInt32)
 
+        Public Sub New()
+            IntelIPP = New cIntelIPP(System.IO.Path.Combine(IPPPath, "ipps.dll"), System.IO.Path.Combine(IPPPath, "ippvm.dll"), System.IO.Path.Combine(IPPPath, "ippi.dll"))
+        End Sub
+
+        '''<summary>Total statistics - available as per-channel bayer statistics and as combined statistics.</summary>
         Public Structure sTotalStat
             '''<summary>Full-resolution histogram data - bayer data.</summary>
             Public BayerHistograms(,) As Dictionary(Of UInt16, UInt32)
@@ -22,6 +33,23 @@ Namespace AstroNET
             Public BayerStatistics(,) As sSingleChannelStatistics
             '''<summary>Statistics for each channel.</summary>
             Public MonoStatistics As sSingleChannelStatistics
+            '''<summary>Report of all statistics properties of the structure.</summary>
+            Public Function StatisticsReport() As List(Of String)
+                Dim RetVal As New List(Of String)
+                RetVal.Add("Total (mono) statistics:")
+                For Each Entry As String In MonoStatistics.StatisticsReport
+                    RetVal.Add("  " & Entry)
+                Next Entry
+                For Idx1 As Integer = 0 To BayerStatistics.GetUpperBound(0)
+                    For Idx2 As Integer = 0 To BayerStatistics.GetUpperBound(1)
+                        RetVal.Add("Bayer channel [" & Idx1.ToString.Trim & ":" & Idx2.ToString.Trim & "] statistics:")
+                        For Each Entry As String In BayerStatistics(Idx1, Idx2).StatisticsReport
+                            RetVal.Add("  " & Entry)
+                        Next Entry
+                    Next Idx2
+                Next Idx1
+                Return RetVal
+            End Function
         End Structure
 
         '''<summary>Statistic information of one channel (RGB or total).</summary>
@@ -58,16 +86,48 @@ Namespace AstroNET
                 RetVal.Percentile = New Dictionary(Of Byte, UInt16)
                 Return RetVal
             End Function
+            '''<summary>Report of all statistics properties of the structure.</summary>
+            Public Function StatisticsReport() As List(Of String)
+                Dim RetVal As New List(Of String)
+                RetVal.Add("Total pixel     : " & Samples.ToString.Trim.PadLeft(9) & " (" & Format(Samples / 1000000, "0.0").ToString.Trim & "M)")
+                RetVal.Add("Different values: " & DifferentValueCount.ToString.Trim.PadLeft(9))
+                RetVal.Add("Min value       : " & Min.ToString.Trim.PadLeft(9))
+                RetVal.Add("Max value       : " & Max.ToString.Trim.PadLeft(9))
+                RetVal.Add("Median value    : " & Median.ToString.Trim.PadLeft(9))
+                RetVal.Add("Mean value      : " & Format(Mean, "0.00").ToString.Trim.PadLeft(9))
+                Return RetVal
+            End Function
         End Structure
 
         '''<summary>Calculate the image statistics of the passed image data.</summary>
         Public Function ImageStatistics() As sTotalStat
+
             Dim RetVal As New sTotalStat
             'Calculate a 2x2 bayer statistics (also for mono data - if thread-based this may even speed up ...)
             RetVal.BayerHistograms = BayerStatistics()
+
+            'EXPERIMENTAL CODE - IPPI ...
+            Dim OneChannel(,) As UInt16 = {}
+            'IntelIPP.CopyPixel(DataProcessor.ImageData, OneChannel, 0)
+
+            Dim SampleData(9, 9) As UInt16
+            Dim Counter As UInt16 = 10000
+            For Idx1 As Integer = 0 To SampleData.GetUpperBound(0)
+                For Idx2 As Integer = 0 To SampleData.GetUpperBound(1)
+                    SampleData(Idx1, Idx2) = Counter
+                    Counter = Counter - CType(1, UInt16)
+                Next Idx2
+            Next Idx1
+
+            IntelIPP.CopyPixel(SampleData, OneChannel, 1)
+            IntelIPP.Sort(OneChannel)
+
             'Add all other data (mono histo and statistics)
             CalculateAllFromBayerStatistics(RetVal)
+
+            'Return results
             Return RetVal
+
         End Function
 
         '''<summary>Combine 2 SingleChannelStatistics elements (e.g. to calculate the aggregated statistic for multi-frame capture).</summary>

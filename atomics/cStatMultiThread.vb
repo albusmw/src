@@ -6,7 +6,8 @@ Public Class cStatMultiThread(Of T)
 
     Private Const OneUInt32 As UInt32 = CType(1, UInt32)
 
-    Public Data(,) As T
+    '''<summary>The real image data.</summary>
+    Public ImageData(,) As T
 
     '''<summary>Object for each thread.</summary>
     Public Class cStateObj(Of DType)
@@ -28,14 +29,14 @@ Public Class cStatMultiThread(Of T)
     '''<summary>Perform a calculation with the given number of threads.</summary>
     Public Sub Calculate(ByVal ThreadCount As Integer, ByRef Results As cStateObj(Of T))
 
-        Dim SliceSize As Integer = 2 * ((Data.GetUpperBound(0) \ ThreadCount) \ 2)
+        Dim SliceSize As Integer = 2 * ((ImageData.GetUpperBound(0) \ ThreadCount) \ 2)
         Dim StObj(ThreadCount - 1) As cStateObj(Of T)
         For Idx As Integer = 0 To StObj.GetUpperBound(0)
             StObj(Idx) = New cStateObj(Of T)
         Next Idx
         StObj(0).StartIdx = 0
         StObj(0).StopIdx = SliceSize
-        StObj(StObj.GetUpperBound(0)).StopIdx = Data.GetUpperBound(0) - 1
+        StObj(StObj.GetUpperBound(0)).StopIdx = ImageData.GetUpperBound(0) - 1
         For Idx As Integer = 1 To StObj.GetUpperBound(0) - 1
             StObj(Idx).StartIdx = StObj(Idx - 1).StopIdx + 2
             StObj(Idx).StopIdx = StObj(Idx).StartIdx + SliceSize
@@ -49,7 +50,7 @@ Public Class cStatMultiThread(Of T)
 
         'Join all threads
         Do
-            System.Threading.Thread.Sleep(1)
+            'System.Threading.Thread.Sleep(1)
             Dim AllDone As Boolean = True
             For Each Slice As cStateObj(Of T) In StObj
                 If Slice.Done = False Then
@@ -93,11 +94,11 @@ Public Class cStatMultiThread(Of T)
         StateObj.Done = False
 
         For IdxX As Integer = StateObj.StartIdx To StateObj.StopIdx Step 2
-            For IdxY As Integer = 0 To Data.GetUpperBound(1) - 1 Step 2
+            For IdxY As Integer = 0 To ImageData.GetUpperBound(1) - 1 Step 2
                 'Calculate a separat histogram for each bayer matrix element
                 For BayerX As Integer = 0 To 1
                     For BayerY As Integer = 0 To 1
-                        Dim PixelValue As T = Data(IdxX + BayerX, IdxY + BayerY)
+                        Dim PixelValue As T = ImageData(IdxX + BayerX, IdxY + BayerY)
                         If StateObj.HistDataBayer(BayerX, BayerY).ContainsKey(PixelValue) = False Then
                             StateObj.HistDataBayer(BayerX, BayerY).Add(PixelValue, OneUInt32)
                         Else
