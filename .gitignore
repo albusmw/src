@@ -5,3 +5,10 @@
 *.suo
 /GUIElements/obj/x64/Debug/*
 /GUIElements/bin/x64/Debug/*
+
+/playprojects/FITS/obj/Debug/*
+/playprojects/FITS/obj/Debug/*
+/playprojects/FITS/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
+/playprojects/FITS/obj/Debug/FITS.vbproj.FileListAbsolute.txt
+/playprojects/FITS/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
+/playprojects/FITS/obj/Debug/FITS.vbproj.FileListAbsolute.txt
