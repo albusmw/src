@@ -148,10 +148,10 @@ Public Class cFITSReader
         Dim ImageData(FITSHeaderParser.Width - 1, FITSHeaderParser.Height - 1) As UInt16
         DataReader.BaseStream.Position = DataStartIdx
 
+        Dim Bytes((FITSHeaderParser.Width * FITSHeaderParser.Height * BytePerPixel) - 1) As Byte
+        Bytes = DataReader.ReadBytes(Bytes.Length)
         If UseIPP = False Then
             'VB implementation
-            Dim Bytes((FITSHeaderParser.Width * FITSHeaderParser.Height * BytePerPixel) - 1) As Byte
-            Bytes = DataReader.ReadBytes(Bytes.Length)
             Dim BytesPtr As Integer = 0
             For H As Integer = 0 To FITSHeaderParser.Height - 1
                 For W As Integer = 0 To FITSHeaderParser.Width - 1
@@ -161,8 +161,6 @@ Public Class cFITSReader
             Next H
         Else
             'IPP implementation
-            Dim Bytes((FITSHeaderParser.Width * FITSHeaderParser.Height * BytePerPixel) - 1) As Byte
-            Bytes = DataReader.ReadBytes(Bytes.Length)
             IntelIPP.SwapBytes(Bytes, ImageData)
             IntelIPP.XorC(ImageData, &H8000)
         End If

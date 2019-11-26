@@ -652,20 +652,34 @@ Partial Public Class cIntelIPP
         Return RetVal
     End Function
 
-    'Sort
-    Public Function Sort(ByRef Array() As UInt16) As IppStatus
+    '''<summary>Sort descending.</summary>
+    '''<param name="Array"></param>
+    '''<returns></returns>
+    '''<remarks>https://software.intel.com/en-us/ipp-dev-reference-sortascend-sortdescend</remarks>
+    Public Function SortDescend(ByRef Array() As UInt16) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
         Dim FunctionName As String = "ippsSortAscend_16u_I"
         Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
         Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer))
-        Return CType(Caller.DynamicInvoke(GetPtr(Array), Array.Length), IppStatus)
+        Dim ArrayGAC As Runtime.InteropServices.GCHandle = Runtime.InteropServices.GCHandle.Alloc(Array, Runtime.InteropServices.GCHandleType.Pinned)
+        RetVal = CType(Caller.DynamicInvoke(GetPtr(Array), Array.Length), IppStatus)
+        ArrayGAC.Free()
+        Return RetVal
     End Function
 
-    'Sort
-    Public Function Sort(ByRef Array(,) As UInt16) As IppStatus
-        Dim FunctionName As String = "ippsSortAscend_16u_I"
+    '''<summary>Sort descending.</summary>
+    '''<param name="Array"></param>
+    '''<returns></returns>
+    '''<remarks>https://software.intel.com/en-us/ipp-dev-reference-sortascend-sortdescend</remarks>
+    Public Function SortDescend(ByRef Array(,) As UInt16) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim FunctionName As String = "ippsSortDescend_16u_I"
         Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
         Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer))
-        Return CType(Caller.DynamicInvoke(GetPtr(Array), Array.Length), IppStatus)
+        Dim ArrayGAC As Runtime.InteropServices.GCHandle = Runtime.InteropServices.GCHandle.Alloc(Array, Runtime.InteropServices.GCHandleType.Pinned)
+        RetVal = CType(Caller.DynamicInvoke(GetPtr(Array), Array.Length), IppStatus)
+        ArrayGAC.Free()
+        Return RetVal
     End Function
 
     '''<summary>Interleaved copy - copy 1 bayer channel of RGGB to a 1/4 size image.</summary>
@@ -673,15 +687,17 @@ Partial Public Class cIntelIPP
     '''<returns></returns>
     '''<remarks>https://software.intel.com/en-us/ipp-dev-reference-copy-1</remarks>
     Public Function CopyPixel(ByRef ArrayIn(,) As UInt16, ByRef ArrayOut(,) As UInt16, ByVal Offset As Integer) As IppStatus
-        'IppStatus ippiCopy_<mod>(const Ipp<datatype>* pSrc, int srcStep, Ipp<datatype>* pDst, int dstStep, IppiSize roiSize);
+        Dim RetVal As IppStatus = IppStatus.NoErr
         Dim FunctionName As String = "ippiCopy_16u_C4C1R"
         Dim FunPtr As IntPtr = GetProcAddress(ippiHandle, FunctionName)
         Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
-        Dim ArrayOutWidth As Integer = ((ArrayIn.GetUpperBound(0) + 1) \ 2)
-        Dim ArrayOutHeight As Integer = ((ArrayIn.GetUpperBound(1) + 1) \ 2)
-        ReDim ArrayOut(ArrayOutWidth - 1, ArrayOutHeight - 1)
+        ReDim ArrayOut(((ArrayIn.GetUpperBound(0) + 1) \ 2) - 1, ((ArrayIn.GetUpperBound(1) + 1) \ 2) - 1)
         Dim ROI As New sIppiSize(2 * (ArrayIn.GetUpperBound(0) + 1), 2 * (ArrayIn.GetUpperBound(1) + 1))
-        Dim RetVal As IppStatus = CType(Caller.DynamicInvoke(GetPtr(ArrayIn, Offset), 8, GetPtr(ArrayOut), 2, ROI), IppStatus)
+        Dim ArrayInGAC As Runtime.InteropServices.GCHandle = Runtime.InteropServices.GCHandle.Alloc(ArrayIn, Runtime.InteropServices.GCHandleType.Pinned)
+        Dim ArrayOutGAC As Runtime.InteropServices.GCHandle = Runtime.InteropServices.GCHandle.Alloc(ArrayOut, Runtime.InteropServices.GCHandleType.Pinned)
+        RetVal = CType(Caller.DynamicInvoke(GetPtr(ArrayIn, Offset), 8, GetPtr(ArrayOut), 2, ROI), IppStatus)
+        ArrayInGAC.Free()
+        ArrayOutGAC.Free()
         Return RetVal
     End Function
 
