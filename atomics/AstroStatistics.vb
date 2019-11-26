@@ -185,7 +185,7 @@ Namespace AstroNET
             'Calculate statistics
             Dim SumSampleCount As Long = 0
             Dim MeanSum As UInt64 = 0
-            Dim MeanPow2Sum As UInt64 = 0
+            Dim MeanPow2Sum As System.Double = 0
             Dim Lim_Pct5 As Long = CLng(RetVal.Samples * 0.05)
             Dim Lim_Pct25 As Long = CLng(RetVal.Samples * 0.25)
             Dim Lim_Pct50 As Long = CLng(RetVal.Samples * 0.5)
