@@ -160,9 +160,11 @@ Public Class cFITSReader
                 Next W
             Next H
         Else
-            'IPP implementation
-            IntelIPP.SwapBytes(Bytes, ImageData)
-            IntelIPP.XorC(ImageData, &H8000)
+            'IPP implementation - swapbytes does not do a correct copy ...
+            Dim IPPStatus As New List(Of cIntelIPP.IppStatus)
+            IPPStatus.Add(IntelIPP.Transpose(Bytes, ImageData))
+            IPPStatus.Add(IntelIPP.SwapBytes(ImageData))
+            IPPStatus.Add(IntelIPP.XorC(ImageData, &H8000))
         End If
 
         'Close data stream

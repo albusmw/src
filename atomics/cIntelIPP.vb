@@ -105,6 +105,33 @@ Partial Public Class cIntelIPP
 
 #End Region
 
+    '''<summary>Class to handle GAC pinning and release.</summary>
+    Private Class cPinHandler
+        Private Pinned As New List(Of Runtime.InteropServices.GCHandle)
+        '''<summary>Pin the array and get the pointer.</summary>
+        Public Function Pin(Of T)(ByRef ArrayToPin() As T) As IntPtr
+            Pinned.Add(Runtime.InteropServices.GCHandle.Alloc(ArrayToPin, Runtime.InteropServices.GCHandleType.Pinned))
+            Return GetPtr(ArrayToPin)
+        End Function
+        '''<summary>Pin the array and get the pointer.</summary>
+        Public Function Pin(Of T)(ByRef ArrayToPin(,) As T) As IntPtr
+            Pinned.Add(Runtime.InteropServices.GCHandle.Alloc(ArrayToPin, Runtime.InteropServices.GCHandleType.Pinned))
+            Return GetPtr(ArrayToPin)
+        End Function
+        '''<summary>Pin the array and get the pointer.</summary>
+        Public Function Pin(Of T)(ByRef ArrayToPin(,) As T, ByRef Offset As Integer) As IntPtr
+            Pinned.Add(Runtime.InteropServices.GCHandle.Alloc(ArrayToPin, Runtime.InteropServices.GCHandleType.Pinned))
+            Return GetPtr(ArrayToPin, Offset)
+        End Function
+        '''<summary>Release all pinned objects.</summary>
+        Protected Overrides Sub Finalize()
+            For Each PinnedObject As Runtime.InteropServices.GCHandle In Pinned
+                PinnedObject.Free()
+            Next PinnedObject
+            MyBase.Finalize()
+        End Sub
+    End Class
+
     '''<summary>Region size</summary>
     '''<remarks>https://software.intel.com/en-us/ipp-dev-reference-structures-and-enumerators-1</remarks>
     Public Structure sIppiSize
@@ -140,6 +167,7 @@ Partial Public Class cIntelIPP
     Private Delegate Function CallSignature_Double_IntPtr_Integer(ByVal val As Double, ByVal pSrcDst As IntPtr, ByVal len As Integer) As IppStatus
     Private Delegate Function CallSignature_IntPtr_Integer(ByVal pSrcDst As IntPtr, ByVal len As Integer) As IppStatus
     Private Delegate Function CallSignature_UInt16_IntPtr_Integer(ByVal val As UInt16, ByVal pSrcDst As IntPtr, ByVal len As Integer) As IppStatus
+    Private Delegate Function CallSignature_IntPtr_Integer_IppiSize(ByVal pSrcDst As IntPtr, ByVal iDst As Integer, ByVal roiSize As sIppiSize) As IppStatus
     Private Delegate Function CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize(ByVal pSrc As IntPtr, ByVal iSrc As Integer, ByVal pDst As IntPtr, ByVal iDst As Integer, ByVal roiSize As sIppiSize) As IppStatus
 #End Region
 
@@ -612,7 +640,8 @@ Partial Public Class cIntelIPP
         Dim FunctionName As String = "ippsSwapBytes_16u"
         Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
         Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_IntPtr_Integer))
-        Return CType(Caller.DynamicInvoke(GetPtr(Src), GetPtr(Dst), Src.Length \ 2), IppStatus)
+        Dim Pinner As New cPinHandler
+        Return CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(Dst), Src.Length \ 2), IppStatus)
     End Function
 
     ''' <summary>SwapBytes</summary>
@@ -621,10 +650,12 @@ Partial Public Class cIntelIPP
         Dim FunctionName As String = "ippsSwapBytes_16u_I"
         Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
         Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer))
-        Return CType(Caller.DynamicInvoke(GetPtr(Array), Array.Length), IppStatus)
+        Dim Pinner As New cPinHandler
+        Return CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length), IppStatus)
     End Function
 
-    'SwapBytes 
+    ''' <summary>SwapBytes</summary>
+    ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-swapbytes</remarks>
     Public Function SwapBytes(ByRef Array(,) As Int32) As IppStatus
         Dim FunctionName As String = "ippsSwapBytes_32u_I"
         Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
@@ -632,12 +663,38 @@ Partial Public Class cIntelIPP
         Return CType(Caller.DynamicInvoke(GetPtr(Array), Array.Length), IppStatus)
     End Function
 
+    ''' <summary>Transpose</summary>
+    ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-transpose</remarks>
+    Public Function Transpose(ByRef ArrayIn() As Byte, ByRef ArrayOut(,) As UInt16) As IppStatus
+        Dim FunctionName As String = "ippiTranspose_16u_C1R"
+        Dim FunPtr As IntPtr = GetProcAddress(ippiHandle, FunctionName)
+        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
+        Dim Pinner As New cPinHandler
+        Dim srcStep As Integer = 2 * (ArrayOut.GetUpperBound(0) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the source image.
+        Dim dstStep As Integer = 2 * (ArrayOut.GetUpperBound(1) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the destination image.
+        Dim ROI As New sIppiSize(srcStep \ 2, dstStep \ 2)
+        Return CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
+    End Function
+
+    ''' <summary>Transpose</summary>
+    ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-transpose</remarks>
+    Public Function Transpose(ByRef Array(,) As UInt16) As IppStatus
+        Dim FunctionName As String = "ippiTranspose_16u_C1IR"
+        Dim FunPtr As IntPtr = GetProcAddress(ippiHandle, FunctionName)
+        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IppiSize))
+        Dim Pinner As New cPinHandler
+        Dim srcDstStep As Integer = 2 * (Array.GetUpperBound(1) + 1)
+        Dim ROI As sIppiSize = GetFullROI(Array)
+        Return CType(Caller.DynamicInvoke(Pinner.Pin(Array), srcDstStep, ROI), IppStatus)
+    End Function
+
     'XOR
     Public Function XorC(ByRef Array(,) As UInt16, ByVal Value As UInt16) As IppStatus
         Dim FunctionName As String = "ippsXorC_16u_I"
         Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
         Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_UInt16_IntPtr_Integer))
-        Return CType(Caller.DynamicInvoke(Value, GetPtr(Array), Array.Length), IppStatus)
+        Dim Pinner As New cPinHandler
+        Return CType(Caller.DynamicInvoke(Value, Pinner.Pin(Array), Array.Length), IppStatus)
     End Function
 
     'Sin
@@ -691,14 +748,15 @@ Partial Public Class cIntelIPP
         Dim FunctionName As String = "ippiCopy_16u_C4C1R"
         Dim FunPtr As IntPtr = GetProcAddress(ippiHandle, FunctionName)
         Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
+        Dim Pinner As New cPinHandler
         ReDim ArrayOut(((ArrayIn.GetUpperBound(0) + 1) \ 2) - 1, ((ArrayIn.GetUpperBound(1) + 1) \ 2) - 1)
-        Dim ROI As New sIppiSize(2 * (ArrayIn.GetUpperBound(0) + 1), 2 * (ArrayIn.GetUpperBound(1) + 1))
-        Dim ArrayInGAC As Runtime.InteropServices.GCHandle = Runtime.InteropServices.GCHandle.Alloc(ArrayIn, Runtime.InteropServices.GCHandleType.Pinned)
-        Dim ArrayOutGAC As Runtime.InteropServices.GCHandle = Runtime.InteropServices.GCHandle.Alloc(ArrayOut, Runtime.InteropServices.GCHandleType.Pinned)
-        RetVal = CType(Caller.DynamicInvoke(GetPtr(ArrayIn, Offset), 8, GetPtr(ArrayOut), 2, ROI), IppStatus)
-        ArrayInGAC.Free()
-        ArrayOutGAC.Free()
+        Dim ROI As sIppiSize = GetFullROI(ArrayIn)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn, Offset), 8, Pinner.Pin(ArrayOut), 2, ROI), IppStatus)
         Return RetVal
+    End Function
+
+    Private Function GetFullROI(ByRef ArrayIn(,) As UInt16) As sIppiSize
+        Return New sIppiSize(2 * (ArrayIn.GetUpperBound(0) + 1), 2 * (ArrayIn.GetUpperBound(1) + 1))
     End Function
 
     '==========================================================================================================================================================

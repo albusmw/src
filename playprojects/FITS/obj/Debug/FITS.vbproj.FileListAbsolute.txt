@@ -1,9 +1,0 @@
-C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\FITS\obj\Debug\FITS.vbprojResolveAssemblyReference.cache
-C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\FITS\obj\Debug\Test.Resources.resources
-C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\FITS\obj\Debug\FITS.vbproj.GenerateResource.Cache
-C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\FITS\bin\Debug\FITS.exe
-C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\FITS\bin\Debug\FITS.pdb
-C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\FITS\bin\Debug\FITS.xml
-C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\FITS\obj\Debug\FITS.exe
-C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\FITS\obj\Debug\FITS.xml
-C:\Users\Martin Weiss\Dropbox\GIT\src\playprojects\FITS\obj\Debug\FITS.pdb

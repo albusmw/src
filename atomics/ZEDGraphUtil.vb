@@ -1,6 +1,7 @@
 Option Explicit On
 Option Strict On
 
+'Move content to C:\GIT\src\atomics\ZedGraphService.vb
 Public Class ZEDGraphUtil
 
     '''<summary>Plot X vs Y data. This is the root plot routine.</summary>
@@ -47,6 +48,49 @@ Public Class ZEDGraphUtil
             Else
                 .GraphPane.XAxis.Scale.MaxAuto = True
             End If
+            .GraphPane.YAxis.Scale.MaxAuto = True
+            .GraphPane.YAxis.Scale.MinAuto = True
+            .AxisChange()
+            .Invalidate()
+            .Refresh()
+        End With
+
+    End Sub
+
+    '''<summary>Plot X vs Y data. This is the root plot routine.</summary>
+    '''<param name="CurveName">Name of the curve. If the name already exists, only the data will be updated, but no new curve is build.</param>
+    '''<param name="X">Vector of X axis values.</param>
+    '''<param name="Y">Vector of Y axis values.</param>
+    '''<param name="Style">Style to use (line, point, line and points, color, ...).</param>
+    Public Shared Sub PlotXvsY(ByRef Graph As ZedGraph.ZedGraphControl, ByRef CurveName As String, ByRef X() As UInt32, ByRef Y() As UInt32, ByVal Style As sGraphStyle)
+
+        'If the curve list is empty, add the new surve
+        Dim EditedLine As ZedGraph.LineItem = Nothing
+        If Graph.GraphPane.CurveList.Count = 0 Then
+            EditedLine = Graph.GraphPane.AddCurve(CurveName, Array.ConvertAll(X, New Converter(Of UInt32, Double)(AddressOf DoubleToUInt32)), Array.ConvertAll(Y, New Converter(Of UInt32, Double)(AddressOf DoubleToUInt32)), Style.LineColor, Style.DotStyle)
+        Else
+            For Each Item As ZedGraph.LineItem In Graph.GraphPane.CurveList
+                If Item.Label.Text = CurveName Then
+                    EditedLine = Item
+                    EditedLine.Clear()
+                    'Protect against corrupt X and Y data
+                    If (IsNothing(X) = False) And (IsNothing(Y) = False) Then
+                        If X.Length = Y.Length Then
+                            For Idx As Integer = 0 To X.GetUpperBound(0)
+                                Item.AddPoint(X(Idx), Y(Idx))
+                            Next
+                        End If
+                    End If
+                End If
+            Next Item
+        End If
+
+        'Set curve style
+        If IsNothing(EditedLine) = False Then Style.ConfigureLineItem(EditedLine)
+
+        With Graph
+            .GraphPane.XAxis.Scale.MinAuto = True
+            .GraphPane.XAxis.Scale.MaxAuto = True
             .GraphPane.YAxis.Scale.MaxAuto = True
             .GraphPane.YAxis.Scale.MinAuto = True
             .AxisChange()
@@ -265,11 +309,15 @@ Public Class ZEDGraphUtil
     End With
   End Sub
 
-  '''<summary>Set Y axis to auto-scale and update scaling.</summary>
-  Public Sub AutoScaleYAxis()
-    MainGraph.GraphPane.YAxis.Scale.MaxAuto = True
-    MainGraph.GraphPane.YAxis.Scale.MinAuto = True
-    MainGraph.AxisChange()
-  End Sub
+    '''<summary>Set Y axis to auto-scale and update scaling.</summary>
+    Public Sub AutoScaleYAxis()
+        MainGraph.GraphPane.YAxis.Scale.MaxAuto = True
+        MainGraph.GraphPane.YAxis.Scale.MinAuto = True
+        MainGraph.AxisChange()
+    End Sub
+
+    Private Shared Function DoubleToUInt32(ByVal DataIn As UInt32) As Double
+        Return DataIn
+    End Function
 
 End Class
