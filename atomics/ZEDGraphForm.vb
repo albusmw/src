@@ -67,4 +67,27 @@ Public Class ZEDGraphForm
 
     End Function
 
+    '''<summary>Plot data.</summary>
+    Public Shared Function PlotData(ByRef Data As Dictionary(Of Integer, UInt32)) As ZedGraph.ZedGraphControl
+
+        Dim Hoster As New System.Windows.Forms.Form
+        Dim Control As New ZedGraph.ZedGraphControl
+
+        Hoster.Controls.Add(Control)
+        Control.Dock = Windows.Forms.DockStyle.Fill
+
+        Dim XAxis As New List(Of Double)
+        Dim YAxis As New List(Of Double)
+        For Each Entry As Integer In Data.Keys
+            XAxis.Add(Entry)
+            YAxis.Add(Data(Entry))
+        Next Entry
+        ZEDGraphUtil.PlotXvsY(Control, "Data", XAxis.ToArray, YAxis.ToArray, New ZEDGraphUtil.sGraphStyle(Drawing.Color.Red, ZEDGraphUtil.sGraphStyle.eCurveMode.Dots), XAxis(0), XAxis(XAxis.Count - 1))
+        Hoster.Show()
+        ZEDGraphUtil.MaximizePlotArea(Control)
+
+        Return Control
+
+    End Function
+
 End Class
