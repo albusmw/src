@@ -160,7 +160,6 @@ Public Class cFITSReader
                 Next W
             Next H
         Else
-            'IPP implementation - swapbytes does not do a correct copy ...
             Dim IPPStatus As New List(Of cIntelIPP.IppStatus)
             IPPStatus.Add(IntelIPP.Transpose(Bytes, ImageData))
             IPPStatus.Add(IntelIPP.SwapBytes(ImageData))

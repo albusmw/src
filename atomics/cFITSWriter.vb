@@ -17,6 +17,9 @@ Public Class cFITSWriter
 
     Private Shared UInt16Table As Dictionary(Of UInt16, Byte())
 
+    '''<summary>Path to ipps.dll and ippvm.dll - if not set IPP will not be used.</summary>
+    Public Shared Property IPPPath As String = String.Empty
+
     Private Const BZeroNotUsed As Double = 0.0
     Private Const BScaleNotUsed As Double = 1.0
     Private Const Int16UsignedToFITS As Int32 = 32768
@@ -342,22 +345,35 @@ Public Class cFITSWriter
         Dim B As Double = -(BZero / BScale)
 
         'Write content
+        Dim UseIPP As Boolean = False
         Select Case BitPix
             Case eBitPix.Int32
                 If BZero = Int32UsignedToFITS And BScale = BScaleNotUsed Then
-                    'Write content
+                    'Write content as-is
                     'Write "as is" without any additional calculation (as there is no scaling ...); the only scaling needed is to subtrace Int64.MaxValue in order to get a Int16 for the UInt16 ...
                     'We write the data blockwise to speed up writing ...
-                    Dim Block(((ImageData.GetUpperBound(0) + 1) * BitPerPixel) - 1) As Byte
-                    Dim BlockPtr As Integer = 0
-                    For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
-                        For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
-                            Dim Val(3) As Byte : Val = BitConverter.GetBytes(CType(ImageData(Idx2, Idx1) + Int32UsignedToFITS, UInt32))
-                            Block(BlockPtr) = Val(3) : Block(BlockPtr + 1) = Val(2) : Block(BlockPtr + 2) = Val(1) : Block(BlockPtr + 3) = Val(0)
-                            BlockPtr += BitPerPixel
-                        Next Idx2
-                        BytesOut.Write(Block) : BlockPtr = 0
-                    Next Idx1
+                    If UseIPP = True Then
+                        Dim IntelIPP As New cIntelIPP(System.IO.Path.Combine(IPPPath, "ipps.dll"), System.IO.Path.Combine(IPPPath, "ippvm.dll"), System.IO.Path.Combine(IPPPath, "ippi.dll"))
+                        Dim IPPStatus As New List(Of cIntelIPP.IppStatus)
+                        Dim BytesToWrite((ImageData.Length * 2) - 1) As Byte
+                        Dim UnsignedXOR As UInt32 = BitConverter.ToUInt32(New Byte() {&H80, 0, 0, 0}, 0)
+                        'IPPStatus.Add(IntelIPP.XorC(ImageData, UnsignedXOR))
+                        'IPPStatus.Add(IntelIPP.SwapBytes(ImageData))
+                        'IPPStatus.Add(IntelIPP.Transpose(ImageData, BytesToWrite))
+                        BytesOut.Write(BytesToWrite)
+                    Else
+                        Dim Block(((ImageData.GetUpperBound(0) + 1) * BitPerPixel) - 1) As Byte
+                        Dim BlockPtr As Integer = 0
+                        For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+                            For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                                Dim Val(3) As Byte : Val = BitConverter.GetBytes(CType(ImageData(Idx2, Idx1) + Int32UsignedToFITS, UInt32))
+                                Block(BlockPtr) = Val(3) : Block(BlockPtr + 1) = Val(2) : Block(BlockPtr + 2) = Val(1) : Block(BlockPtr + 3) = Val(0)
+                                BlockPtr += BitPerPixel
+                            Next Idx2
+                            BytesOut.Write(Block) : BlockPtr = 0
+                        Next Idx1
+                    End If
+
                 Else
                     'Write with scaling and offset taken into account
                     For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)

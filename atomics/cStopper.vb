@@ -20,7 +20,7 @@ Public Class cStopper
     '''<summary>Log the timing and restart the watch again.</summary>
     Public Sub [Stamp](ByVal Text As String)
         Watch.Stop()
-        TimeLog.Add(Text.PadRight(20) & " : " & Watch.ElapsedMilliseconds.ToString.Trim.PadLeft(9) & " ms")
+        TimeLog.Add(Text.PadRight(30) & " : " & Watch.ElapsedMilliseconds.ToString.Trim.PadLeft(11) & " ms")
         Watch.Reset()
         Watch.Start()
     End Sub
