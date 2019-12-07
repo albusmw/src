@@ -422,7 +422,7 @@ Public Class cFITSReader
                     EndReached = True
                 Else
                     Dim NewHeaderElement As cFITSHeaderParser.sHeaderElement = Nothing
-                    NewHeaderElement.Element = NewLine.Substring(0, 8).Trim
+                    NewHeaderElement.Keyword = NewLine.Substring(0, 8).Trim
                     NewLine = NewLine.Substring(10)
                     Dim Splitted As String() = Split(NewLine, "/")
                     NewHeaderElement.Value = Splitted(0).Trim

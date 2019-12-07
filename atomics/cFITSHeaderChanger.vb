@@ -11,25 +11,11 @@ Public Class cFITSHeaderChanger
     '''<summary>Number of header elements per header block.</summary>
     Public Shared ReadOnly HeaderElements As Integer = HeaderBlockSize \ HeaderElementLength
 
-    Public Structure sHeaderElement
-        Public Keyword As String
-        Public Value As String
-        Public Comment As String
-        Public Sub New(ByVal NewKeyword As String, ByVal NewValue As String, ByVal NewComment As String)
-            Me.Keyword = NewKeyword
-            Me.Value = NewValue
-            Me.Comment = NewComment
-        End Sub
-        Public Shared Function Sorter(ByVal X As sHeaderElement, ByVal Y As sHeaderElement) As Integer
-            Return X.Keyword.CompareTo(Y.Keyword)
-        End Function
-    End Structure
-
     '''<summary>Search a specific keyword in the passed list of header elements.</summary>
     '''<param name="HeaderElements">Header elements.</param>
     '''<param name="KeyWordToSearch">Keyword to search for.</param>
-    Public Shared Function GetHeaderValue(ByRef HeaderElements As List(Of sHeaderElement), ByVal KeyWordToSearch As String) As String
-        For Each Entry As sHeaderElement In HeaderElements
+    Public Shared Function GetHeaderValue(ByRef HeaderElements As List(Of cFITSHeaderParser.sHeaderElement), ByVal KeyWordToSearch As String) As String
+        For Each Entry As cFITSHeaderParser.sHeaderElement In HeaderElements
             If Entry.Keyword.Trim = KeyWordToSearch Then Return Entry.Value
         Next Entry
         Return String.Empty
@@ -78,48 +64,48 @@ Public Class cFITSHeaderChanger
         Return ("'" & Value & "'").PadRight(20)
     End Function
 
-    Public Shared Function ReadHeader(ByVal File As String) As List(Of sHeaderElement)
+    Public Shared Function ReadHeader(ByVal File As String) As List(Of cFITSHeaderParser.sHeaderElement)
 
-        Dim RetVal As New List(Of sHeaderElement)
+        Dim RetVal As New List(Of cFITSHeaderParser.sHeaderElement)
 
         If System.IO.File.Exists(File) = True Then
 
-        'Open original file and create new list of header elements
-        Dim FITS_stream As System.IO.FileStream = System.IO.File.OpenRead(File)
+            'Open original file and create new list of header elements
+            Dim FITS_stream As System.IO.FileStream = System.IO.File.OpenRead(File)
 
-        Do
+            Do
 
-            'Get one header line which has 80 bytes
-            Dim HeaderBytes(HeaderElementLength - 1) As Byte
-            FITS_stream.Read(HeaderBytes, 0, HeaderBytes.Length)
-            Dim SingleLine As String = System.Text.ASCIIEncoding.ASCII.GetString(HeaderBytes)
+                'Get one header line which has 80 bytes
+                Dim HeaderBytes(HeaderElementLength - 1) As Byte
+                FITS_stream.Read(HeaderBytes, 0, HeaderBytes.Length)
+                Dim SingleLine As String = System.Text.ASCIIEncoding.ASCII.GetString(HeaderBytes)
 
-            'Exit on END detected
-            If SingleLine.Trim.StartsWith("END") Then
-                Exit Do
-            End If
-
-            'Process only non-empty files
-            If SingleLine.Trim.Length > 0 Then
-
-                'Get the keyword and the value
-                Dim HeaderElement As sHeaderElement
-                HeaderElement.Keyword = SingleLine.Substring(0, 8)
-                HeaderElement.Value = SingleLine.Substring(9)
-                HeaderElement.Comment = String.Empty
-                If HeaderElement.Value.Contains("/") Then
-                    Dim SepPos As Integer = HeaderElement.Value.IndexOf("/")
-                    HeaderElement.Comment = HeaderElement.Value.Substring(SepPos + 1)
-                    HeaderElement.Value = HeaderElement.Value.Substring(0, SepPos)
+                'Exit on END detected
+                If SingleLine.Trim.StartsWith("END") Then
+                    Exit Do
                 End If
-                RetVal.Add(HeaderElement)
 
-            End If
+                'Process only non-empty files
+                If SingleLine.Trim.Length > 0 Then
 
-            'End on stream end
-            If FITS_stream.Position = FITS_stream.Length Then Exit Do
+                    'Get the keyword and the value
+                    Dim HeaderElement As cFITSHeaderParser.sHeaderElement
+                    HeaderElement.Keyword = SingleLine.Substring(0, 8)
+                    HeaderElement.Value = SingleLine.Substring(9)
+                    HeaderElement.Comment = String.Empty
+                    If HeaderElement.Value.Contains("/") Then
+                        Dim SepPos As Integer = HeaderElement.Value.IndexOf("/")
+                        HeaderElement.Comment = HeaderElement.Value.Substring(SepPos + 1)
+                        HeaderElement.Value = HeaderElement.Value.Substring(0, SepPos)
+                    End If
+                    RetVal.Add(HeaderElement)
 
-        Loop Until 1 = 0
+                End If
+
+                'End on stream end
+                If FITS_stream.Position = FITS_stream.Length Then Exit Do
+
+            Loop Until 1 = 0
 
         End If
 

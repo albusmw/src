@@ -5,23 +5,23 @@ Option Strict On
 'Atomic source file for image processing functions
 '==================================================================================================================
 
-Public Class ImageProcessing   
+Public Class ImageProcessing
 
     '''<summary>Calculate a color-balanced flat image.</summary>
     '''<remarks>Color balance is done by multiplying with the median values.</remarks>
-    Public Shared Sub BayerFlatBalance(ByRef Data(,) As Int32, ByRef Stat(,) As Dictionary(Of Int32, UInt32))
+    Public Shared Sub BayerFlatBalance(ByRef Data(,) As UInt32, ByRef Stat(,) As Dictionary(Of UInt32, UInt32))
 
         Dim BayerCountX As Integer = Stat.GetUpperBound(0) + 1
         Dim BayerCountY As Integer = Stat.GetUpperBound(1) + 1
         Dim TotalChannelPixel As Long = Data.LongLength \ (BayerCountX * BayerCountY)
 
         'Get the median value for each bayer channel
-        Dim Median(BayerCountX - 1, BayerCountY - 1) As Int32
-        Dim MedianNorm As Int32 = Int32.MinValue
+        Dim Median(BayerCountX - 1, BayerCountY - 1) As UInt32
+        Dim MedianNorm As UInt32 = UInt32.MinValue
         For Idx1 As Integer = 0 To BayerCountX - 1
             For Idx2 As Integer = 0 To BayerCountY - 1
                 Dim Sum As Long = 0
-                For Each Entry As Int32 In Stat(Idx1, Idx2).Keys
+                For Each Entry As UInt32 In Stat(Idx1, Idx2).Keys
                     Sum += Stat(Idx1, Idx2)(Entry)
                     If Sum >= TotalChannelPixel \ 2 Then
                         Median(Idx1, Idx2) = Entry
@@ -38,9 +38,9 @@ Public Class ImageProcessing
             For Idx2 As Integer = 0 To Data.GetUpperBound(1) - 1 Step BayerCountY
                 For RGBIdx1 As Integer = 0 To BayerCountX - 1
                     For RGBIdx2 As Integer = 0 To BayerCountY - 1
-                        Dim Pixel As Int32 = Data(Idx1 + RGBIdx1, Idx2 + RGBIdx2)
+                        Dim Pixel As UInt32 = Data(Idx1 + RGBIdx1, Idx2 + RGBIdx2)
                         Dim NewPixel As Double = Pixel * (MedianNorm / Median(RGBIdx1, RGBIdx2))
-                        Data(Idx1 + RGBIdx1, Idx2 + RGBIdx2) = CInt(NewPixel)
+                        Data(Idx1 + RGBIdx1, Idx2 + RGBIdx2) = CUInt(NewPixel)
                     Next RGBIdx2
                 Next RGBIdx1
             Next Idx2

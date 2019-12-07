@@ -508,6 +508,18 @@ Partial Public Class cIntelIPP
     '''<param name="Array"></param>
     '''<returns></returns>
     '''<remarks>https://software.intel.com/en-us/ipp-dev-reference-divc</remarks>
+    Public Function DivC(ByRef Array() As Double, ByRef ScaleFactor As Double) As IppStatus
+        Dim FunctionName As String = "ippsDivC_64f_I"
+        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
+        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_Double_IntPtr_Integer))
+        Dim Pinner As New cPinHandler
+        Return CType(Caller.DynamicInvoke(ScaleFactor, Pinner.Pin(Array), Array.Length), IppStatus)
+    End Function
+
+    '''<summary>Divides each element of a vector by a constant value.</summary>
+    '''<param name="Array"></param>
+    '''<returns></returns>
+    '''<remarks>https://software.intel.com/en-us/ipp-dev-reference-divc</remarks>
     Public Function DivC(ByRef Array(,) As Double, ByRef ScaleFactor As Double) As IppStatus
         Dim FunctionName As String = "ippsDivC_64f_I"
         Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
@@ -526,6 +538,7 @@ Partial Public Class cIntelIPP
                 Array(Idx1, Idx2) = CUInt(Array(Idx1, Idx2) / ScaleFactor)
             Next Idx2
         Next Idx1
+        Return IppStatus.NoErr
     End Function
 
     '==========================================================================================================================================================
@@ -617,6 +630,25 @@ Partial Public Class cIntelIPP
         Dim RetVal As IppStatus = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(TempVal1), Pinner.Pin(TempVal2)), IppStatus)
         Minimum = TempVal1(0) : Maximum = TempVal2(0)
         Return RetVal
+    End Function
+
+    'MinMax
+    Public Function MinMax(ByRef Array() As Double, ByRef Minimum As Double, ByRef Maximum As Double) As IppStatus
+        Dim FunctionName As String = "ippsMinMax_64f"
+        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
+        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_IntPtr))
+        Dim Pinner As New cPinHandler
+        Dim TempVal1(0) As Double : Dim TempVal2(0) As Double
+        Dim RetVal As IppStatus = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(TempVal1), Pinner.Pin(TempVal2)), IppStatus)
+        Minimum = TempVal1(0) : Maximum = TempVal2(0)
+        Return RetVal
+    End Function
+
+    'Max (derived)
+    Public Function Max(ByRef Array() As Double) As Double
+        Dim Minimum As Double = Double.NaN
+        Dim Maximum As Double = Double.NaN
+        If MinMax(Array, Minimum, Maximum) = IppStatus.NoErr Then Return Maximum Else Return Double.NaN
     End Function
 
     '==========================================================================================================================================================

@@ -277,8 +277,8 @@ Namespace AstroNET
 
         ''' <summary>Calculate the intensity over the distance from the center of the image.</summary>
         ''' <param name="FITSSumImage">Image to run calculation on.</param>
-        ''' <param name="Steps">Number of X axis steps to group - 0 for full resolution.</param>
-        ''' <returns></returns>
+        ''' <param name="Steps">Number of X axis steps to group - 0 for full resolution, -1 for integer resolution.</param>
+        ''' <returns>Dictionary of center distance vs mean value.</returns>
         ''' <remarks>We start in the middle, move down and right and always take 4 pixel symmetrical to the middle.</remarks>
         Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt32, ByVal Steps As Integer) As Dictionary(Of Double, Double)
             Dim VignetPixelSum As New Dictionary(Of Double, UInt32)
@@ -316,6 +316,7 @@ Namespace AstroNET
                 Return VignetCount
             Else
                 'Group the distance in N steps
+                If Steps = -1 Then Steps = CInt(Math.Sqrt((FITSSumImage.GetUpperBound(0) * FITSSumImage.GetUpperBound(0)) + (FITSSumImage.GetUpperBound(1) * FITSSumImage.GetUpperBound(1))) / 2)
                 Dim RetAccu As New Dictionary(Of Double, Ato.cSingleValueStatistics)
                 Dim AllDistances As New List(Of Double)(VignetPixelSum.Keys)
                 For Each SingleDistance As Double In AllDistances
@@ -331,6 +332,25 @@ Namespace AstroNET
                 Return RetVal
             End If
         End Function
+
+        ''' <summary>Correct the vignette.</summary>
+        Public Shared Sub CorrectVignette(ByRef FITSSumImage(,) As UInt32, ByRef VignetteCorrection As Dictionary(Of Double, Double))
+            Dim GroupDeltaX As Integer = 1 : Dim DistX As Integer = 1
+            Dim Distance As Integer = -1
+            For DeltaX As Integer = (FITSSumImage.GetUpperBound(0) \ 2) + 1 To FITSSumImage.GetUpperBound(0)
+                Dim GroupDeltaY As Integer = 1 : Dim DistY As Integer = 1
+                For DeltaY As Integer = (FITSSumImage.GetUpperBound(1) \ 2) + 1 To FITSSumImage.GetUpperBound(1)
+                    Distance = CInt(Math.Sqrt((DistX * DistX) + (DistY * DistY)))
+                    Dim Correction As Double = 1 / VignetteCorrection(Distance)
+                    FITSSumImage(DeltaX, DeltaY) = CUInt(FITSSumImage(DeltaX, DeltaY) * Correction)                                                           'right down
+                    FITSSumImage(DeltaX, DeltaY - GroupDeltaY) = CUInt(FITSSumImage(DeltaX, DeltaY - GroupDeltaY) * Correction)                               'right up
+                    FITSSumImage(DeltaX - GroupDeltaX, DeltaY) = CUInt(FITSSumImage(DeltaX - GroupDeltaX, DeltaY) * Correction)                               'left down
+                    FITSSumImage(DeltaX - GroupDeltaX, DeltaY - GroupDeltaY) = CUInt(FITSSumImage(DeltaX - GroupDeltaX, DeltaY - GroupDeltaY) * Correction)   'left up
+                    GroupDeltaY += 2 : DistY += 1
+                Next DeltaY
+                GroupDeltaX += 2 : DistX += 1
+            Next DeltaX
+        End Sub
 
     End Class
 

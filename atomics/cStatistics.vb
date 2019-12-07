@@ -209,12 +209,12 @@ Public Class cStatistics
     '================================================================================
 
     '''<summary>Calculate statistics on the given area.</summary>
-    Public Sub Calculate(ByRef Data(,) As Int32)
+    Public Sub Calculate(ByRef Data(,) As UInt32)
         Calculate(Data, 0, Data.GetUpperBound(0), 0, Data.GetUpperBound(1))
     End Sub
 
     '''<summary>Calculate statistics on the given area.</summary>
-    Public Sub Calculate(ByRef Data(,) As Int32, ByVal X_left As Integer, ByVal X_right As Integer, ByVal Y_top As Integer, ByVal Y_bottom As Integer)
+    Public Sub Calculate(ByRef Data(,) As UInt32, ByVal X_left As Integer, ByVal X_right As Integer, ByVal Y_top As Integer, ByVal Y_bottom As Integer)
 
         Dim Pixels As Integer = (X_right - X_left + 1) * (Y_bottom - Y_top + 1)
 

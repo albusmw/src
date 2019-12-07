@@ -1,8 +1,10 @@
 ﻿Option Explicit On
 Option Strict On
 
+'''<summary>Class for generic statistic functions.</summary>
 Public Class SignalProcessing
 
+    '''<summary>Polynomial regression calculation.</summary>
     Public Shared Sub RegressPoly(ByRef X As Double(), ByRef Y As Double(), ByVal Order As Integer, ByRef Polynom As Double())
 
         Dim MomentMatrix As Double(,) = {}
@@ -12,6 +14,28 @@ Public Class SignalProcessing
         Polynom = MatrixSolve(MomentMatrix, RightSide)
 
     End Sub
+
+    '''<summary>Calculate y=a+bx+cx^2+....</summary>
+    '''<param name="Polynom">Calculated polynomial - 1st element (index 0) is constant term, length is Order+1.</param>
+    Public Shared Function ApplyPoly(ByRef X As Double(), ByRef Polynom As Double()) As Double()
+        Dim RetVal(X.Length - 1) As Double
+        Dim XPowVector(X.Length - 1) As Double
+        If Polynom.Length = 0 Then Return RetVal
+        'Initial run
+        For Idx As Integer = 0 To X.Length - 1
+            RetVal(Idx) = Polynom(0)
+            XPowVector(Idx) = X(Idx)
+        Next Idx
+        If Polynom.Length = 1 Then Return RetVal
+        'Power run
+        For PowIdx As Integer = 1 To Polynom.GetUpperBound(0)
+            For Idx As Integer = 0 To X.Length - 1
+                RetVal(Idx) += XPowVector(Idx) * Polynom(PowIdx)
+                XPowVector(Idx) *= X(Idx)
+            Next Idx
+        Next PowIdx
+        Return RetVal
+    End Function
 
     '''<summary>Calculate the polynomial fitting matrix required for the polynomial regression.</summary>
     '''<param name="X">Vector of X elements.</param>
@@ -51,6 +75,7 @@ Public Class SignalProcessing
 
     End Sub
 
+    '''<summary>Calculate sum(vector^n) up to the MaxPower power.</summary>
     Public Shared Sub GetPowerSums(ByRef Vector As Double(), ByRef Powers As Double(), ByVal MaxPower As Integer)
 
         Dim Index As Integer
@@ -68,6 +93,7 @@ Public Class SignalProcessing
 
     End Sub
 
+    '''<summary>Calculate Sum(Vector1^Order1*Vector2^Order2).</summary>
     Public Shared Function ArrayMixMoment(ByRef Vector1 As Double(), ByRef Vector2 As Double(), ByVal Order1 As Integer, ByVal Order2 As Integer) As Double
 
         Dim Index As Long

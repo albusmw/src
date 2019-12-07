@@ -6,9 +6,17 @@ Public Class cFITSHeaderParser
 
     '''<summary>Elements of one single FITS header line.</summary>
     Public Structure sHeaderElement
-        Public Element As String
+        Public Keyword As String
         Public Value As String
         Public Comment As String
+        Public Sub New(ByVal NewKeyword As String, ByVal NewValue As String, ByVal NewComment As String)
+            Me.Keyword = NewKeyword
+            Me.Value = NewValue
+            Me.Comment = NewComment
+        End Sub
+        Public Shared Function Sorter(ByVal X As sHeaderElement, ByVal Y As sHeaderElement) As Integer
+            Return X.Keyword.CompareTo(Y.Keyword)
+        End Function
     End Structure
 
     '''<summary>Common FITS header information.</summary>
@@ -60,10 +68,10 @@ Public Class cFITSHeaderParser
         End Get
     End Property
 
-    Public Sub New(ByVal HeaderElements As List(Of sHeaderElement))
+    Public Sub New(ByVal HeaderElements As List(Of cFITSHeaderParser.sHeaderElement))
         'Move through all elements and get known elements and convert them
         For Each NewHeaderElement As sHeaderElement In HeaderElements
-            Select Case NewHeaderElement.Element
+            Select Case NewHeaderElement.Keyword
                 Case "BITPIX" : MyProps.BitPix = CInt(NewHeaderElement.Value)
                 Case "NAXIS1" : MyProps.Width = CInt(NewHeaderElement.Value)
                 Case "NAXIS2" : MyProps.Height = CInt(NewHeaderElement.Value)
