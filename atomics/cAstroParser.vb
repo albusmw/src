@@ -6,12 +6,35 @@ Public Class AstroParser
     '''<summary>Separator sign.</summary>
     Private Shared ReadOnly Sep As Char = CChar("|")
 
+    '''<summary>Returns the hours value from the given right accension value.</summary>
+    '''<param name="Text">Text.</param>
+    '''<returns>Value [h].</returns>
+    Public Shared Function ParseRA(ByVal Text As String) As Double
+        '1.) Try to generate a common notation
+        Text = Text.Trim.ToUpper.Replace(" ", Sep).Replace(",", ".")
+        Text = Text.Replace("H", Sep).Replace("'", Sep).Replace("""", Sep).Replace(":", Sep)
+        Text = Text.Replace("′", Sep).Replace("″", Sep).Replace("D", Sep).Replace("MIN", Sep)
+        Text = Text.TrimEnd(Sep)
+        '2.) Calculate return value
+        Dim Values As String() = Split(Text.TrimEnd(Sep), Sep)
+        Select Case Values.Length
+            Case 1
+                Return (Val(Values(0)))
+            Case 2
+                Return (Val(Values(0)) + (Val(Values(1)) / 60))
+            Case 3
+                Return (Val(Values(0)) + (Val(Values(1)) / 60) + (Val(Values(2)) / 3600))
+        End Select
+        '4.) Conversion failed ...
+        Return Double.NaN
+    End Function
+
     '''<summary>Returns the degree value from the given latitude or longitude value.</summary>
     '''<param name="Text">Text.</param>
     '''<returns>Value [°].</returns>
     Public Shared Function ParsePosition(ByVal Text As String) As Double
         '1.) Try to generate a common notation
-        Text = Text.ToUpper.Replace(" ", String.Empty).Replace(",", ".")
+        Text = Text.Trim.ToUpper.Replace(" ", Sep).Replace(",", ".")
         Text = Text.Replace("°", Sep).Replace("'", Sep).Replace("""", Sep).Replace(":", Sep)
         Text = Text.Replace("′", Sep).Replace("″", Sep).Replace("D", Sep).Replace("MIN", Sep)
         Text = Text.TrimEnd(Sep)

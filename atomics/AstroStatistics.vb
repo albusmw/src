@@ -9,9 +9,6 @@ Namespace AstroNET
 
     Public Class Statistics
 
-        '''<summary>Path to ipps.dll and ippvm.dll - if not set IPP will not be used.</summary>
-        Public Shared Property IPPPath As String = String.Empty
-
         '''<summary>Instance of Intel IPP library call.</summary>
         Private IntelIPP As cIntelIPP = Nothing
 
@@ -23,8 +20,16 @@ Namespace AstroNET
 
         Private Const OneUInt32 As UInt32 = CType(1, UInt32)
 
-        Public Sub New()
-            IntelIPP = New cIntelIPP(System.IO.Path.Combine(IPPPath, "ipps.dll"), System.IO.Path.Combine(IPPPath, "ippvm.dll"), System.IO.Path.Combine(IPPPath, "ippi.dll"))
+        '''<summary>Constructor that creates an Intel IPP reference.</summary>
+        '''<param name="IPPPath">Path to ipps.dll and ippvm.dll - if not set IPP will not be used.</param>
+        Public Sub New(ByVal IPPPath As String)
+            IntelIPP = New cIntelIPP(IPPPath)
+        End Sub
+
+        '''<summary>Constructor that creates an Intel IPP reference.</summary>
+        '''<param name="ExistingIntelIPP">Reference to an existing Intel IPP class library.</param>
+        Public Sub New(ByRef ExistingIntelIPP As cIntelIPP)
+            IntelIPP = ExistingIntelIPP
         End Sub
 
         '''<summary>Total statistics - available as per-channel bayer statistics and as combined statistics.</summary>
