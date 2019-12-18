@@ -79,17 +79,20 @@ Partial Public Class cIntelIPP
 #End Region
 
     '''<summary>Class to handle GAC pinning and release.</summary>
-    Private Class cPinHandler
+    Public Class cPinHandler
         Private Pinned As New List(Of Runtime.InteropServices.GCHandle)
         '''<summary>Pin the array and get the pointer.</summary>
         Public Function Pin(Of T)(ByRef ArrayToPin() As T) As IntPtr
+            Return Pin(ArrayToPin, 0)
+        End Function
+        '''<summary>Pin the array and get the pointer.</summary>
+        Public Function Pin(Of T)(ByRef ArrayToPin() As T, ByRef Offset As Integer) As IntPtr
             Pinned.Add(Runtime.InteropServices.GCHandle.Alloc(ArrayToPin, Runtime.InteropServices.GCHandleType.Pinned))
-            Return System.Runtime.InteropServices.Marshal.UnsafeAddrOfPinnedArrayElement(ArrayToPin, 0)
+            Return System.Runtime.InteropServices.Marshal.UnsafeAddrOfPinnedArrayElement(ArrayToPin, Offset)
         End Function
         '''<summary>Pin the array and get the pointer.</summary>
         Public Function Pin(Of T)(ByRef ArrayToPin(,) As T) As IntPtr
-            Pinned.Add(Runtime.InteropServices.GCHandle.Alloc(ArrayToPin, Runtime.InteropServices.GCHandleType.Pinned))
-            Return System.Runtime.InteropServices.Marshal.UnsafeAddrOfPinnedArrayElement(ArrayToPin, 0)
+            Return Pin(ArrayToPin, 0)
         End Function
         '''<summary>Pin the array and get the pointer.</summary>
         Public Function Pin(Of T)(ByRef ArrayToPin(,) As T, ByRef Offset As Integer) As IntPtr
@@ -755,9 +758,23 @@ Partial Public Class cIntelIPP
 
     '==========================================================================================================================================================
 
-    ''' <summary>Transpose</summary>
+    ''' <summary>Transpose.</summary>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-transpose</remarks>
     Public Function Transpose(ByRef ArrayIn() As Byte, ByRef ArrayOut(,) As UInt16) As IppStatus
+        Dim BytePerVal As Integer = 2
+        Dim FunctionName As String = "ippiTranspose_16u_C1R"
+        Dim FunPtr As IntPtr = GetProcAddress(ippiHandle, FunctionName)
+        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
+        Dim Pinner As New cPinHandler
+        Dim srcStep As Integer = BytePerVal * (ArrayOut.GetUpperBound(0) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the source image.
+        Dim dstStep As Integer = BytePerVal * (ArrayOut.GetUpperBound(1) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the destination image.
+        Dim ROI As New sIppiSize(srcStep \ BytePerVal, dstStep \ BytePerVal)
+        Return CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
+    End Function
+
+    ''' <summary>Transpose</summary>
+    ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-transpose</remarks>
+    Public Function Transpose(ByRef ArrayIn(,) As UInt16, ByRef ArrayOut() As Byte) As IppStatus
         Dim FunctionName As String = "ippiTranspose_16u_C1R"
         Dim FunPtr As IntPtr = GetProcAddress(ippiHandle, FunctionName)
         Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
@@ -771,13 +788,30 @@ Partial Public Class cIntelIPP
     ''' <summary>Transpose</summary>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-transpose</remarks>
     Public Function Transpose(ByRef Array(,) As UInt16) As IppStatus
-        Dim FunctionName As String = "ippiTranspose_32u_C1IR"
+        Dim FunctionName As String = "ippiTranspose_16u_C1IR"
         Dim FunPtr As IntPtr = GetProcAddress(ippiHandle, FunctionName)
         Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IppiSize))
         Dim Pinner As New cPinHandler
         Dim srcDstStep As Integer = 2 * (Array.GetUpperBound(1) + 1)
         Dim ROI As sIppiSize = GetFullROI(Array)
         Return CType(Caller.DynamicInvoke(Pinner.Pin(Array), srcDstStep, ROI), IppStatus)
+    End Function
+
+    '==========================================================================================================================================================
+
+    ''' <summary>Copy.</summary>
+    ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-copy-1</remarks>
+    Public Function Copy(ByRef ArrayIn(,) As UInt16, ByRef ArrayOut(,) As UInt16, ByVal OffsetX As UInteger, ByVal OffsetY As UInteger) As IppStatus
+        Dim BytePerVal As Integer = 2
+        Dim FunctionName As String = "ippiCopy_16u_C1R"
+        Dim FunPtr As IntPtr = GetProcAddress(ippiHandle, FunctionName)
+        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
+        Dim Pinner As New cPinHandler
+        ReDim ArrayOut(CInt(ArrayIn.GetUpperBound(0) - OffsetX), CInt(ArrayIn.GetUpperBound(1) - OffsetY))
+        Dim srcStep As Integer = CInt(BytePerVal * (ArrayOut.GetUpperBound(1) + 1))                 'Distance, in bytes, between the starting points of consecutive lines in the source image.
+        Dim dstStep As Integer = CInt(BytePerVal * (ArrayOut.GetUpperBound(1) + 1 - OffsetY))       'Distance, in bytes, between the starting points of consecutive lines in the destination image.
+        Dim ROI As New sIppiSize(CInt(ArrayOut.GetUpperBound(1) + 1 - OffsetY), CInt(ArrayOut.GetUpperBound(0) + 1 - OffsetX))
+        Return CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
     End Function
 
     '==========================================================================================================================================================
