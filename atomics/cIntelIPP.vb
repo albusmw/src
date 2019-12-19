@@ -100,10 +100,14 @@ Partial Public Class cIntelIPP
             Return System.Runtime.InteropServices.Marshal.UnsafeAddrOfPinnedArrayElement(ArrayToPin, Offset)
         End Function
         '''<summary>Release all pinned objects.</summary>
-        Protected Overrides Sub Finalize()
+        Public Sub ClearAll()
             For Each PinnedObject As Runtime.InteropServices.GCHandle In Pinned
                 PinnedObject.Free()
             Next PinnedObject
+        End Sub
+        '''<summary>Release all pinned objects.</summary>
+        Protected Overrides Sub Finalize()
+            ClearAll()
             MyBase.Finalize()
         End Sub
     End Class
@@ -399,14 +403,20 @@ Partial Public Class cIntelIPP
 
 #End Region
 
+    Public Function CallIPPS(ByVal FunctionName As String, ByVal Signature As Type) As System.Delegate
+        Return Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(GetProcAddress(ippsHandle, FunctionName), Signature)
+    End Function
+
+    Public Function CallIPPI(ByVal FunctionName As String, ByVal Signature As Type) As System.Delegate
+        Return Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(GetProcAddress(ippiHandle, FunctionName), Signature)
+    End Function
+
     '''<summary>Initializes a vector to zero.</summary>
     '''<param name="Src"></param>
     '''<returns>IPP status.</returns>
     '''<remarks>https://software.intel.com/en-us/ipp-dev-reference-zero</remarks>
     Public Function Zero(ByRef Src(,) As UInt32) As IppStatus
-        Dim FunctionName As String = "ippsZero_32s"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer))
+        Dim Caller As System.Delegate = CallIPPS("ippsZero_32s", GetType(CallSignature_IntPtr_Integer))
         Dim Pinner As New cPinHandler
         Return CType(Caller.DynamicInvoke(Pinner.Pin(Src), Src.Length), IppStatus)
     End Function
@@ -637,14 +647,20 @@ Partial Public Class cIntelIPP
 
     'MinMax
     Public Function MinMax(ByRef Array() As Double, ByRef Minimum As Double, ByRef Maximum As Double) As IppStatus
-        Dim FunctionName As String = "ippsMinMax_64f"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_IntPtr))
+        Dim Caller As System.Delegate = CallIPPS("ippsMinMax_64f", GetType(CallSignature_IntPtr_Integer_IntPtr_IntPtr))
         Dim Pinner As New cPinHandler
         Dim TempVal1(0) As Double : Dim TempVal2(0) As Double
         Dim RetVal As IppStatus = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(TempVal1), Pinner.Pin(TempVal2)), IppStatus)
         Minimum = TempVal1(0) : Maximum = TempVal2(0)
+        Pinner.ClearAll()
         Return RetVal
+    End Function
+
+    'Min (derived)
+    Public Function Min(ByRef Array() As Double) As Double
+        Dim Minimum As Double = Double.NaN
+        Dim Maximum As Double = Double.NaN
+        If MinMax(Array, Minimum, Maximum) = IppStatus.NoErr Then Return Minimum Else Return Double.NaN
     End Function
 
     'Max (derived)
@@ -658,13 +674,12 @@ Partial Public Class cIntelIPP
 
     'MaxIdx
     Public Function MaxIndx(ByRef Array(,) As Double, ByRef Maximum As Double, ByRef MaximumIdx As Integer) As IppStatus
-        Dim FunctionName As String = "ippsMaxIndx_64f"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_IntPtr))
+        Dim Caller As System.Delegate = CallIPPS("ippsMaxIndx_64f", GetType(CallSignature_IntPtr_Integer_IntPtr_IntPtr))
         Dim Pinner As New cPinHandler
         Dim TempVal1(0) As Double : Dim TempVal2(0) As Integer
         Dim RetVal As IppStatus = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(TempVal1), Pinner.Pin(TempVal2)), IppStatus)
         Maximum = TempVal1(0) : MaximumIdx = TempVal2(0)
+        Pinner.ClearAll()
         Return RetVal
     End Function
 
@@ -749,11 +764,11 @@ Partial Public Class cIntelIPP
     ''' <summary>SwapBytes</summary>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-swapbytes</remarks>
     Public Function SwapBytes(ByRef Array(,) As Int32) As IppStatus
-        Dim FunctionName As String = "ippsSwapBytes_32u_I"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer))
+        Dim Caller As System.Delegate = CallIPPS("ippsSwapBytes_32u_I", GetType(CallSignature_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Return CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length), IppStatus)
+        Dim RetVal As IppStatus = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length), IppStatus)
+        Pinner.ClearAll()
+        Return RetVAl
     End Function
 
     '==========================================================================================================================================================
@@ -801,20 +816,24 @@ Partial Public Class cIntelIPP
 
     ''' <summary>Copy.</summary>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-copy-1</remarks>
-    Public Function Copy(ByRef ArrayIn(,) As UInt16, ByRef ArrayOut(,) As UInt16, ByVal StartY As Integer, ByVal StartX As UInteger, ByVal Width As Integer, ByVal Height As Integer) As IppStatus
+    ''' <param name="FirstIndexStart">First (left) matrix index start position (0-based).</param>
+    ''' <param name="SecondIndexStart">Second (right) matrix index start position (0-based).</param>
+    ''' <param name="FirstIndexRange">First (left) matrix index range to copy.</param>
+    ''' <param name="SecondIndexRange">Second (right) matrix index range to copy.</param>
+    Public Function Copy(ByRef ArrayIn(,) As UInt16, ByRef ArrayOut(,) As UInt16, ByVal FirstIndexStart As Integer, ByVal SecondIndexStart As UInteger, ByVal FirstIndexRange As Integer, ByVal SecondIndexRange As Integer) As IppStatus
         Dim BytePerVal As Integer = 2
-        Dim FunctionName As String = "ippiCopy_16u_C1R"
-        Dim FunPtr As IntPtr = GetProcAddress(ippiHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
+        Dim Caller As System.Delegate = CallIPPI("ippiCopy_16u_C1R", GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
         Dim Pinner As New cPinHandler
         Dim ArrayInWidth As Integer = ArrayIn.GetUpperBound(1) + 1
         Dim ArrayInHeight As Integer = ArrayIn.GetUpperBound(0) + 1
-        ReDim ArrayOut(CInt(Height - 1), CInt(Width - 1))
+        ReDim ArrayOut(CInt(SecondIndexRange - 1), CInt(FirstIndexRange - 1))
         Dim srcStep As Integer = BytePerVal * ArrayInWidth                      'Distance, in bytes, between the starting points of consecutive lines in the source image.
-        Dim dstStep As Integer = BytePerVal * Width                             'Distance, in bytes, between the starting points of consecutive lines in the destination image.
-        Dim FirstValue As Integer = CInt(StartY + (StartX * ArrayInWidth))
-        Dim ROI As New sIppiSize(Width, Height)                                 'ROI [element index span - not depending on data format!]
-        Return CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn, FirstValue), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
+        Dim dstStep As Integer = BytePerVal * FirstIndexRange                             'Distance, in bytes, between the starting points of consecutive lines in the destination image.
+        Dim FirstValue As Integer = CInt(FirstIndexStart + (SecondIndexStart * ArrayInWidth))
+        Dim ROI As New sIppiSize(FirstIndexRange, SecondIndexRange)                                 'ROI [element index span - not depending on data format!]
+        Dim RetVAl As IppStatus = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn, FirstValue), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
+        Pinner.ClearAll()
+        Return RetVAl
     End Function
 
     '==========================================================================================================================================================
@@ -941,6 +960,54 @@ Partial Public Class cIntelIPP
 
         Return RetVal
 
+    End Function
+
+    '==========================================================================================================================================================
+    ' UTILITY FUNCTIONS
+    '==========================================================================================================================================================
+
+    ''' <summary>Build some test data by just counting from 1.</summary>
+    ''' <param name="FirstIndexRange">Range of the first index of the returned matrix.</param>
+    ''' <param name="SecondIndexRange">Range of the second index of the returned matrix.</param>
+    ''' <returns>Matrix with test data.</returns>
+    ''' <remarks>The matrix is stored in memory with first iterating over the second index range.</remarks>
+    Public Shared Function BuildTestData(ByVal FirstIndexRange As Integer, ByVal SecondIndexRange As Integer) As UInt16(,)
+        Dim RetVal(FirstIndexRange - 1, SecondIndexRange - 1) As UInt16
+        Dim Counter As UInt16 = 1
+        For Idx1 As Integer = 0 To RetVal.GetUpperBound(0)
+            For Idx2 As Integer = 0 To RetVal.GetUpperBound(1)
+                RetVal(Idx1, Idx2) = Counter : Counter = CUShort(Counter + 1)
+            Next Idx2
+        Next Idx1
+        Return RetVal
+    End Function
+
+    Public Shared Sub DisplayArray(ByRef Data() As UInt16, ByVal Size As Integer)
+        Dim Out As New List(Of String)
+        For Idx1 As Integer = 0 To Data.GetUpperBound(0)
+            Out.Add(Data(Idx1).ToString.Trim.PadLeft(Size))
+        Next Idx1
+        Console.WriteLine(Join(Out.ToArray, "|"))
+    End Sub
+
+    Public Shared Sub DisplayArray(ByRef Data(,) As UInt16, ByVal Size As Integer)
+        For Idx1 As Integer = 0 To Data.GetUpperBound(0)
+            Dim Out As New List(Of String)
+            For Idx2 As Integer = 0 To Data.GetUpperBound(1)
+                Out.Add(Data(Idx1, Idx2).ToString.Trim.PadLeft(Size))
+            Next Idx2
+            Console.WriteLine(Join(Out.ToArray, "|"))
+        Next Idx1
+    End Sub
+
+    '''<summary>Show data as they are stored in memory (use for line-column-problem solving ...).</summary>
+    Public Shared Function ShowHowInMemory(ByRef Data(,) As UInt16) As UInt16()
+        Dim GACPin As New cIntelIPP.cPinHandler
+        Dim Buffer(2 * (Data.Length - 1)) As Byte
+        Dim RetVal(Data.Length - 1) As UInt16
+        System.Runtime.InteropServices.Marshal.Copy(GACPin.Pin(Data), Buffer, 0, Buffer.Length)
+        System.Runtime.InteropServices.Marshal.Copy(Buffer, 0, GACPin.Pin(RetVal), Buffer.Length)
+        Return RetVal
     End Function
 
 End Class
