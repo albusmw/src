@@ -418,86 +418,88 @@ Partial Public Class cIntelIPP
     '''<returns>IPP status.</returns>
     '''<remarks>https://software.intel.com/en-us/ipp-dev-reference-zero</remarks>
     Public Function Zero(ByRef Src(,) As UInt32) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
         Dim Caller As System.Delegate = CallIPPS("ippsZero_32s", GetType(CallSignature_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Return CType(Caller.DynamicInvoke(Pinner.Pin(Src), Src.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Src.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     'Add
     Public Function Add(ByRef Src(,) As UInt32, ByRef SrcDst(,) As UInt32) As IppStatus
-        Dim FunctionName As String = "ippsAdd_32u_I"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsAdd_32u_I", GetType(CallSignature_IntPtr_IntPtr_Integer))
         Dim Pinner As New cPinHandler
         AdjustSize(Src, SrcDst)
-        Return CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(SrcDst), Src.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(SrcDst), Src.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     'AddC
     Public Function AddC(ByRef Array(,) As Single, ByRef ScaleFactor As Single) As IppStatus
-        Dim FunctionName As String = "ippsAddC_32f_I"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_Single_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsAddC_32f_I", GetType(CallSignature_Single_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Return CType(Caller.DynamicInvoke(ScaleFactor, Pinner.Pin(Array), Array.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(ScaleFactor, Pinner.Pin(Array), Array.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     'AddC
     Public Function AddC(ByRef Array(,) As Double, ByRef ScaleFactor As Double) As IppStatus
-        Dim FunctionName As String = "ippsAddC_64f_I"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_Double_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsAddC_64f_I", GetType(CallSignature_Double_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Return CType(Caller.DynamicInvoke(ScaleFactor, Pinner.Pin(Array), Array.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(ScaleFactor, Pinner.Pin(Array), Array.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     'SubC
     Public Function SubC(ByRef Vector(,) As Single, ByVal SubVal As Single) As IppStatus
-        Dim FunctionName As String = "ippsSubC_32f_I"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_Single_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsSubC_32f_I", GetType(CallSignature_Single_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Return CType(Caller.DynamicInvoke(SubVal, Pinner.Pin(Vector), Vector.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(SubVal, Pinner.Pin(Vector), Vector.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     '==========================================================================================================================================================
 
     'MulC
     Public Function MulC(ByRef Array(,) As Single, ByRef ScaleFactor As Single) As IppStatus
-        Dim FunctionName As String = "ippsMulC_32f_I"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_Single_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsMulC_32f_I", GetType(CallSignature_Single_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Return CType(Caller.DynamicInvoke(ScaleFactor, Pinner.Pin(Array), Array.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(ScaleFactor, Pinner.Pin(Array), Array.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     'MulC
     Public Function MulC(ByRef Array(,) As Double, ByRef ScaleFactor As Double) As IppStatus
-        Dim FunctionName As String = "ippsMulC_64f_I"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_Single_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsMulC_64f_I", GetType(CallSignature_Single_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Return CType(Caller.DynamicInvoke(ScaleFactor, Pinner.Pin(Array), Array.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(ScaleFactor, Pinner.Pin(Array), Array.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     'MulC
     Public Function MulC(ByRef Array(,) As Int32, ByRef ScaleFactor As Int32) As IppStatus
-        Dim FunctionName As String = "ippsMulC_32s_ISfs"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_Double_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsMulC_32s_ISfs", GetType(CallSignature_Double_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Return CType(Caller.DynamicInvoke(ScaleFactor, Pinner.Pin(Array), Array.Length, 0), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(ScaleFactor, Pinner.Pin(Array), Array.Length, 0), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     '==========================================================================================================================================================
 
     'Mul
     Public Function Mul(ByRef ArraySrc(,) As Double, ByRef ArraySrcDst(,) As Double) As IppStatus
-        Dim FunctionName As String = "ippsMul_64f_I"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsMul_64f_I", GetType(CallSignature_IntPtr_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Return CType(Caller.DynamicInvoke(Pinner.Pin(ArraySrc), Pinner.Pin(ArraySrcDst), ArraySrc.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArraySrc), Pinner.Pin(ArraySrcDst), ArraySrc.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     '==========================================================================================================================================================
@@ -507,14 +509,13 @@ Partial Public Class cIntelIPP
     '''<param name="ArraySrc">Array to calculate sum from.</param>
     '''<param name="TotalSum">Sum of all elements.</param>
     Public Function Sum(ByRef ArraySrc(,) As Short, ByRef TotalSum As Integer) As IppStatus
-        Dim FunctionName As String = "ippsSum_16s32s_Sfs"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsSum_16s32s_Sfs", GetType(CallSignature_IntPtr_Integer_IntPtr_Integer))
         Dim Pinner As New cPinHandler
         Dim ArrayDst(0) As Integer
-        Dim RetVal As IppStatus = CType(Caller.DynamicInvoke(Pinner.Pin(ArraySrc), ArraySrc.Length, Pinner.Pin(ArrayDst), 0), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArraySrc), ArraySrc.Length, Pinner.Pin(ArrayDst), 0), IppStatus)
         TotalSum = ArrayDst(0)
-        Return RetVal
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     '==========================================================================================================================================================
@@ -524,11 +525,11 @@ Partial Public Class cIntelIPP
     '''<returns></returns>
     '''<remarks>https://software.intel.com/en-us/ipp-dev-reference-divc</remarks>
     Public Function DivC(ByRef Array() As Double, ByRef ScaleFactor As Double) As IppStatus
-        Dim FunctionName As String = "ippsDivC_64f_I"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_Double_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsDivC_64f_I", GetType(CallSignature_Double_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Return CType(Caller.DynamicInvoke(ScaleFactor, Pinner.Pin(Array), Array.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(ScaleFactor, Pinner.Pin(Array), Array.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     '''<summary>Divides each element of a vector by a constant value.</summary>
@@ -536,11 +537,11 @@ Partial Public Class cIntelIPP
     '''<returns></returns>
     '''<remarks>https://software.intel.com/en-us/ipp-dev-reference-divc</remarks>
     Public Function DivC(ByRef Array(,) As Double, ByRef ScaleFactor As Double) As IppStatus
-        Dim FunctionName As String = "ippsDivC_64f_I"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_Double_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsDivC_64f_I", GetType(CallSignature_Double_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Return CType(Caller.DynamicInvoke(ScaleFactor, Pinner.Pin(Array), Array.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(ScaleFactor, Pinner.Pin(Array), Array.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     '''<summary>Divides each element of a vector by a constant value.</summary>
@@ -561,90 +562,84 @@ Partial Public Class cIntelIPP
     ''' <summary>Convert UInt16 to UInt32 (using RealToCplx as the convert function does not exist).</summary>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-realtocplx</remarks>
     Public Function Convert(ByRef ArrayIn(,) As UInt16, ByRef ArrayOut(,) As UInt32) As IppStatus
-        Dim FunctionName As String = "ippsRealToCplx_16s"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_IntPtr_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsRealToCplx_16s", GetType(CallSignature_IntPtr_IntPtr_IntPtr_Integer))
         Dim Pinner As New cPinHandler
         AdjustSize(ArrayIn, ArrayOut)
-        Return CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), IntPtr.Zero, Pinner.Pin(ArrayOut), ArrayIn.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), IntPtr.Zero, Pinner.Pin(ArrayOut), ArrayIn.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     'Convert
     Public Function Convert(ByRef ArrayIn(,) As Double, ByRef ArrayOut(,) As Short, ByVal RoundMode As IppRoundMode, ByVal ScaleFactor As Integer) As IppStatus
-        Dim FunctionName As String = "ippsConvert_64f16s_Sfs"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_IntPtr_Integer_IppRoundMode_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsConvert_64f16s_Sfs", GetType(CallSignature_IntPtr_IntPtr_Integer_IppRoundMode_Integer))
         Dim Pinner As New cPinHandler
         AdjustSize(ArrayIn, ArrayOut)
-        Return CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), Pinner.Pin(ArrayOut), ArrayIn.Length, RoundMode, ScaleFactor), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), Pinner.Pin(ArrayOut), ArrayIn.Length, RoundMode, ScaleFactor), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     'Convert
     Public Function Convert(ByRef ArrayIn(,) As Double, ByRef ArrayOut(,) As Single) As IppStatus
-        Dim FunctionName As String = "ippsConvert_64f32f"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsConvert_64f32f", GetType(CallSignature_IntPtr_IntPtr_Integer))
         Dim Pinner As New cPinHandler
         AdjustSize(ArrayIn, ArrayOut)
-        Return CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), Pinner.Pin(ArrayOut), ArrayIn.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), Pinner.Pin(ArrayOut), ArrayIn.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     'Convert
     Public Function Convert(ByRef Src(,) As Int32, ByRef Dst(,) As Single) As IppStatus
-        Dim FunctionName As String = "ippsConvert_32s32f"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsConvert_32s32f", GetType(CallSignature_IntPtr_Integer))
         Dim Pinner As New cPinHandler
         AdjustSize(Src, Dst)
-        Return CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(Dst), Src.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(Dst), Src.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     'Convert
     Public Function Convert(ByRef Src(,) As Int32, ByRef Dst(,) As Double) As IppStatus
-        Dim FunctionName As String = "ippsConvert_32s64f"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsConvert_32s64f", GetType(CallSignature_IntPtr_Integer))
         Dim Pinner As New cPinHandler
         AdjustSize(Src, Dst)
-        Return CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(Dst), Src.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(Dst), Src.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     '==========================================================================================================================================================
 
     'MinMax
     Public Function MinMax(ByRef Array() As Single, ByRef Minimum As Single, ByRef Maximum As Single) As IppStatus
-        Dim FunctionName As String = "ippsMinMax_32f"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_IntPtr))
+        Dim Caller As System.Delegate = CallIPPS("ippsMinMax_32f", GetType(CallSignature_IntPtr_Integer_IntPtr_IntPtr))
         Dim Pinner As New cPinHandler
         Dim TempVal1(0) As Single : Dim TempVal2(0) As Single
         Dim RetVal As IppStatus = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(TempVal1), Pinner.Pin(TempVal2)), IppStatus)
         Minimum = TempVal1(0) : Maximum = TempVal2(0)
-        Return RetVal
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     'MinMax
     Public Function MinMax(ByRef Array(,) As Single, ByRef Minimum As Single, ByRef Maximum As Single) As IppStatus
-        Dim FunctionName As String = "ippsMinMax_32f"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_IntPtr))
+        Dim Caller As System.Delegate = CallIPPS("ippsMinMax_32f", GetType(CallSignature_IntPtr_Integer_IntPtr_IntPtr))
         Dim Pinner As New cPinHandler
         Dim TempVal1(0) As Single : Dim TempVal2(0) As Single
         Dim RetVal As IppStatus = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(TempVal1), Pinner.Pin(TempVal2)), IppStatus)
         Minimum = TempVal1(0) : Maximum = TempVal2(0)
-        Return RetVal
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     'MinMax
     Public Function MinMax(ByRef Array(,) As Double, ByRef Minimum As Double, ByRef Maximum As Double) As IppStatus
-        Dim FunctionName As String = "ippsMinMax_64f"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_IntPtr))
+        Dim Caller As System.Delegate = CallIPPS("ippsMinMax_64f", GetType(CallSignature_IntPtr_Integer_IntPtr_IntPtr))
         Dim Pinner As New cPinHandler
         Dim TempVal1(0) As Double : Dim TempVal2(0) As Double
         Dim RetVal As IppStatus = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(TempVal1), Pinner.Pin(TempVal2)), IppStatus)
         Minimum = TempVal1(0) : Maximum = TempVal2(0)
-        Return RetVal
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     'MinMax
@@ -654,8 +649,7 @@ Partial Public Class cIntelIPP
         Dim TempVal1(0) As Double : Dim TempVal2(0) As Double
         Dim RetVal As IppStatus = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(TempVal1), Pinner.Pin(TempVal2)), IppStatus)
         Minimum = TempVal1(0) : Maximum = TempVal2(0)
-        Pinner.ClearAll()
-        Return RetVal
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     'Min (derived)
@@ -681,54 +675,49 @@ Partial Public Class cIntelIPP
         Dim TempVal1(0) As Double : Dim TempVal2(0) As Integer
         Dim RetVal As IppStatus = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(TempVal1), Pinner.Pin(TempVal2)), IppStatus)
         Maximum = TempVal1(0) : MaximumIdx = TempVal2(0)
-        Pinner.ClearAll()
-        Return RetVal
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     '==========================================================================================================================================================
 
     'Sqr
     Public Function Sqr(ByRef Array(,) As Double) As IppStatus
-        Dim FunctionName As String = "ippsSqr_64f_I"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsSqr_64f_I", GetType(CallSignature_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Return CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     '==========================================================================================================================================================
 
     'Sqrt
     Public Function Sqrt(ByRef Array(,) As Double) As IppStatus
-        Dim FunctionName As String = "ippsSqrt_64f_I"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsSqrt_64f_I", GetType(CallSignature_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Return CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     '==========================================================================================================================================================
 
     'Copy
     Public Function Copy(ByRef Vector As Double(,)) As Double(,)
-        Dim FunctionName As String = "ippsCopy_64f"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_IntPtr_Integer))
+        Dim Caller As System.Delegate = CallIPPS("ippsCopy_64f", GetType(CallSignature_IntPtr_IntPtr_Integer))
         Dim Pinner As New cPinHandler
         Dim RetVal(Vector.GetUpperBound(0), Vector.GetUpperBound(1)) As Double
         Caller.DynamicInvoke(Pinner.Pin(Vector), Pinner.Pin(RetVal), RetVal.Length)
-        Return RetVal
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     'Copy
     Public Function Copy(ByRef Vector As Int32(,)) As Int32(,)
-        Dim FunctionName As String = "ippsCopy_32s"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_IntPtr_Integer))
+        Dim Caller As System.Delegate = CallIPPS("ippsCopy_32s", GetType(CallSignature_IntPtr_IntPtr_Integer))
         Dim Pinner As New cPinHandler
         Dim RetVal(Vector.GetUpperBound(0), Vector.GetUpperBound(1)) As Int32
         Caller.DynamicInvoke(Pinner.Pin(Vector), Pinner.Pin(RetVal), RetVal.Length)
-        Return RetVal
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     '==========================================================================================================================================================
@@ -736,41 +725,41 @@ Partial Public Class cIntelIPP
     ''' <summary>SwapBytes (used to swap bytes read via ReadBytes and convert them "in-memory-direct")</summary>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-swapbytes</remarks>
     Public Function SwapBytes(ByRef Src() As Byte, ByRef Dst(,) As UInt16) As IppStatus
-        Dim FunctionName As String = "ippsSwapBytes_16u"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsSwapBytes_16u", GetType(CallSignature_IntPtr_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Return CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(Dst), Src.Length \ 2), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(Dst), Src.Length \ 2), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     ''' <summary>SwapBytes</summary>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-swapbytes</remarks>
     Public Function SwapBytes(ByRef Array(,) As UInt16) As IppStatus
-        Dim FunctionName As String = "ippsSwapBytes_16u_I"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsSwapBytes_16u_I", GetType(CallSignature_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Return CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     ''' <summary>SwapBytes</summary>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-swapbytes</remarks>
     Public Function SwapBytes(ByRef Array(,) As UInt32) As IppStatus
-        Dim FunctionName As String = "ippsSwapBytes_32u_I"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsSwapBytes_32u_I", GetType(CallSignature_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Return CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     ''' <summary>SwapBytes</summary>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-swapbytes</remarks>
     Public Function SwapBytes(ByRef Array(,) As Int32) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
         Dim Caller As System.Delegate = CallIPPS("ippsSwapBytes_32u_I", GetType(CallSignature_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Dim RetVal As IppStatus = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length), IppStatus)
-        Pinner.ClearAll()
-        Return RetVAl
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     '==========================================================================================================================================================
@@ -778,39 +767,39 @@ Partial Public Class cIntelIPP
     ''' <summary>Transpose.</summary>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-transpose</remarks>
     Public Function Transpose(ByRef ArrayIn() As Byte, ByRef ArrayOut(,) As UInt16) As IppStatus
-        Dim FunctionName As String = "ippiTranspose_16u_C1R"
-        Dim FunPtr As IntPtr = GetProcAddress(ippiHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPI("ippiTranspose_16u_C1R", GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
         Dim Pinner As New cPinHandler
         Dim srcStep As Integer = UInt16Bytes * (ArrayOut.GetUpperBound(0) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the source image.
         Dim dstStep As Integer = UInt16Bytes * (ArrayOut.GetUpperBound(1) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the destination image.
         Dim ROI As New sIppiSize(srcStep \ UInt16Bytes, dstStep \ UInt16Bytes)
-        Return CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     ''' <summary>Transpose</summary>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-transpose</remarks>
     Public Function Transpose(ByRef ArrayIn(,) As UInt16, ByRef ArrayOut() As Byte) As IppStatus
-        Dim FunctionName As String = "ippiTranspose_16u_C1R"
-        Dim FunPtr As IntPtr = GetProcAddress(ippiHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPI("ippiTranspose_16u_C1R", GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
         Dim Pinner As New cPinHandler
         Dim srcStep As Integer = UInt16Bytes * (ArrayOut.GetUpperBound(0) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the source image.
         Dim dstStep As Integer = UInt16Bytes * (ArrayOut.GetUpperBound(1) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the destination image.
         Dim ROI As New sIppiSize(srcStep \ UInt16Bytes, dstStep \ UInt16Bytes)
-        Return CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     ''' <summary>Transpose</summary>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-transpose</remarks>
     Public Function Transpose(ByRef Array(,) As UInt16) As IppStatus
-        Dim FunctionName As String = "ippiTranspose_16u_C1IR"
-        Dim FunPtr As IntPtr = GetProcAddress(ippiHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IppiSize))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPI("ippiTranspose_16u_C1IR", GetType(CallSignature_IntPtr_Integer_IppiSize))
         Dim Pinner As New cPinHandler
         Dim srcDstStep As Integer = UInt16Bytes * (Array.GetUpperBound(1) + 1)
         Dim ROI As sIppiSize = GetFullROI(Array)
-        Return CType(Caller.DynamicInvoke(Pinner.Pin(Array), srcDstStep, ROI), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), srcDstStep, ROI), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     '==========================================================================================================================================================
@@ -821,19 +810,19 @@ Partial Public Class cIntelIPP
     ''' <param name="SecondIndexStart">Second (right) matrix index start position (0-based).</param>
     ''' <param name="FirstIndexRange">First (left) matrix index range to copy.</param>
     ''' <param name="SecondIndexRange">Second (right) matrix index range to copy.</param>
-    Public Function Copy(ByRef ArrayIn(,) As UInt16, ByRef ArrayOut(,) As UInt16, ByVal FirstIndexStart As Integer, ByVal SecondIndexStart As UInteger, ByVal FirstIndexRange As Integer, ByVal SecondIndexRange As Integer) As IppStatus
+    Public Function Copy(ByRef ArrayIn(,) As UInt16, ByRef ArrayOut(,) As UInt16, ByVal FirstIndexStart As Integer, ByVal SecondIndexStart As Integer, ByVal FirstIndexRange As Integer, ByVal SecondIndexRange As Integer) As IppStatus
+        Dim BytePerVal As Integer = 2
         Dim Caller As System.Delegate = CallIPPI("ippiCopy_16u_C1R", GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
         Dim Pinner As New cPinHandler
         Dim ArrayInWidth As Integer = ArrayIn.GetUpperBound(1) + 1
         Dim ArrayInHeight As Integer = ArrayIn.GetUpperBound(0) + 1
         ReDim ArrayOut(CInt(SecondIndexRange - 1), CInt(FirstIndexRange - 1))
-        Dim srcStep As Integer = BytePerVal * ArrayInWidth                      'Distance, in bytes, between the starting points of consecutive lines in the source image.
-        Dim dstStep As Integer = BytePerVal * FirstIndexRange                             'Distance, in bytes, between the starting points of consecutive lines in the destination image.
+        Dim srcStep As Integer = BytePerVal * ArrayInWidth                                          'Distance, in bytes, between the starting points of consecutive lines in the source image.
+        Dim dstStep As Integer = BytePerVal * FirstIndexRange                                       'Distance, in bytes, between the starting points of consecutive lines in the destination image.
         Dim FirstValue As Integer = CInt(FirstIndexStart + (SecondIndexStart * ArrayInWidth))
         Dim ROI As New sIppiSize(FirstIndexRange, SecondIndexRange)                                 'ROI [element index span - not depending on data format!]
         Dim RetVAl As IppStatus = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn, FirstValue), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
-        Pinner.ClearAll()
-        Return RetVAl
+        Pinner.ClearAll() : Return RetVAl
     End Function
 
     '==========================================================================================================================================================
@@ -841,36 +830,35 @@ Partial Public Class cIntelIPP
     ''' <summary>Computes the bitwise XOR of a scalar value and each element of a vector.</summary>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-xorc</remarks>
     Public Function XorC(ByRef Array(,) As UInt16, ByVal Value As UInt16) As IppStatus
-        Dim FunctionName As String = "ippsXorC_16u_I"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_UInt16_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsXorC_16u_I", GetType(CallSignature_UInt16_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Return CType(Caller.DynamicInvoke(Value, Pinner.Pin(Array), Array.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Value, Pinner.Pin(Array), Array.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     ''' <summary>Computes the bitwise XOR of a scalar value and each element of a vector.</summary>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-xorc</remarks>
     Public Function XorC(ByRef Array(,) As UInt32, ByVal Value As UInt32) As IppStatus
-        Dim FunctionName As String = "ippsXorC_32u_I"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_UInt32_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsXorC_32u_I", GetType(CallSignature_UInt32_IntPtr_Integer))
         Dim Pinner As New cPinHandler
-        Return CType(Caller.DynamicInvoke(Value, Pinner.Pin(Array), Array.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Value, Pinner.Pin(Array), Array.Length), IppStatus)
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     '==========================================================================================================================================================
 
     'Sin
     Public Function Sin(ByRef ArrayIn(,) As Double) As IppStatus
-        Dim FunctionName As String = "ippsSin_64f_A53"
-        Dim FunPtr As IntPtr = GetProcAddress(ippvmHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_IntPtr_Integer))
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsSin_64f_A53", GetType(CallSignature_IntPtr_IntPtr_Integer))
         Dim Pinner As New cPinHandler
         Dim InPlace(,) As Double = {}
         AdjustSize(ArrayIn, InPlace)
-        Dim RetVal As IppStatus = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), Pinner.Pin(InPlace), ArrayIn.Length), IppStatus)
+        RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), Pinner.Pin(InPlace), ArrayIn.Length), IppStatus)
         ArrayIn = Copy(InPlace)
-        Return RetVal
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     '==========================================================================================================================================================
@@ -881,12 +869,10 @@ Partial Public Class cIntelIPP
     '''<remarks>https://software.intel.com/en-us/ipp-dev-reference-sortascend-sortdescend</remarks>
     Public Function SortDescend(ByRef Array() As UInt16) As IppStatus
         Dim RetVal As IppStatus = IppStatus.NoErr
-        Dim FunctionName As String = "ippsSortAscend_16u_I"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer))
+        Dim Caller As System.Delegate = CallIPPS("ippsSortAscend_16u_I", GetType(CallSignature_IntPtr_Integer))
         Dim Pinner As New cPinHandler
         RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length), IppStatus)
-        Return RetVal
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     '''<summary>Sort descending.</summary>
@@ -895,12 +881,10 @@ Partial Public Class cIntelIPP
     '''<remarks>https://software.intel.com/en-us/ipp-dev-reference-sortascend-sortdescend</remarks>
     Public Function SortDescend(ByRef Array(,) As UInt16) As IppStatus
         Dim RetVal As IppStatus = IppStatus.NoErr
-        Dim FunctionName As String = "ippsSortDescend_16u_I"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer))
+        Dim Caller As System.Delegate = CallIPPS("ippsSortDescend_16u_I", GetType(CallSignature_IntPtr_Integer))
         Dim Pinner As New cPinHandler
         RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length), IppStatus)
-        Return RetVal
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     '==========================================================================================================================================================
@@ -911,14 +895,12 @@ Partial Public Class cIntelIPP
     '''<remarks>https://software.intel.com/en-us/ipp-dev-reference-copy-1</remarks>
     Public Function CopyPixel(ByRef ArrayIn(,) As UInt16, ByRef ArrayOut(,) As UInt16, ByVal Offset As Integer) As IppStatus
         Dim RetVal As IppStatus = IppStatus.NoErr
-        Dim FunctionName As String = "ippiCopy_16u_C4C1R"
-        Dim FunPtr As IntPtr = GetProcAddress(ippiHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
+        Dim Caller As System.Delegate = CallIPPS("ippiCopy_16u_C4C1R", GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
         Dim Pinner As New cPinHandler
         ReDim ArrayOut(((ArrayIn.GetUpperBound(0) + 1) \ 2) - 1, ((ArrayIn.GetUpperBound(1) + 1) \ 2) - 1)
         Dim ROI As sIppiSize = GetFullROI(ArrayIn)
         RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn, Offset), 8, Pinner.Pin(ArrayOut), 2, ROI), IppStatus)
-        Return RetVal
+        Pinner.ClearAll() : Return RetVal
     End Function
 
     '==========================================================================================================================================================
@@ -937,15 +919,12 @@ Partial Public Class cIntelIPP
     '''<param name="TotalSum">Sum of all elements.</param>
     '''<remarks>Function ippsSum_16s32s_Sfs is calles with scaling factor 0 and sliced.</remarks>
     Public Function Sum(ByRef ArraySrc(,) As Short, ByRef TotalSum As Long) As IppStatus
-        Dim FunctionName As String = "ippsSum_16s32s_Sfs"
-        Dim FunPtr As IntPtr = GetProcAddress(ippsHandle, FunctionName)
-        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_Integer))
+        Dim Caller As System.Delegate = CallIPPS("ippsSum_16s32s_Sfs", GetType(CallSignature_IntPtr_Integer_IntPtr_Integer))
         Dim Pinner As New cPinHandler
         TotalSum = 0
         Dim ArrayDst(0) As Integer
         Dim RetVal As IppStatus = IppStatus.NoErr
         Dim SliceSize As Integer = Short.MaxValue - 1
-
         Pinner.Pin(ArraySrc)
         Pinner.Pin(ArrayDst)
         Try
