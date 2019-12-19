@@ -3,7 +3,7 @@
     Sub Main()
 
         Dim TextW As Integer = 2
-        Dim X As New cIntelIPP("C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2019.5.281\windows\redist\intel64_win\ipp")
+        Dim X As New cIntelIPP("C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2019.1.144\windows\redist\intel64_win\ipp")
 
         Dim TestArray(,) As UInt16 = cIntelIPP.BuildTestData(11, 10)
 
