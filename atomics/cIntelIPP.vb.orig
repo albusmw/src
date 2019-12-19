@@ -817,11 +817,24 @@ Partial Public Class cIntelIPP
 
     ''' <summary>Copy.</summary>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-copy-1</remarks>
+<<<<<<< HEAD
+    Public Function Copy(ByRef ArrayIn(,) As UInt16, ByRef ArrayOut(,) As UInt16, ByVal OffsetX As UInteger, ByVal OffsetY As UInteger) As IppStatus
+        Dim FunctionName As String = "ippiCopy_16u_C1R"
+        Dim FunPtr As IntPtr = GetProcAddress(ippiHandle, FunctionName)
+        Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
+        Dim Pinner As New cPinHandler
+        ReDim ArrayOut(CInt(ArrayIn.GetUpperBound(0) - OffsetX), CInt(ArrayIn.GetUpperBound(1) - OffsetY))
+        Dim srcStep As Integer = CInt(UInt16Bytes * (ArrayOut.GetUpperBound(1) + 1))                 'Distance, in bytes, between the starting points of consecutive lines in the source image.
+        Dim dstStep As Integer = CInt(UInt16Bytes * (ArrayOut.GetUpperBound(1) - OffsetX))       'Distance, in bytes, between the starting points of consecutive lines in the destination image.
+        Dim ROI As New sIppiSize(CInt(UInt16Bytes * (ArrayOut.GetUpperBound(1) - OffsetY)), CInt(UInt16Bytes * (ArrayOut.GetUpperBound(0) - OffsetX)))
+        Return CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
+=======
     ''' <param name="FirstIndexStart">First (left) matrix index start position (0-based).</param>
     ''' <param name="SecondIndexStart">Second (right) matrix index start position (0-based).</param>
     ''' <param name="FirstIndexRange">First (left) matrix index range to copy.</param>
     ''' <param name="SecondIndexRange">Second (right) matrix index range to copy.</param>
     Public Function Copy(ByRef ArrayIn(,) As UInt16, ByRef ArrayOut(,) As UInt16, ByVal FirstIndexStart As Integer, ByVal SecondIndexStart As UInteger, ByVal FirstIndexRange As Integer, ByVal SecondIndexRange As Integer) As IppStatus
+        Dim BytePerVal As Integer = 2
         Dim Caller As System.Delegate = CallIPPI("ippiCopy_16u_C1R", GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
         Dim Pinner As New cPinHandler
         Dim ArrayInWidth As Integer = ArrayIn.GetUpperBound(1) + 1
@@ -834,6 +847,7 @@ Partial Public Class cIntelIPP
         Dim RetVAl As IppStatus = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn, FirstValue), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
         Pinner.ClearAll()
         Return RetVAl
+>>>>>>> 424248671a530e94772d6fc222d08fe3aead7621
     End Function
 
     '==========================================================================================================================================================
