@@ -8,6 +8,8 @@ Partial Public Class cIntelIPP
 
 #Region "Handles and constructors"
 
+    Const UInt16Bytes As Integer = 2
+
     '''<summary>Handle to the DLL.</summary>
     Private ippsHandle As IntPtr = Nothing
     Private ippvmHandle As IntPtr = Nothing
@@ -761,14 +763,13 @@ Partial Public Class cIntelIPP
     ''' <summary>Transpose.</summary>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-transpose</remarks>
     Public Function Transpose(ByRef ArrayIn() As Byte, ByRef ArrayOut(,) As UInt16) As IppStatus
-        Dim BytePerVal As Integer = 2
         Dim FunctionName As String = "ippiTranspose_16u_C1R"
         Dim FunPtr As IntPtr = GetProcAddress(ippiHandle, FunctionName)
         Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
         Dim Pinner As New cPinHandler
-        Dim srcStep As Integer = BytePerVal * (ArrayOut.GetUpperBound(0) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the source image.
-        Dim dstStep As Integer = BytePerVal * (ArrayOut.GetUpperBound(1) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the destination image.
-        Dim ROI As New sIppiSize(srcStep \ BytePerVal, dstStep \ BytePerVal)
+        Dim srcStep As Integer = UInt16Bytes * (ArrayOut.GetUpperBound(0) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the source image.
+        Dim dstStep As Integer = UInt16Bytes * (ArrayOut.GetUpperBound(1) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the destination image.
+        Dim ROI As New sIppiSize(srcStep \ UInt16Bytes, dstStep \ UInt16Bytes)
         Return CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
     End Function
 
@@ -779,9 +780,9 @@ Partial Public Class cIntelIPP
         Dim FunPtr As IntPtr = GetProcAddress(ippiHandle, FunctionName)
         Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
         Dim Pinner As New cPinHandler
-        Dim srcStep As Integer = 2 * (ArrayOut.GetUpperBound(0) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the source image.
-        Dim dstStep As Integer = 2 * (ArrayOut.GetUpperBound(1) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the destination image.
-        Dim ROI As New sIppiSize(srcStep \ 2, dstStep \ 2)
+        Dim srcStep As Integer = UInt16Bytes * (ArrayOut.GetUpperBound(0) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the source image.
+        Dim dstStep As Integer = UInt16Bytes * (ArrayOut.GetUpperBound(1) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the destination image.
+        Dim ROI As New sIppiSize(srcStep \ UInt16Bytes, dstStep \ UInt16Bytes)
         Return CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
     End Function
 
@@ -792,7 +793,7 @@ Partial Public Class cIntelIPP
         Dim FunPtr As IntPtr = GetProcAddress(ippiHandle, FunctionName)
         Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IppiSize))
         Dim Pinner As New cPinHandler
-        Dim srcDstStep As Integer = 2 * (Array.GetUpperBound(1) + 1)
+        Dim srcDstStep As Integer = UInt16Bytes * (Array.GetUpperBound(1) + 1)
         Dim ROI As sIppiSize = GetFullROI(Array)
         Return CType(Caller.DynamicInvoke(Pinner.Pin(Array), srcDstStep, ROI), IppStatus)
     End Function
@@ -802,15 +803,14 @@ Partial Public Class cIntelIPP
     ''' <summary>Copy.</summary>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-copy-1</remarks>
     Public Function Copy(ByRef ArrayIn(,) As UInt16, ByRef ArrayOut(,) As UInt16, ByVal OffsetX As UInteger, ByVal OffsetY As UInteger) As IppStatus
-        Dim BytePerVal As Integer = 2
         Dim FunctionName As String = "ippiCopy_16u_C1R"
         Dim FunPtr As IntPtr = GetProcAddress(ippiHandle, FunctionName)
         Dim Caller As System.Delegate = Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(FunPtr, GetType(CallSignature_IntPtr_Integer_IntPtr_Integer_IppiSize))
         Dim Pinner As New cPinHandler
         ReDim ArrayOut(CInt(ArrayIn.GetUpperBound(0) - OffsetX), CInt(ArrayIn.GetUpperBound(1) - OffsetY))
-        Dim srcStep As Integer = CInt(BytePerVal * (ArrayOut.GetUpperBound(1) + 1))                 'Distance, in bytes, between the starting points of consecutive lines in the source image.
-        Dim dstStep As Integer = CInt(BytePerVal * (ArrayOut.GetUpperBound(1) + 1 - OffsetY))       'Distance, in bytes, between the starting points of consecutive lines in the destination image.
-        Dim ROI As New sIppiSize(CInt(ArrayOut.GetUpperBound(1) + 1 - OffsetY), CInt(ArrayOut.GetUpperBound(0) + 1 - OffsetX))
+        Dim srcStep As Integer = CInt(UInt16Bytes * (ArrayOut.GetUpperBound(1) + 1))                 'Distance, in bytes, between the starting points of consecutive lines in the source image.
+        Dim dstStep As Integer = CInt(UInt16Bytes * (ArrayOut.GetUpperBound(1) - OffsetX))       'Distance, in bytes, between the starting points of consecutive lines in the destination image.
+        Dim ROI As New sIppiSize(CInt(UInt16Bytes * (ArrayOut.GetUpperBound(1) - OffsetY)), CInt(UInt16Bytes * (ArrayOut.GetUpperBound(0) - OffsetX)))
         Return CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
     End Function
 
@@ -902,7 +902,8 @@ Partial Public Class cIntelIPP
     '==========================================================================================================================================================
 
     Private Function GetFullROI(ByRef ArrayIn(,) As UInt16) As sIppiSize
-        Return New sIppiSize(2 * (ArrayIn.GetUpperBound(0) + 1), 2 * (ArrayIn.GetUpperBound(1) + 1))
+        Dim BytesPerVal As Integer = 2
+        Return New sIppiSize(BytesPerVal * (ArrayIn.GetUpperBound(0) + 1), BytesPerVal * (ArrayIn.GetUpperBound(1) + 1))
     End Function
 
     '==========================================================================================================================================================
