@@ -98,6 +98,11 @@ Partial Public Class cIntelIPP
         Private Disposed As Boolean = False
         Private Pinned As New List(Of Runtime.InteropServices.GCHandle)
         '''<summary>Pin the array and get the pointer.</summary>
+        Public Function Pin(ByRef VariableToPin As Double) As IntPtr
+            Pinned.Add(Runtime.InteropServices.GCHandle.Alloc(VariableToPin, Runtime.InteropServices.GCHandleType.Pinned))
+            Return Runtime.InteropServices.GCHandle.ToIntPtr(Pinned(Pinned.Count - 1))
+        End Function
+        '''<summary>Pin the array and get the pointer.</summary>
         Public Function Pin(Of T)(ByRef ArrayToPin() As T) As IntPtr
             Return Pin(ArrayToPin, 0)
         End Function
@@ -135,7 +140,7 @@ Partial Public Class cIntelIPP
 
     '''<summary>IPP data types.</summary>
     '''<remarks>Taken from ippbase.h.</remarks>
-    Public Enum eIppDataType
+    Public Enum IppDataType
         ippUndef = -1
         ipp1u = 0
         ipp8u = 1
@@ -162,7 +167,7 @@ Partial Public Class cIntelIPP
 
     '''<summary>IPP interpolation types.</summary>
     '''<remarks>Taken from ipptypes.h.</remarks>
-    Public Enum eIppiInterpolationType
+    Public Enum IppiInterpolationType
         ippNearest = 1
         ippLinear = 2
         ippCubic = 6
@@ -172,13 +177,13 @@ Partial Public Class cIntelIPP
     End Enum
 
     '''<remarks>Taken from ipptypes.h.</remarks>
-    Public Enum eIppiWarpDirection
+    Public Enum IppiWarpDirection
         ippWarpForward
         ippWarpBackward
     End Enum
 
     '''<remarks>Taken from ipptypes.h.</remarks>
-    Public Enum eIppiBorderType
+    Public Enum IppiBorderType
         '''<remarks>Border is replicated from the edge pixels.</remarks>
         ippBorderRepl = 1
         ippBorderWrap = 2
@@ -206,14 +211,14 @@ Partial Public Class cIntelIPP
 
     '''<summary>Region size</summary>
     '''<remarks>https://software.intel.com/en-us/ipp-dev-reference-structures-and-enumerators-1</remarks>
-    Public Structure sIppiSize
+    Public Structure IppiSize
         Public Width As Integer
         Public Height As Integer
         Public Sub New(ByVal W As Integer, ByVal H As Integer)
             Me.Width = W
             Me.Height = H
         End Sub
-        Public Function [Get](ByVal W As Integer, ByVal H As Integer) As sIppiSize
+        Public Function [Get](ByVal W As Integer, ByVal H As Integer) As IppiSize
             Me.Width = W
             Me.Height = H
             Return Me
@@ -246,12 +251,13 @@ Partial Public Class cIntelIPP
         Public Delegate Function Double_IntPtr_Integer(ByVal val As Double, ByVal pSrcDst As IntPtr, ByVal len As Integer) As IppStatus
         Public Delegate Function IntPtr_Integer(ByVal pSrcDst As IntPtr, ByVal len As Integer) As IppStatus
         Public Delegate Function UInt16_IntPtr_Integer(ByVal val As UInt16, ByVal pSrcDst As IntPtr, ByVal len As Integer) As IppStatus
+        Public Delegate Function UInt16_IntPtr_Integer_Integer(ByVal val As UInt16, ByVal pSrcDst As IntPtr, ByVal len As Integer, ByVal scaleFactor As Integer) As IppStatus
         Public Delegate Function UInt32_IntPtr_Integer(ByVal val As UInt32, ByVal pSrcDst As IntPtr, ByVal len As Integer) As IppStatus
-        Public Delegate Function IntPtr_Integer_IppiSize(ByVal pSrcDst As IntPtr, ByVal iDst As Integer, ByVal roiSize As sIppiSize) As IppStatus
-        Public Delegate Function IntPtr_Integer_IntPtr_Integer_IppiSize(ByVal pSrc As IntPtr, ByVal iSrc As Integer, ByVal pDst As IntPtr, ByVal iDst As Integer, ByVal roiSize As sIppiSize) As IppStatus
+        Public Delegate Function IntPtr_Integer_IppiSize(ByVal pSrcDst As IntPtr, ByVal iDst As Integer, ByVal roiSize As IppiSize) As IppStatus
+        Public Delegate Function IntPtr_Integer_IntPtr_Integer_IppiSize(ByVal pSrc As IntPtr, ByVal iSrc As Integer, ByVal pDst As IntPtr, ByVal iDst As Integer, ByVal roiSize As IppiSize) As IppStatus
         Public Delegate Function IntPtr_IntPtr_IntPtr_Integer(ByVal pSrc1 As IntPtr, ByVal PSrc2 As IntPtr, ByVal pDst As IntPtr, ByVal len As Integer) As IppStatus
         Public Delegate Function Double_Double_Double_IntPtr(ByVal angle As Double, ByVal xShift As Double, ByVal yShift As Double, ByVal coeffs As IntPtr) As IppStatus
-        Public Delegate Function sIppiSize_sIppiSize_eIppDataType_IntPtr_eIppiInterpolationType_eIppiWarpDirection_eIppiBorderType_IntPtr_IntPtr(ByVal srcSize As sIppiSize, ByVal dstSize As sIppiSize, ByVal dataType As eIppDataType, ByVal coeffs As IntPtr, ByVal interpolation As eIppiInterpolationType, ByVal direction As eIppiWarpDirection, ByVal borderType As eIppiBorderType, ByRef pSpecSize As IntPtr, ByRef pInitBufSize As IntPtr) As IppStatus
+        Public Delegate Function sIppiSize_sIppiSize_eIppDataType_IntPtr_eIppiInterpolationType_eIppiWarpDirection_eIppiBorderType_IntPtr_IntPtr(ByVal srcSize As IppiSize, ByVal dstSize As IppiSize, ByVal dataType As IppDataType, ByVal coeffs As IntPtr, ByVal interpolation As IppiInterpolationType, ByVal direction As IppiWarpDirection, ByVal borderType As IppiBorderType, ByVal SpecSize As IntPtr, ByVal InitBufSize As IntPtr) As IppStatus
     End Class
 
 
@@ -558,7 +564,16 @@ Partial Public Class cIntelIPP
 
     '________________________________________________________________________________
     'SubC
-    '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+    '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    '''<see cref="https://software.intel.com/en-us/ipp-dev-reference-zero"/>
+    Public Function SubC(ByRef Vector(,) As UInt16, ByVal SubVal As UInt16) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsSubC_16u_ISfs", GetType(CallSignature.UInt16_IntPtr_Integer_Integer))
+        Using Pinner As New cPinHandler
+            RetVal = CType(Caller.DynamicInvoke(SubVal, Pinner.Pin(Vector), Vector.Length, 0), IppStatus)
+        End Using : Return RetVal
+    End Function
 
     Public Function SubC(ByRef Vector(,) As Single, ByVal SubVal As Single) As IppStatus
         Dim RetVal As IppStatus = IppStatus.NoErr
@@ -747,19 +762,24 @@ Partial Public Class cIntelIPP
         Dim RetVal As IppStatus = IppStatus.NoErr
         Dim Caller As System.Delegate = CallIPPS("ippsMinMax_64f", GetType(CallSignature.IntPtr_Integer_IntPtr_IntPtr))
         Using Pinner As New cPinHandler
-            Dim TempVal1(0) As Double : Dim TempVal2(0) As Double
-            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(TempVal1), Pinner.Pin(TempVal2)), IppStatus)
-            Minimum = TempVal1(0) : Maximum = TempVal2(0)
+            Dim RefTypes(1) As Double
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(RefTypes, 0), Pinner.Pin(RefTypes, 1)), IppStatus)
+            Minimum = RefTypes(0) : Maximum = RefTypes(1)
         End Using : Return RetVal
     End Function
 
+    '''<summary>Returns the maximum and minimum values of a vector.</summary>
+    '''<param name="Array">Source vector.</param>
+    '''<param name="Minimum">Minimum value.</param>
+    '''<param name="Maximum">Maximum value.</param>
+    '''<see cref="https://software.intel.com/en-us/ipp-dev-reference-minmax"/>
     Public Function MinMax(ByRef Array() As Double, ByRef Minimum As Double, ByRef Maximum As Double) As IppStatus
         Dim RetVal As IppStatus = IppStatus.NoErr
         Dim Caller As System.Delegate = CallIPPS("ippsMinMax_64f", GetType(CallSignature.IntPtr_Integer_IntPtr_IntPtr))
         Using Pinner As New cPinHandler
-            Dim TempVal1(0) As Double : Dim TempVal2(0) As Double
-            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(TempVal1), Pinner.Pin(TempVal2)), IppStatus)
-            Minimum = TempVal1(0) : Maximum = TempVal2(0)
+            Dim RefTypes(1) As Double
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(RefTypes, 0), Pinner.Pin(RefTypes, 1)), IppStatus)
+            Minimum = RefTypes(0) : Maximum = RefTypes(1)
         End Using : Return RetVal
     End Function
 
@@ -779,13 +799,15 @@ Partial Public Class cIntelIPP
     'MaxIdx
     '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
 
+    '''<summary>Returns the maximum value of a vector and the index of the maximum element.</summary>
+    '''<see cref="https://software.intel.com/en-us/ipp-dev-reference-maxindx"/>
     Public Function MaxIndx(ByRef Array(,) As Double, ByRef Maximum As Double, ByRef MaximumIdx As Integer) As IppStatus
         Dim RetVal As IppStatus = IppStatus.NoErr
         Dim Caller As System.Delegate = CallIPPS("ippsMaxIndx_64f", GetType(CallSignature.IntPtr_Integer_IntPtr_IntPtr))
         Using Pinner As New cPinHandler
-            Dim TempVal1(0) As Double : Dim TempVal2(0) As Integer
-            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(TempVal1), Pinner.Pin(TempVal2)), IppStatus)
-            Maximum = TempVal1(0) : MaximumIdx = TempVal2(0)
+            Dim RefDbl(0) As Double : Dim RefInt(0) As Integer
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(RefDbl), Pinner.Pin(RefInt)), IppStatus)
+            Maximum = RefDbl(0) : MaximumIdx = RefInt(0)
         End Using : Return RetVal
     End Function
 
@@ -827,6 +849,15 @@ Partial Public Class cIntelIPP
         End Using : Return RetVector
     End Function
 
+    Public Function Copy(ByRef ArrayIn(,) As UInt16, ByRef ArrayOut() As Byte) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsCopy_16s", GetType(CallSignature.IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), Pinner.Pin(ArrayOut), ArrayIn.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    ''' <see cref="https://software.intel.com/en-us/ipp-dev-reference-copy"/>
     Public Function Copy(ByRef Vector As Int32(,)) As Int32(,)
         Dim RetVal As IppStatus = IppStatus.NoErr
         Dim Caller As System.Delegate = CallIPPS("ippsCopy_32s", GetType(CallSignature.IntPtr_IntPtr_Integer))
@@ -837,11 +868,11 @@ Partial Public Class cIntelIPP
     End Function
 
     ''' <summary>Copy.</summary>
-    ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-copy-1</remarks>
     ''' <param name="FirstIndexStart">First (left) matrix index start position (0-based).</param>
     ''' <param name="SecondIndexStart">Second (right) matrix index start position (0-based).</param>
     ''' <param name="FirstIndexRange">First (left) matrix index range to copy.</param>
     ''' <param name="SecondIndexRange">Second (right) matrix index range to copy.</param>
+    ''' <see cref="https://software.intel.com/en-us/ipp-dev-reference-copy-1"/>
     Public Function Copy(ByRef ArrayIn(,) As UInt16, ByRef ArrayOut(,) As UInt16, ByVal FirstIndexStart As Integer, ByVal SecondIndexStart As Integer, ByVal FirstIndexRange As Integer, ByVal SecondIndexRange As Integer) As IppStatus
         Dim RetVal As IppStatus = IppStatus.NoErr
         Dim BytePerVal As Integer = 2
@@ -853,7 +884,7 @@ Partial Public Class cIntelIPP
             Dim srcStep As Integer = BytePerVal * ArrayInWidth                                          'Distance, in bytes, between the starting points of consecutive lines in the source image.
             Dim dstStep As Integer = BytePerVal * FirstIndexRange                                       'Distance, in bytes, between the starting points of consecutive lines in the destination image.
             Dim FirstValue As Integer = CInt(FirstIndexStart + (SecondIndexStart * ArrayInWidth))
-            Dim ROI As New sIppiSize(FirstIndexRange, SecondIndexRange)                                 'ROI [element index span - not depending on data format!]
+            Dim ROI As New IppiSize(FirstIndexRange, SecondIndexRange)                                 'ROI [element index span - not depending on data format!]
             RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn, FirstValue), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
         End Using : Return RetVal
     End Function
@@ -867,7 +898,7 @@ Partial Public Class cIntelIPP
         Dim Caller As System.Delegate = CallIPPI("ippiCopy_16u_C4C1R", GetType(CallSignature.IntPtr_Integer_IntPtr_Integer_IppiSize))
         Using Pinner As New cPinHandler
             ReDim ArrayOut(((ArrayIn.GetUpperBound(0) + 1) \ 2) - 1, ((ArrayIn.GetUpperBound(1) + 1) \ 2) - 1)
-            Dim ROI As sIppiSize = GetFullROI(ArrayIn)
+            Dim ROI As IppiSize = GetFullROI(ArrayIn)
             RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn, Offset), 8, Pinner.Pin(ArrayOut), 2, ROI), IppStatus)
         End Using : Return RetVal
     End Function
@@ -884,6 +915,39 @@ Partial Public Class cIntelIPP
         Dim Caller As System.Delegate = CallIPPS("ippsSwapBytes_16u", GetType(CallSignature.IntPtr_IntPtr_Integer))
         Using Pinner As New cPinHandler
             RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(Dst), Src.Length \ 2), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    ''' <summary>SwapBytes (used to swap bytes read via ReadBytes and convert them "in-memory-direct")</summary>
+    ''' <returns>IppStatus error code.</returns>
+    ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-swapbytes</remarks>
+    Public Function SwapBytes(ByRef Src() As UInt16, ByRef Dst() As Byte) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsSwapBytes_16u", GetType(CallSignature.IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(Dst), Src.Length \ 2), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    ''' <summary>SwapBytes (used to swap bytes read via ReadBytes and convert them "in-memory-direct")</summary>
+    ''' <returns>IppStatus error code.</returns>
+    ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-swapbytes</remarks>
+    Public Function SwapBytes(ByRef Src(,) As UInt16, ByRef Dst() As Byte) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsSwapBytes_16u", GetType(CallSignature.IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(Dst), Src.Length \ 2), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    ''' <summary>SwapBytes</summary>
+    ''' <returns>IppStatus error code.</returns>
+    ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-swapbytes</remarks>
+    Public Function SwapBytes(ByRef Array() As UInt16) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsSwapBytes_16u_I", GetType(CallSignature.IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length), IppStatus)
         End Using : Return RetVal
     End Function
 
@@ -933,7 +997,7 @@ Partial Public Class cIntelIPP
         Using Pinner As New cPinHandler
             Dim srcStep As Integer = UInt16Bytes * (ArrayOut.GetUpperBound(0) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the source image.
             Dim dstStep As Integer = UInt16Bytes * (ArrayOut.GetUpperBound(1) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the destination image.
-            Dim ROI As New sIppiSize(srcStep \ UInt16Bytes, dstStep \ UInt16Bytes)
+            Dim ROI As New IppiSize(srcStep \ UInt16Bytes, dstStep \ UInt16Bytes)
             RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
         End Using : Return RetVal
     End Function
@@ -945,9 +1009,9 @@ Partial Public Class cIntelIPP
         Dim RetVal As IppStatus = IppStatus.NoErr
         Dim Caller As System.Delegate = CallIPPI("ippiTranspose_16u_C1R", GetType(CallSignature.IntPtr_Integer_IntPtr_Integer_IppiSize))
         Using Pinner As New cPinHandler
-            Dim srcStep As Integer = UInt16Bytes * (ArrayOut.GetUpperBound(0) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the source image.
-            Dim dstStep As Integer = UInt16Bytes * (ArrayOut.GetUpperBound(1) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the destination image.
-            Dim ROI As New sIppiSize(srcStep \ UInt16Bytes, dstStep \ UInt16Bytes)
+            Dim srcStep As Integer = UInt16Bytes * (ArrayIn.GetUpperBound(1) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the source image.
+            Dim dstStep As Integer = UInt16Bytes * (ArrayIn.GetUpperBound(0) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the destination image.
+            Dim ROI As New IppiSize(srcStep \ UInt16Bytes, dstStep \ UInt16Bytes)
             RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
         End Using : Return RetVal
     End Function
@@ -960,14 +1024,24 @@ Partial Public Class cIntelIPP
         Dim Caller As System.Delegate = CallIPPI("ippiTranspose_16u_C1IR", GetType(CallSignature.IntPtr_Integer_IppiSize))
         Using Pinner As New cPinHandler
             Dim srcDstStep As Integer = UInt16Bytes * (Array.GetUpperBound(1) + 1)
-            Dim ROI As sIppiSize = GetFullROI(Array)
+            Dim ROI As IppiSize = GetFullROI(Array)
             RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), srcDstStep, ROI), IppStatus)
         End Using : Return RetVal
     End Function
 
     '________________________________________________________________________________
     'XorC
-    '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+    '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    ''' <summary>Computes the bitwise XOR of a scalar value and each element of a vector.</summary>
+    ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-xorc</remarks>
+    Public Function XorC(ByRef Array() As UInt16, ByVal Value As UInt16) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsXorC_16u_I", GetType(CallSignature.UInt16_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            RetVal = CType(Caller.DynamicInvoke(Value, Pinner.Pin(Array), Array.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
 
     ''' <summary>Computes the bitwise XOR of a scalar value and each element of a vector.</summary>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-xorc</remarks>
@@ -1067,23 +1141,23 @@ Partial Public Class cIntelIPP
     ''' <param name="pSpecSize">Pointer to the size, in bytes, of the specification structure.</param>
     ''' <param name="pInitBufSize">Pointer to the size, in bytes, of the temporary buffer.</param>
     ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-warpaffinegetsize</remarks>
-    Public Function WarpAffineGetSize(ByVal srcSize As sIppiSize, ByVal dstSize As sIppiSize, ByVal dataType As eIppDataType, ByVal coeffs(,) As Double, ByVal interpolation As eIppiInterpolationType, ByVal direction As eIppiWarpDirection, ByVal borderType As eIppiBorderType, ByRef pSpecSize As Integer, ByRef pInitBufSize As Integer) As IppStatus
+    Public Function WarpAffineGetSize(ByVal srcSize As IppiSize, ByVal dstSize As IppiSize, ByVal dataType As IppDataType, ByVal coeffs(,) As Double, ByVal interpolation As IppiInterpolationType, ByVal direction As IppiWarpDirection, ByVal borderType As IppiBorderType, ByRef pSpecSize As Integer, ByRef pInitBufSize As Integer) As IppStatus
         Dim RetVal As IppStatus = IppStatus.NoErr
         Dim Caller As System.Delegate = CallIPPI("ippiWarpAffineGetSize", GetType(CallSignature.sIppiSize_sIppiSize_eIppDataType_IntPtr_eIppiInterpolationType_eIppiWarpDirection_eIppiBorderType_IntPtr_IntPtr))
         Using Pinner As New cPinHandler
-            Dim TempVal1(0) As Integer : Dim TempVal2(0) As Integer
-            RetVal = CType(Caller.DynamicInvoke(srcSize, dstSize, dataType, Pinner.Pin(coeffs), interpolation, direction, borderType, Pinner.Pin(TempVal1), Pinner.Pin(TempVal2)), IppStatus)
-            pSpecSize = TempVal1(0)
-            pInitBufSize = TempVal2(0)
+            Dim RefTypes(1) As Integer
+            RetVal = CType(Caller.DynamicInvoke(srcSize, dstSize, dataType, Pinner.Pin(coeffs), interpolation, direction, borderType, Pinner.Pin(RefTypes, 0), Pinner.Pin(RefTypes, 1)), IppStatus)
+            pSpecSize = RefTypes(0)
+            pInitBufSize = RefTypes(1)
         End Using : Return RetVal
     End Function
 
     '================================================================================
     'EXTENDED FUNCTIONS
 
-    Private Function GetFullROI(ByRef ArrayIn(,) As UInt16) As sIppiSize
+    Private Function GetFullROI(ByRef ArrayIn(,) As UInt16) As IppiSize
         Dim BytesPerVal As Integer = 2
-        Return New sIppiSize(BytesPerVal * (ArrayIn.GetUpperBound(0) + 1), BytesPerVal * (ArrayIn.GetUpperBound(1) + 1))
+        Return New IppiSize(BytesPerVal * (ArrayIn.GetUpperBound(0) + 1), BytesPerVal * (ArrayIn.GetUpperBound(1) + 1))
     End Function
 
     '''<summary>Computes the sum of the elements of a vector.</summary>

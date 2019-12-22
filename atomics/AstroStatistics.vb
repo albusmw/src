@@ -133,7 +133,7 @@ Namespace AstroNET
         End Function
 
         '''<summary>Combine 2 SingleChannelStatistics elements (e.g. to calculate the aggregated statistic for multi-frame capture).</summary>
-        Public Function CombineStatistics(ByVal StatA As sStatistics, ByVal StatB As sStatistics) As sStatistics
+        Public Shared Function CombineStatistics(ByVal StatA As sStatistics, ByVal StatB As sStatistics) As sStatistics
             Dim RetVal As New sStatistics
             '1.) Combine to 2 histograms
             ReDim RetVal.BayerHistograms(StatA.BayerHistograms.GetUpperBound(0), StatA.BayerHistograms.GetUpperBound(1))
@@ -163,7 +163,7 @@ Namespace AstroNET
         End Function
 
         '''<summary>Calculate all statistic data (mono histo and statistics) from the passed bayer statistics.</summary>
-        Private Sub CalculateAllFromBayerStatistics(ByRef RetVal As sStatistics)
+        Private Shared Sub CalculateAllFromBayerStatistics(ByRef RetVal As sStatistics)
             'Calculate a monochromatic statistics from the bayer histograms
             RetVal.MonochromHistogram = CombineBayerToMonoStatistics(RetVal.BayerHistograms)
             'Calculate the bayer channel statistics from the bayer histogram
@@ -178,7 +178,7 @@ Namespace AstroNET
         End Sub
 
         '''<summary>Calculate the statistic data from the passed histogram data.</summary>
-        Private Function CalcStatisticFromHistogram(ByRef Histogram As Dictionary(Of UInt32, UInt32)) As sSingleChannelStatistics
+        Private Shared Function CalcStatisticFromHistogram(ByRef Histogram As Dictionary(Of UInt32, UInt32)) As sSingleChannelStatistics
             Dim RetVal As sSingleChannelStatistics = sSingleChannelStatistics.InitForShort()
             Dim SamplesProcessed As UInt32 = 0
             'Count number of samples
@@ -220,7 +220,7 @@ Namespace AstroNET
         End Function
 
         '''<summary>Combine all bayer statistics to a monochromatic statistic of all pixel of the image.</summary>
-        Public Function CombineBayerToMonoStatistics(Of T)(ByRef BayerHistData(,) As Dictionary(Of T, UInt32)) As Dictionary(Of T, UInt32)
+        Public Shared Function CombineBayerToMonoStatistics(Of T)(ByRef BayerHistData(,) As Dictionary(Of T, UInt32)) As Dictionary(Of T, UInt32)
             Dim RetVal As New Dictionary(Of T, UInt32)
             For Idx1 As Integer = 0 To BayerHistData.GetUpperBound(0)
                 For Idx2 As Integer = 0 To BayerHistData.GetUpperBound(1)

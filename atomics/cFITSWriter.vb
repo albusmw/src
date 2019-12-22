@@ -20,6 +20,8 @@ Public Class cFITSWriter
     '''<summary>Path to ipps.dll and ippvm.dll - if not set IPP will not be used.</summary>
     Public Shared Property IPPPath As String = String.Empty
 
+    Public Shared Property UseIPPForWriting As Boolean = False
+
     Private Const BZeroNotUsed As Double = 0.0
     Private Const BScaleNotUsed As Double = 1.0
     Private Const Int16UsignedToFITS As Int32 = 32768
@@ -257,19 +259,17 @@ Public Class cFITSWriter
         Dim B As Double = -(BZero / BScale)
 
         'Write content
-        Dim UseIPP As Boolean = False
         Select Case BitPix
             Case eBitPix.Int16
                 If BZero = Int16UsignedToFITS And BScale = BScaleNotUsed Then
                     'Write "as is" without any additional calculation (as there is no scaling ...); the only scaling needed is to subtrace 32768 in order to get a Int16 for the UInt16 ...
                     'We write the data blockwise to speed up writing ...
-                    If UseIPP Then
+                    If UseIPPForWriting Then
                         Dim IntelIPP As New cIntelIPP(IPPPath)
                         Dim IPPStatus As New List(Of cIntelIPP.IppStatus)
                         Dim BytesToWrite((ImageData.Length * 2) - 1) As Byte
-                        Dim UnsignedXOR As UInt16 = BitConverter.ToUInt16(New Byte() {&H80, 0}, 0)
-                        IPPStatus.Add(IntelIPP.XorC(ImageData, UnsignedXOR))
                         IPPStatus.Add(IntelIPP.SwapBytes(ImageData))
+                        IPPStatus.Add(IntelIPP.XorC(ImageData, &H80))
                         IPPStatus.Add(IntelIPP.Transpose(ImageData, BytesToWrite))
                         BytesOut.Write(BytesToWrite)
                     Else

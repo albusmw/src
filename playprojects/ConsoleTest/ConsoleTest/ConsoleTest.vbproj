@@ -36,6 +36,7 @@
     <OutputPath>bin\x64\Release\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="PresentationCore" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
@@ -44,6 +45,7 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.VisualBasic" />
@@ -59,6 +61,9 @@
   <ItemGroup>
     <Compile Include="..\..\..\..\..\..\GIT\src\atomics\cIntelIPP.vb">
       <Link>cIntelIPP.vb</Link>
+    </Compile>
+    <Compile Include="..\..\..\atomics\cImageMetaData.vb">
+      <Link>cImageMetaData.vb</Link>
     </Compile>
     <Compile Include="Module1.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
