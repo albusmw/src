@@ -14,6 +14,11 @@ Public Class cFITSHeaderParser
             Me.Value = NewValue
             Me.Comment = NewComment
         End Sub
+        Public Sub New(ByVal NewKeyword As String, ByVal NewValue As Double, ByVal NewComment As String)
+            Me.Keyword = NewKeyword
+            Me.Value = NewValue.ToString.Trim.Replace(",", ".")
+            Me.Comment = NewComment
+        End Sub
         Public Shared Function Sorter(ByVal X As sHeaderElement, ByVal Y As sHeaderElement) As Integer
             Return X.Keyword.CompareTo(Y.Keyword)
         End Function
@@ -71,7 +76,7 @@ Public Class cFITSHeaderParser
     Public Sub New(ByVal HeaderElements As List(Of cFITSHeaderParser.sHeaderElement))
         'Move through all elements and get known elements and convert them
         For Each NewHeaderElement As sHeaderElement In HeaderElements
-            Select Case NewHeaderElement.Keyword
+            Select Case NewHeaderElement.Keyword.Trim
                 Case "BITPIX" : MyProps.BitPix = CInt(NewHeaderElement.Value)
                 Case "NAXIS1" : MyProps.Width = CInt(NewHeaderElement.Value)
                 Case "NAXIS2" : MyProps.Height = CInt(NewHeaderElement.Value)
@@ -81,5 +86,15 @@ Public Class cFITSHeaderParser
             End Select
         Next NewHeaderElement
     End Sub
+
+    Public Shared Function GetListAsDictionary(ByRef ListInput As List(Of cFITSHeaderParser.sHeaderElement)) As Dictionary(Of String, Object)
+        Dim RetVal As New Dictionary(Of String, Object)
+        For Each Entry As cFITSHeaderParser.sHeaderElement In ListInput
+            If RetVal.ContainsKey(Entry.Keyword) = False Then
+                RetVal.Add(Entry.Keyword, Entry.Value)
+            End If
+        Next Entry
+        Return RetVal
+    End Function
 
 End Class

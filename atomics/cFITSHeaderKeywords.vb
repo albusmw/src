@@ -2,7 +2,10 @@ Option Explicit On
 Option Strict On
 
 '''<summary>Class to provide FITS header keywords (elements and service functions).</summary>
-'''<remarks>See e.g. https://heasarc.gsfc.nasa.gov/docs/fcg/common_dict.html and https://diffractionlimited.com/help/maximdl/FITS_File_Header_Definitions.htm. </remarks>
+'''<see cref="http://wise2.ipac.caltech.edu/docs/release/prelim/expsup/sec2_3b.html"/>
+'''<see cref="https://heasarc.gsfc.nasa.gov/docs/fcg/standard_dict.html"/>
+'''<see cref="https://heasarc.gsfc.nasa.gov/docs/fcg/common_dict.html"/>
+'''<see cref="https://diffractionlimited.com/help/maximdl/FITS_File_Header_Definitions.htm"/>
 Public Structure eFITSKeywords
 
     Public Const [SIMPLE] As String = "SIMPLE"          'Primary HDU
@@ -81,6 +84,38 @@ Public Structure eFITSKeywords
 
     '=============================================================================
     'Found in FITS and need additional comments
+
+    '''<summary>Projection type for axis 1. Always set to use the SIN (orthographic) projection; For definition, see Calabretta & Greisen, 2002.</summary>
+    Public Const [CTYPE1] As String = "CTYPE1"
+    '''<summary>Projection type for axis 2. Always set to use the SIN (orthographic) projection; For definition, see Calabretta & Greisen, 2002.</summary>
+    Public Const [CTYPE2] As String = "CTYPE2"
+
+    '''<summary>The value field shall contain a floating point number, identifying the location Of a reference point along axis n, In units Of the axis index.  This value Is based upon a counter that runs from 1 To NAXISn with an increment of 1 per pixel.  The reference point value need Not be that for the center of a pixel nor lie within the actual data array.  Use comments To indicate the location Of the index point relative to the pixel..</summary>
+    '''<remarks>For center, set to 0.5*(NAXIS1+1)</remarks>
+    Public Const [CRPIX1] As String = "CRPIX1"
+    '''<summary>The value field shall contain a floating point number, identifying the location Of a reference point along axis n, In units Of the axis index.  This value Is based upon a counter that runs from 1 To NAXISn with an increment of 1 per pixel.  The reference point value need Not be that for the center of a pixel nor lie within the actual data array.  Use comments To indicate the location Of the index point relative to the pixel..</summary>
+    '''<remarks>For center, set to 0.5*(NAXIS2+1)</remarks>
+    Public Const [CRPIX2] As String = "CRPIX2"
+
+    '''<summary>The value field shall contain a floating point number giving the Partial derivative Of the coordinate specified by the CTYPEn keywords with respect to the pixel index, evaluated at the reference point CRPIXn, in units Of the coordinate specified by  the CTYPEn keyword.  These units must follow the prescriptions of section 5.3 of the FITS Standard.</summary>
+    '''<remarks>Axis 1 pixel scale at CRPIX1,CRPIX2. See PXSCAL1 For arcsec equivalent.</remarks>
+    Public Const [CDELT1] As String = "CDELT1"
+    '''<summary>The value field shall contain a floating point number giving the Partial derivative Of the coordinate specified by the CTYPEn keywords with respect to the pixel index, evaluated at the reference point CRPIXn, in units Of the coordinate specified by  the CTYPEn keyword.  These units must follow the prescriptions of section 5.3 of the FITS Standard.</summary>
+    '''<remarks>Axis 1 pixel scale at CRPIX1,CRPIX2. See PXSCAL1 For arcsec equivalent.</remarks>
+    Public Const [CDELT2] As String = "CDELT2"
+
+    '''<summary>This keyword is used to indicate a rotation from a standard coordinate system described by the CTYPEn To a different coordinate system in which the values in the array are actually expressed. Rules For such rotations are Not further specified in the Standard; the rotation should be explained In comments. The value field shall contain a floating point number giving the rotation angle In degrees between axis n And the direction implied by the coordinate system defined by CTYPEn.</summary>
+    '''<remarks>UNITS: degrees</remarks>
+    Public Const [CROTA1] As String = "CROTA1"
+    '''<summary>This keyword is used to indicate a rotation from a standard coordinate system described by the CTYPEn To a different coordinate system in which the values in the array are actually expressed. Rules For such rotations are Not further specified in the Standard; the rotation should be explained In comments. The value field shall contain a floating point number giving the rotation angle In degrees between axis n And the direction implied by the coordinate system defined by CTYPEn.</summary>
+    '''<remarks>UNITS: degrees</remarks>
+    Public Const [CROTA2] As String = "CROTA2"
+
+    '''<summary>The value field shall contain a floating point number, giving the value Of the coordinate specified by the CTYPEn keyword at the reference point CRPIXn. Units must follow the prescriptions Of section 5.3 of the FITS Standard.</summary>
+    Public Const [CRVAL1] As String = "CRVAL1"
+    '''<summary>The value field shall contain a floating point number, giving the value Of the coordinate specified by the CTYPEn keyword at the reference point CRPIXn. Units must follow the prescriptions Of section 5.3 of the FITS Standard.</summary>
+    Public Const [CRVAL2] As String = "CRVAL2"
+
 
     '''<summary>Used to color encoding.</summary>
     Public Const [CTYPE3] As String = "CTYPE3"

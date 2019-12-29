@@ -107,6 +107,8 @@ Public Class cFITSHeaderChanger
 
             Loop Until 1 = 0
 
+            FITS_stream.Close()
+
         End If
 
         Return RetVal
