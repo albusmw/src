@@ -30,6 +30,16 @@ Namespace Ato
 
         End Function
 
+        Public Shared Function GetURLContent(ByVal RequestURL As String) As String
+            'Query data from request URL
+            Dim address As New Uri(RequestURL)
+            Dim mWC As New System.Net.WebClient
+            Dim InStream As IO.Stream = mWC.OpenRead(address)
+            Dim InReader As New IO.StreamReader(InStream)
+            Dim Data As String = InReader.ReadToEnd
+            Return Data
+        End Function
+
     End Class
 
 End Namespace

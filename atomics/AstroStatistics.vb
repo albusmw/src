@@ -36,7 +36,7 @@ Namespace AstroNET
         Public Structure sStatistics
             '''<summary>Full-resolution histogram data - bayer data.</summary>
             Public BayerHistograms(,) As Dictionary(Of UInt32, UInt32)
-            '''<summary>Full-resolution histogram data - mono data.</summary>
+            '''<summary>Full-resolution histogram data - mono data, sorted.</summary>
             Public MonochromHistogram As Dictionary(Of UInt32, UInt32)
             '''<summary>Statistics for each channel.</summary>
             Public BayerStatistics(,) As sSingleChannelStatistics
@@ -286,6 +286,7 @@ Namespace AstroNET
         ''' <returns>Dictionary of center distance vs mean value.</returns>
         ''' <remarks>We start in the middle, move down and right and always take 4 pixel symmetrical to the middle.</remarks>
         Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt32, ByVal Steps As Integer) As Dictionary(Of Double, Double)
+            '!!!!! THIS FUNCTION IS NOT YET OPTIMIZED!
             Dim VignetPixelSum As New Dictionary(Of Double, UInt32)
             Dim VignetCount As New Dictionary(Of Double, Double)
             Dim GroupDeltaX As Integer = 1 : Dim DistX As Integer = 1
@@ -336,6 +337,104 @@ Namespace AstroNET
                 Next Entry
                 Return RetVal
             End If
+        End Function
+
+        ''' <summary>Calculate the intensity over the distance from the center of the image.</summary>
+        ''' <param name="FITSSumImage">Image to run calculation on.</param>
+        ''' <param name="Steps">Number of X axis steps to group - 0 for full resolution, -1 for integer resolution.</param>
+        ''' <returns>Dictionary of center distance vs mean value.</returns>
+        ''' <remarks>We start in the middle, move down and right and always take 4 pixel symmetrical to the middle.</remarks>
+        Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt16, ByVal Steps As Integer) As Dictionary(Of Double, Double)
+            Dim VignetPixelSum As New Dictionary(Of Double, UInt32)
+            Dim VignetCount As New Dictionary(Of Double, Double)
+            Dim GroupDeltaX As Integer = 1 : Dim DistX As Integer = 1
+            Dim Distance As Double = Double.NaN                                                 'holds the maximum distance in the end ...
+            'Move over the complete image and sum
+            For DeltaX As Integer = (FITSSumImage.GetUpperBound(0) \ 2) + 1 To FITSSumImage.GetUpperBound(0)
+                Dim GroupDeltaY As Integer = 1 : Dim DistY As Integer = 1
+                For DeltaY As Integer = (FITSSumImage.GetUpperBound(1) \ 2) + 1 To FITSSumImage.GetUpperBound(1)
+                    Distance = Math.Sqrt((DistX * DistX) + (DistY * DistY))
+                    Dim SampleSum As UInt32 = 0
+                    SampleSum += FITSSumImage(DeltaX, DeltaY)                                  'right down
+                    SampleSum += FITSSumImage(DeltaX, DeltaY - GroupDeltaY)                    'right up
+                    SampleSum += FITSSumImage(DeltaX - GroupDeltaX, DeltaY)                    'left down
+                    SampleSum += FITSSumImage(DeltaX - GroupDeltaX, DeltaY - GroupDeltaY)      'left up
+                    If VignetPixelSum.ContainsKey(Distance) = False Then
+                        VignetPixelSum.Add(Distance, SampleSum)
+                        VignetCount.Add(Distance, 4)
+                    Else
+                        VignetPixelSum(Distance) += SampleSum
+                        VignetCount(Distance) = CUInt(VignetCount(Distance) + 4)
+                    End If
+                    GroupDeltaY += 2 : DistY += 1
+                Next DeltaY
+                GroupDeltaX += 2 : DistX += 1
+            Next DeltaX
+            'Calculate the final output
+            If Steps = 0 Then
+                'Do not group the distance
+                Dim AllKeys As New List(Of Double)(VignetPixelSum.Keys)
+                For Each Entry As Double In AllKeys
+                    VignetCount(Entry) = VignetPixelSum(Entry) / VignetCount(Entry)
+                Next Entry
+                Return VignetCount
+            Else
+                'Group the distance in N steps
+                If Steps = -1 Then Steps = CInt(Math.Sqrt((FITSSumImage.GetUpperBound(0) * FITSSumImage.GetUpperBound(0)) + (FITSSumImage.GetUpperBound(1) * FITSSumImage.GetUpperBound(1))) / 2)
+                Dim RetAccu As New Dictionary(Of Double, Ato.cSingleValueStatistics)
+                Dim AllDistances As New List(Of Double)(VignetPixelSum.Keys)
+                For Each SingleDistance As Double In AllDistances
+                    Dim DistNorm As Double = Math.Floor(Steps * (SingleDistance / Distance))
+                    Dim Value As Double = VignetPixelSum(SingleDistance) / VignetCount(SingleDistance)
+                    If RetAccu.ContainsKey(DistNorm) = False Then RetAccu.Add(DistNorm, New Ato.cSingleValueStatistics(Ato.cSingleValueStatistics.eValueType.Linear))
+                    RetAccu(DistNorm).AddValue(Value)
+                Next SingleDistance
+                Dim RetVal As New Dictionary(Of Double, Double)
+                For Each Entry As Double In RetAccu.Keys
+                    RetVal.Add(Entry, RetAccu(Entry).Mean)
+                Next Entry
+                Return RetVal
+            End If
+        End Function
+
+        ''' <summary>Calculate the intensity over the distance from the center of the image.</summary>
+        ''' <param name="FITSSumImage">Image to run calculation on.</param>
+        ''' <param name="Steps">Number of X axis steps to group - 0 for full resolution, -1 for integer resolution.</param>
+        ''' <returns>Dictionary of center distance vs mean value.</returns>
+        ''' <remarks>We start in the middle, move down and right and always take 4 pixel symmetrical to the middle.</remarks>
+        Public Shared Function VignetteFast(ByRef FITSSumImage(,) As UInt16, ByVal Steps As Integer) As Dictionary(Of Double, Double)
+            Dim UInt4 As UInt32 = 4
+            Dim VignetPixelSum(Steps) As UInt64
+            Dim VignetCount(Steps) As UInt32
+            For Idx As Integer = 0 To Steps - 1
+                VignetPixelSum(Idx) = 0 : VignetCount(Idx) = 0
+            Next Idx
+            Dim GroupDeltaX As Integer = 1 : Dim DistX As Integer = 1
+            Dim DistanceIdx As Integer = -1
+            Dim MaxDistance As Double = Math.Sqrt((((FITSSumImage.GetUpperBound(0) \ 2) + 0.5) * ((FITSSumImage.GetUpperBound(0) \ 2) + 0.5)) + (((FITSSumImage.GetUpperBound(1) \ 2) + 0.5) * ((FITSSumImage.GetUpperBound(1) \ 2) + 0.5)))
+            'Move over the complete image and sum
+            For DeltaX As Integer = (FITSSumImage.GetUpperBound(0) \ 2) + 1 To FITSSumImage.GetUpperBound(0)
+                Dim GroupDeltaY As Integer = 1 : Dim DistY As Integer = 1
+                For DeltaY As Integer = (FITSSumImage.GetUpperBound(1) \ 2) + 1 To FITSSumImage.GetUpperBound(1)
+                    Dim PixelDistance As Double = (Math.Sqrt(((DistX - 0.5) * (DistX - 0.5)) + ((DistY - 0.5) * (DistY - 0.5))))
+                    DistanceIdx = CInt(Steps * (PixelDistance / MaxDistance))
+                    Dim SampleSum As UInt32 = 0
+                    SampleSum += FITSSumImage(DeltaX, DeltaY)                                  'right down
+                    SampleSum += FITSSumImage(DeltaX, DeltaY - GroupDeltaY)                    'right up
+                    SampleSum += FITSSumImage(DeltaX - GroupDeltaX, DeltaY)                    'left down
+                    SampleSum += FITSSumImage(DeltaX - GroupDeltaX, DeltaY - GroupDeltaY)      'left up
+                    VignetPixelSum(DistanceIdx) += SampleSum
+                    VignetCount(DistanceIdx) += UInt4
+                    GroupDeltaY += 2 : DistY += 1
+                Next DeltaY
+                GroupDeltaX += 2 : DistX += 1
+            Next DeltaX
+            'Calculate the final output
+            Dim RetVal As New Dictionary(Of Double, Double)
+            For EntryIdx As Integer = 0 To VignetPixelSum.GetUpperBound(0)
+                RetVal.Add(MaxDistance * (EntryIdx / Steps), VignetPixelSum(EntryIdx) / VignetCount(Steps - 1))
+            Next EntryIdx
+            Return RetVal
         End Function
 
         ''' <summary>Correct the vignette.</summary>

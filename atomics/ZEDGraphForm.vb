@@ -12,9 +12,11 @@ Public Class cZEDGraphForm
     '''<summary>Prepare.</summary>
     Private Sub Init()
         If IsNothing(Hoster) = True Then Hoster = New System.Windows.Forms.Form
-        If IsNothing(Control) = True Then Control = New ZedGraph.ZedGraphControl
-        Hoster.Controls.Add(Control)
-        Control.Dock = Windows.Forms.DockStyle.Fill
+        If IsNothing(Control) = True Then
+            Control = New ZedGraph.ZedGraphControl
+            Hoster.Controls.Add(Control)
+            Control.Dock = Windows.Forms.DockStyle.Fill
+        End If
     End Sub
 
     Private Function GetGraphControl() As ZedGraph.ZedGraphControl
@@ -49,6 +51,31 @@ Public Class cZEDGraphForm
         Next Idx
         ZEDGraphUtil.PlotXvsY(Control, "Data", XAxis.ToArray, Data, New ZEDGraphUtil.sGraphStyle(Drawing.Color.Red), XAxis(0), XAxis(XAxis.Count - 1))
         Return GetGraphControl()
+    End Function
+
+    '''<summary>Plot data with a logarithmic Y axis.</summary>
+    Public Function PlotData(ByVal PlotName As String, ByVal Data() As Double, ByVal LineColor As Drawing.Color) As ZedGraph.ZedGraphControl
+        Init()
+        Dim XAxis As New List(Of Double)
+        For Idx As Integer = 0 To Data.GetUpperBound(0)
+            XAxis.Add(Idx)
+        Next Idx
+        ZEDGraphUtil.PlotXvsY(Control, PlotName, XAxis.ToArray, Data, New ZEDGraphUtil.sGraphStyle(LineColor), XAxis(0), XAxis(XAxis.Count - 1))
+        Dim RetVal As ZedGraph.ZedGraphControl = GetGraphControl()
+        Return RetVal
+    End Function
+
+    '''<summary>Plot data with a logarithmic Y axis.</summary>
+    Public Function PlotDataLog(ByVal PlotName As String, ByVal Data() As Double, ByVal LineColor As Drawing.Color) As ZedGraph.ZedGraphControl
+        Init()
+        Dim XAxis As New List(Of Double)
+        For Idx As Integer = 0 To Data.GetUpperBound(0)
+            XAxis.Add(Idx)
+        Next Idx
+        ZEDGraphUtil.PlotXvsY(Control, PlotName, XAxis.ToArray, Data, New ZEDGraphUtil.sGraphStyle(LineColor), XAxis(0), XAxis(XAxis.Count - 1))
+        Dim RetVal As ZedGraph.ZedGraphControl = GetGraphControl()
+        RetVal.GraphPane.YAxis.Type = ZedGraph.AxisType.Log
+        Return RetVal
     End Function
 
     '''<summary>Plot data.</summary>

@@ -30,6 +30,10 @@ Public Class ZEDGraphUtil
                     End If
                 End If
             Next Item
+            'Add new curve
+            If IsNothing(EditedLine) = True Then
+                EditedLine = Graph.GraphPane.AddCurve(CurveName, X, Y, Style.LineColor, Style.DotStyle)
+            End If
         End If
 
         'Set curve style

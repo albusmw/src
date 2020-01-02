@@ -228,7 +228,7 @@ Public Class BayerFunctions
     End Sub
 
     '''<summary>Equalize the bayer data in the passed image.</summary>
-    <Obsolete("This class should be inspected ...", True)>
+    <Obsolete("This class should be inspected ...", False)>
     Public Shared Sub EqualizeChannels(ByRef ImageData(,) As Int32)
 
         Dim Mean_00 As Double = 0

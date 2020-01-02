@@ -8,6 +8,9 @@ Public Class cStopper
     Private TimeLog As New List(Of String)
     Private MessageCache As String = String.Empty       'message in case TIC is called with the log message and TOC is not
 
+    Public Property PadMessage As Integer = 30
+    Public Property PadTime As Integer = 11
+
     '''<summary>Constructor.</summary>
     Public Sub New()
         Watch.Reset() : Watch.Start()
@@ -45,13 +48,15 @@ Public Class cStopper
     End Sub
 
     '''<summary>Log the timing and restart the watch again.</summary>
-    Public Sub [Stamp](ByVal Text As String)
+    Public Function [Stamp](ByVal Text As String) As String
         Watch.Stop()
-        TimeLog.Add(Text.PadRight(30) & " : " & Watch.ElapsedMilliseconds.ToString.Trim.PadLeft(11) & " ms")
+        Dim Message As String = Text.PadRight(PadMessage) & " : " & Watch.ElapsedMilliseconds.ToString.Trim.PadLeft(PadTime) & " ms"
+        TimeLog.Add(Message)
         MessageCache = String.Empty
         Watch.Reset()
         Watch.Start()
-    End Sub
+        Return Message
+    End Function
 
     '================================================================================
 
