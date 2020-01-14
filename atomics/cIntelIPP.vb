@@ -1209,7 +1209,7 @@ Partial Public Class cIntelIPP
     Public Shared Sub DisplayArray(ByRef Data() As UInt16, ByVal Size As Integer)
         Dim Out As New List(Of String)
         For Idx1 As Integer = 0 To Data.GetUpperBound(0)
-            Out.Add(Data(Idx1).ToString.Trim.PadLeft(Size))
+            Out.Add(Data(Idx1).ValRegIndep.PadLeft(Size))
         Next Idx1
         Console.WriteLine(Join(Out.ToArray, "|"))
     End Sub
@@ -1218,7 +1218,7 @@ Partial Public Class cIntelIPP
         For Idx1 As Integer = 0 To Data.GetUpperBound(0)
             Dim Out As New List(Of String)
             For Idx2 As Integer = 0 To Data.GetUpperBound(1)
-                Out.Add(Data(Idx1, Idx2).ToString.Trim.PadLeft(Size))
+                Out.Add(Data(Idx1, Idx2).ValRegIndep.PadLeft(Size))
             Next Idx2
             Console.WriteLine(Join(Out.ToArray, "|"))
         Next Idx1

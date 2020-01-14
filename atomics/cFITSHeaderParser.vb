@@ -27,12 +27,12 @@ Public Class cFITSHeaderParser
         End Sub
         Public Sub New(ByVal NewKeyword As String, ByVal NewValue As Double)
             Me.Keyword = NewKeyword
-            Me.Value = NewValue.ToString.Trim.Replace(",", ".")
+            Me.Value = NewValue.ValRegIndep.Replace(",", ".")
             Me.Comment = String.Empty
         End Sub
         Public Sub New(ByVal NewKeyword As String, ByVal NewValue As Double, ByVal NewComment As String)
             Me.Keyword = NewKeyword
-            Me.Value = NewValue.ToString.Trim.Replace(",", ".")
+            Me.Value = NewValue.ValRegIndep.Replace(",", ".")
             Me.Comment = NewComment
         End Sub
         Public Shared Function Sorter(ByVal X As sHeaderElement, ByVal Y As sHeaderElement) As Integer

@@ -17,7 +17,7 @@ Public Class cStatistics
     '''<summary>Center analyzed region.</summary>
     Public ReadOnly Property CenterFormated() As String
         Get
-            Return MyCenter.X.ToString.Trim & ":" & MyCenter.Y.ToString.Trim
+            Return MyCenter.X.ValRegIndep & ":" & MyCenter.Y.ValRegIndep
         End Get
     End Property
     Private MyCenter As System.Drawing.PointF
@@ -25,7 +25,7 @@ Public Class cStatistics
     '''<summary>Size of the analyzed region.</summary>
     Public ReadOnly Property DetailSizeFormated() As String
         Get
-            Return Width.ToString.Trim & " x " & Height.ToString.Trim
+            Return Width.ValRegIndep & " x " & Height.ValRegIndep
         End Get
     End Property
 

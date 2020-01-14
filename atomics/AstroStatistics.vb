@@ -55,7 +55,7 @@ Namespace AstroNET
                 Next Entry
                 For Idx1 As Integer = 0 To BayerStatistics.GetUpperBound(0)
                     For Idx2 As Integer = 0 To BayerStatistics.GetUpperBound(1)
-                        RetVal.Add(Indent & "Bayer channel [" & Idx1.ToString.Trim & ":" & Idx2.ToString.Trim & "] statistics:")
+                        RetVal.Add(Indent & "Bayer channel [" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "] statistics:")
                         For Each Entry As String In BayerStatistics(Idx1, Idx2).StatisticsReport
                             RetVal.Add(Indent & "  " & Entry)
                         Next Entry
@@ -102,11 +102,11 @@ Namespace AstroNET
             '''<summary>Report of all statistics properties of the structure.</summary>
             Public Function StatisticsReport() As List(Of String)
                 Dim RetVal As New List(Of String)
-                RetVal.Add("Total pixel     : " & Samples.ToString.Trim.PadLeft(9) & " (" & Format(Samples / 1000000, "0.0").ToString.Trim & "M)")
-                RetVal.Add("Different values: " & DifferentValueCount.ToString.Trim.PadLeft(9))
-                RetVal.Add("Min value       : " & Min.ToString.Trim.PadLeft(9))
-                RetVal.Add("Max value       : " & Max.ToString.Trim.PadLeft(9))
-                RetVal.Add("Median value    : " & Median.ToString.Trim.PadLeft(9))
+                RetVal.Add("Total pixel     : " & Samples.ValRegIndep.PadLeft(9) & " (" & Format(Samples / 1000000, "0.0").ToString.Trim & "M)")
+                RetVal.Add("Different values: " & DifferentValueCount.ValRegIndep.PadLeft(9))
+                RetVal.Add("Min value       : " & Min.ValRegIndep.PadLeft(9))
+                RetVal.Add("Max value       : " & Max.ValRegIndep.PadLeft(9))
+                RetVal.Add("Median value    : " & Median.ValRegIndep.PadLeft(9))
                 RetVal.Add("Mean value      : " & Format(Mean, "0.00").ToString.Trim.PadLeft(9))
                 Return RetVal
             End Function
@@ -404,35 +404,38 @@ Namespace AstroNET
         ''' <remarks>We start in the middle, move down and right and always take 4 pixel symmetrical to the middle.</remarks>
         Public Shared Function VignetteFast(ByRef FITSSumImage(,) As UInt16, ByVal Steps As Integer) As Dictionary(Of Double, Double)
             Dim UInt4 As UInt32 = 4
-            Dim VignetPixelSum(Steps) As UInt64
-            Dim VignetCount(Steps) As UInt32
+            Dim BinSum(Steps) As UInt64
+            Dim BinCount(Steps) As UInt32
+            'Clear
             For Idx As Integer = 0 To Steps - 1
-                VignetPixelSum(Idx) = 0 : VignetCount(Idx) = 0
+                BinSum(Idx) = 0 : BinCount(Idx) = 0
             Next Idx
-            Dim GroupDeltaX As Integer = 1 : Dim DistX As Integer = 1
-            Dim DistanceIdx As Integer = -1
-            Dim MaxDistance As Double = Math.Sqrt((((FITSSumImage.GetUpperBound(0) \ 2) + 0.5) * ((FITSSumImage.GetUpperBound(0) \ 2) + 0.5)) + (((FITSSumImage.GetUpperBound(1) \ 2) + 0.5) * ((FITSSumImage.GetUpperBound(1) \ 2) + 0.5)))
+            'Calculate the maximum distance possible from the center in X, Y and R direction
+            Dim MaxDistX As Double = ((FITSSumImage.GetUpperBound(0) \ 2) + 0.5)
+            Dim MaxDistY As Double = ((FITSSumImage.GetUpperBound(1) \ 2) + 0.5)
+            Dim MaxDistance As Double = Math.Sqrt((MaxDistX * MaxDistX) + (MaxDistY * MaxDistY))
             'Move over the complete image and sum
-            For DeltaX As Integer = (FITSSumImage.GetUpperBound(0) \ 2) + 1 To FITSSumImage.GetUpperBound(0)
+            Dim GroupDeltaX As Integer = 1 : Dim DistX As Integer = 1
+            For CursorX As Integer = (FITSSumImage.GetUpperBound(0) \ 2) + 1 To FITSSumImage.GetUpperBound(0)
                 Dim GroupDeltaY As Integer = 1 : Dim DistY As Integer = 1
-                For DeltaY As Integer = (FITSSumImage.GetUpperBound(1) \ 2) + 1 To FITSSumImage.GetUpperBound(1)
-                    Dim PixelDistance As Double = (Math.Sqrt(((DistX - 0.5) * (DistX - 0.5)) + ((DistY - 0.5) * (DistY - 0.5))))
-                    DistanceIdx = CInt(Steps * (PixelDistance / MaxDistance))
+                For CursorY As Integer = (FITSSumImage.GetUpperBound(1) \ 2) + 1 To FITSSumImage.GetUpperBound(1)
+                    Dim CenterDistance As Double = (Math.Sqrt(((DistX - 0.5) * (DistX - 0.5)) + ((DistY - 0.5) * (DistY - 0.5))))   'Distance from center in pixel
+                    Dim DistanceBinIdx As Integer = CInt(Steps * (CenterDistance / MaxDistance))                                    'Index of the bin to add
                     Dim SampleSum As UInt32 = 0
-                    SampleSum += FITSSumImage(DeltaX, DeltaY)                                  'right down
-                    SampleSum += FITSSumImage(DeltaX, DeltaY - GroupDeltaY)                    'right up
-                    SampleSum += FITSSumImage(DeltaX - GroupDeltaX, DeltaY)                    'left down
-                    SampleSum += FITSSumImage(DeltaX - GroupDeltaX, DeltaY - GroupDeltaY)      'left up
-                    VignetPixelSum(DistanceIdx) += SampleSum
-                    VignetCount(DistanceIdx) += UInt4
+                    SampleSum += FITSSumImage(CursorX, CursorY)                                  'right down
+                    SampleSum += FITSSumImage(CursorX, CursorY - GroupDeltaY)                    'right up
+                    SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY)                    'left down
+                    SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY - GroupDeltaY)      'left up
+                    BinSum(DistanceBinIdx) += SampleSum
+                    BinCount(DistanceBinIdx) += UInt4
                     GroupDeltaY += 2 : DistY += 1
-                Next DeltaY
+                Next CursorY
                 GroupDeltaX += 2 : DistX += 1
-            Next DeltaX
+            Next CursorX
             'Calculate the final output
             Dim RetVal As New Dictionary(Of Double, Double)
-            For EntryIdx As Integer = 0 To VignetPixelSum.GetUpperBound(0)
-                RetVal.Add(MaxDistance * (EntryIdx / Steps), VignetPixelSum(EntryIdx) / VignetCount(Steps - 1))
+            For EntryIdx As Integer = 0 To BinSum.GetUpperBound(0)
+                RetVal.Add((EntryIdx / Steps) * MaxDistance, BinSum(EntryIdx) / BinCount(EntryIdx))
             Next EntryIdx
             Return RetVal
         End Function

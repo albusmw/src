@@ -228,7 +228,7 @@ Public Class cFITSReader
         DataReader.Close()
 
         Stopper.Stop()
-        Debug.Print("Reading FITS data content took " & Stopper.ElapsedMilliseconds.ToString.Trim & " ms")
+        Debug.Print("Reading FITS data content took " & Stopper.ElapsedMilliseconds.ValRegIndep & " ms")
 
     End Sub
 
@@ -320,7 +320,7 @@ Public Class cFITSReader
         DataReader.Close()
 
         Stopper.Stop()
-        Debug.Print("Reading FITS data content took " & Stopper.ElapsedMilliseconds.ToString.Trim & " ms")
+        Debug.Print("Reading FITS data content took " & Stopper.ElapsedMilliseconds.ValRegIndep & " ms")
 
     End Sub
 

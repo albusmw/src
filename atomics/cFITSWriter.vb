@@ -94,8 +94,8 @@ Public Class cFITSWriter
         Header.Add(FormatHeader("NAXIS", "2"))
         Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
         Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", BZero.ToString.Trim.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ToString.Trim.Replace(",", ".")))
+        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
+        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -165,8 +165,8 @@ Public Class cFITSWriter
         Header.Add(FormatHeader("NAXIS", "2"))
         Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
         Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", BZero.ToString.Trim.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ToString.Trim.Replace(",", ".")))
+        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
+        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -245,8 +245,8 @@ Public Class cFITSWriter
         Header.Add(FormatHeader("NAXIS", "2"))
         Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
         Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", BZero.ToString.Trim.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ToString.Trim.Replace(",", ".")))
+        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
+        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -343,8 +343,8 @@ Public Class cFITSWriter
         Header.Add(FormatHeader("NAXIS", "2"))
         Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
         Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", BZero.ToString.Trim.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ToString.Trim.Replace(",", ".")))
+        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
+        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -446,8 +446,8 @@ Public Class cFITSWriter
         Header.Add(FormatHeader("NAXIS", "2"))
         Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
         Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", BZero.ToString.Trim.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ToString.Trim.Replace(",", ".")))
+        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
+        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -536,8 +536,8 @@ Public Class cFITSWriter
         Header.Add(FormatHeader("NAXIS", "2"))
         Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
         Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", BZero.ToString.Trim.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ToString.Trim.Replace(",", ".")))
+        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
+        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -630,8 +630,8 @@ Public Class cFITSWriter
         Header.Add(FormatHeader("NAXIS1", ImageDataR.GetUpperBound(0) + 1))
         Header.Add(FormatHeader("NAXIS2", ImageDataR.GetUpperBound(1) + 1))
         Header.Add(FormatHeader("NAXIS3", "3"))
-        Header.Add(FormatHeader("BZERO", BZero.ToString.Trim.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ToString.Trim.Replace(",", ".")))
+        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
+        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -724,8 +724,8 @@ Public Class cFITSWriter
         Header.Add(FormatHeader("NAXIS", "2"))
         Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
         Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", BZero.ToString.Trim.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ToString.Trim.Replace(",", ".")))
+        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
+        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -776,8 +776,8 @@ Public Class cFITSWriter
         Header.Add(FormatHeader("NAXIS1", ImageDataR.GetUpperBound(0) + 1))
         Header.Add(FormatHeader("NAXIS2", ImageDataR.GetUpperBound(1) + 1))
         Header.Add(FormatHeader("NAXIS3", "3"))
-        Header.Add(FormatHeader("BZERO", BZero.ToString.Trim.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ToString.Trim.Replace(",", ".")))
+        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
+        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -875,8 +875,8 @@ Public Class cFITSWriter
         Header.Add(FormatHeader("NAXIS", "2"))
         Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
         Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", BZero.ToString.Trim.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ToString.Trim.Replace(",", ".")))
+        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
+        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Calculate scaler
@@ -1034,7 +1034,7 @@ Public Class cFITSWriter
     End Sub
 
     Private Shared Function FormatHeader(ByVal Keyword As String, ByVal Value As Integer) As String
-        Return FormatHeader(Keyword, Value.ToString.Trim)
+        Return FormatHeader(Keyword, Value.ValRegIndep)
     End Function
 
     Private Shared Function FormatHeader(ByVal Keyword As String, ByVal Value As String) As String

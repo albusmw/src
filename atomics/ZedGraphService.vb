@@ -502,7 +502,7 @@ Public Class cZEDGraphService
           If Columns.Count <= Idx Then
             Columns.Add(New String(CChar(";"), 2 * CurveCount))
           End If
-          Columns(Idx) = Columns(Idx) & CurveList(CurveName).Points.Item(Idx).X.ToString.Trim & ";" & CurveList(CurveName).Points.Item(Idx).Y.ToString.Trim & ";"
+          Columns(Idx) = Columns(Idx) & CurveList(CurveName).Points.Item(Idx).X.ValRegIndep & ";" & CurveList(CurveName).Points.Item(Idx).Y.ValRegIndep & ";"
         Next Idx
       End With
       CurveCount += 1

@@ -159,15 +159,15 @@ Public Class BayerFunctions
                 If ImageStatistics.BayerStatistics(Idx1, Idx2).Mean > ReferenceValue Then ReferenceValue = ImageStatistics.BayerStatistics(Idx1, Idx2).Mean
             Next Idx2
         Next Idx1
-        RetVal.Add("Max mean: " & ReferenceValue.ToString.Trim)
+        RetVal.Add("Max mean: " & ReferenceValue.ValRegIndep)
 
         'Calculate the normalization data (multiplier to get the same maximum median in all channels)
         Dim Norm(1, 1) As Double
         For Idx1 As Integer = 0 To 1
             For Idx2 As Integer = 0 To 1
                 Norm(Idx1, Idx2) = ReferenceValue / ImageStatistics.BayerStatistics(Idx1, Idx2).Mean
-                RetVal.Add("Norm[" & Idx1.ToString.Trim & ":" & Idx2.ToString.Trim & "]           : " & Norm(Idx1, Idx2).ToString.Trim)
-                RetVal.Add("Max [" & Idx1.ToString.Trim & ":" & Idx2.ToString.Trim & "] after norm: " & CType(Math.Round(ImageStatistics.BayerStatistics(Idx1, Idx2).Max * Norm(Idx1, Idx2)), UInt32).ToString.Trim)
+                RetVal.Add("Norm[" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "]           : " & Norm(Idx1, Idx2).ValRegIndep)
+                RetVal.Add("Max [" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "] after norm: " & CType(Math.Round(ImageStatistics.BayerStatistics(Idx1, Idx2).Max * Norm(Idx1, Idx2)), UInt32).ValRegIndep)
             Next Idx2
         Next Idx1
 
