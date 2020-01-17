@@ -19,6 +19,20 @@ Module StringExtension
         End If
     End Function
 
+    '''<summary>Returns the string the comes after the passed part.</summary>
+    '''<param name="InputString"></param>
+    '''<param name="Part"></param>
+    '''<returns></returns>
+    <Extension()>
+    Public Function PartBefore(ByVal InputString As String, ByVal Part As String) As String
+        Dim Pos As Integer = InputString.IndexOf(Part)
+        If Pos > 0 Then
+            Return InputString.Substring(0, Pos)
+        Else
+            Return String.Empty
+        End If
+    End Function
+
     <Extension()>
     Public Function ValRegIndep(ByVal Value As Single) As String
         Return Value.ToString(Globalization.CultureInfo.InvariantCulture).Trim
