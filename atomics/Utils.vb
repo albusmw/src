@@ -10,9 +10,9 @@ Namespace Ato
 
     Public Class Utils
 
+        '''<summary>Create a shortcut to the current running EXE.</summary>
         Public Shared Function CreateDesktopShortcut() As Boolean
 
-            '''<summary>Create a shortcut to the current running EXE.</summary>
             Try
                 Dim DesktopPath As String = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
                 Dim EXEName As String = System.Reflection.Assembly.GetExecutingAssembly().Location

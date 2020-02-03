@@ -101,7 +101,7 @@ Public Class cFITSReader
         BaseIn.Close()
 
         'Read data content
-        ReadDataContent(FileName, DataStartIdx, ImageData, FITSHeaderParser.BitPix, UseBZeroScale, FITSHeaderParser.Width, FITSHeaderParser.Height, PointsToRead)
+        ReadDataContent(FileName, ImageData, FITSHeaderParser.BitPix, UseBZeroScale, FITSHeaderParser.Width, FITSHeaderParser.Height, PointsToRead)
 
     End Sub
 
@@ -112,6 +112,7 @@ Public Class cFITSReader
     '''<summary>Read FITS data from the passed file.</summary>
     '''<param name="FileName">File name to load FITS data from.</param>
     '''<param name="UseIPP">Use the Intel IPP (if found) for processing.</param>
+    '''<remarks>Tested and works.</remarks>
     Public Function ReadInUInt16(ByVal FileName As String, ByVal UseIPP As Boolean) As UInt16(,)
 
         'TODO: Read-in start offset seems to be incorrect
@@ -131,18 +132,18 @@ Public Class cFITSReader
 
     End Function
 
-    '''<summary>Read FITS data from the passed file - only in case BitPix is 32.</summary>
+    '''<summary>Read FITS data from the passed file - only in case BitPix is 16.</summary>
     Private Function ReadDataContentUInt16(ByVal FileName As String, ByVal StartPosition As Integer, ByVal UseIPP As Boolean) As UInt16(,)
+
+        Dim BytePerPixel As Integer = 2
 
         'Delete content and exit if format is wrong
         If FITSHeaderParser.BitPix <> 16 Then Return New UInt16(,) {}
-        If FITSHeaderParser.BZERO <> 32768 Then Return New UInt16(,) {}
-        If FITSHeaderParser.BSCALE <> 1 Then Return New UInt16(,) {}
 
         'Open reader and position to start
         Dim DataReader As New System.IO.BinaryReader(System.IO.File.OpenRead(FileName))
         DataReader.BaseStream.Position = DataStartIdx
-        Dim BytePerPixel As Integer = 2
+
 
         'Read complete block
         Dim ImageData(FITSHeaderParser.Width - 1, FITSHeaderParser.Height - 1) As UInt16
@@ -150,13 +151,13 @@ Public Class cFITSReader
 
         Dim Bytes((FITSHeaderParser.Width * FITSHeaderParser.Height * BytePerPixel) - 1) As Byte
         Bytes = DataReader.ReadBytes(Bytes.Length)
-        If UseIPP = False Then
+        If UseIPP = False Or FITSHeaderParser.BZERO <> 32768 Or FITSHeaderParser.BSCALE <> 1 Then
             'VB implementation
             Dim BytesPtr As Integer = 0
             For H As Integer = 0 To FITSHeaderParser.Height - 1
                 For W As Integer = 0 To FITSHeaderParser.Width - 1
-                    ImageData(W, H) = CUShort(BitConverter.ToInt16({Bytes(BytesPtr + 1), Bytes(BytesPtr)}, 0) + 32768)
-                    BytesPtr += 2
+                    ImageData(W, H) = CUShort(BitConverter.ToInt16({Bytes(BytesPtr + 1), Bytes(BytesPtr)}, 0) + FITSHeaderParser.BZERO)
+                    BytesPtr += BytePerPixel
                 Next W
             Next H
         Else
@@ -232,11 +233,71 @@ Public Class cFITSReader
 
     End Sub
 
+    '''<summary>Read FITS data from the passed file.</summary>
+    '''<param name="FileName">File name to load FITS data from.</param>
+    '''<param name="UseIPP">Use the Intel IPP (if found) for processing.</param>
+    Public Function ReadInInt32(ByVal FileName As String, ByVal UseIPP As Boolean) As Int32(,)
+
+        'TODO: Read-in start offset seems to be incorrect
+        Dim BaseIn As New System.IO.StreamReader(FileName)
+
+        'Read header elements
+        FITSHeaderParser = New cFITSHeaderParser(ReadHeader(BaseIn))
+
+        'Calculate data stream properties
+        Dim StartOffset As Long = BaseIn.BaseStream.Position
+        Dim StreamLength As Long = BaseIn.BaseStream.Length
+        Dim TotalByte As Long = StreamLength - StartOffset
+        BaseIn.Close()
+
+        'Read data content
+        Return ReadDataContentInt32(FileName, DataStartIdx, UseIPP)
+
+    End Function
+
+    '''<summary>Read FITS data from the passed file - only in case BitPix is 32.</summary>
+    Private Function ReadDataContentInt32(ByVal FileName As String, ByVal StartPosition As Integer, ByVal UseIPP As Boolean) As Int32(,)
+
+        Dim BytePerPixel As Integer = 4
+
+        'Delete content and exit if format is wrong
+        If FITSHeaderParser.BitPix <> 32 Then Return New Int32(,) {}
+
+        'Open reader and position to start
+        Dim DataReader As New System.IO.BinaryReader(System.IO.File.OpenRead(FileName))
+        DataReader.BaseStream.Position = DataStartIdx
+
+        'Read complete block
+        Dim ImageData(FITSHeaderParser.Width - 1, FITSHeaderParser.Height - 1) As Int32
+        DataReader.BaseStream.Position = DataStartIdx
+
+        Dim Bytes((FITSHeaderParser.Width * FITSHeaderParser.Height * BytePerPixel) - 1) As Byte
+        Bytes = DataReader.ReadBytes(Bytes.Length)
+        If UseIPP = False Then
+            'VB implementation
+            Dim FileValue As Int32 = 0
+            Dim BytesPtr As Integer = 0
+            For H As Integer = 0 To FITSHeaderParser.Height - 1
+                For W As Integer = 0 To FITSHeaderParser.Width - 1
+                    FileValue = BitConverter.ToInt32({Bytes(BytesPtr + 3), Bytes(BytesPtr + 2), Bytes(BytesPtr + 1), Bytes(BytesPtr)}, 0)
+                    ImageData(W, H) = CInt((FITSHeaderParser.BSCALE * FileValue) + FITSHeaderParser.BZERO)
+                    BytesPtr += BytePerPixel
+                Next W
+            Next H
+        End If
+
+        'Close data stream
+        DataReader.Close()
+
+        Return ImageData
+
+    End Function
+
     '================================================================================================================================================================
     ' Read any data to an Double matrix
     '================================================================================================================================================================
 
-    Private Sub ReadDataContent(ByVal FileName As String, ByVal StartPosition As Integer, ByRef ImageData(,) As Double, ByVal BitPix As Integer, ByVal UseBZeroScale As Boolean, ByVal Width As Integer, ByVal Height As Integer, ByVal PointsToRead As System.Drawing.Point())
+    Private Sub ReadDataContent(ByVal FileName As String, ByRef ImageData(,) As Double, ByVal BitPix As Integer, ByVal UseBZeroScale As Boolean, ByVal Width As Integer, ByVal Height As Integer, ByVal PointsToRead As System.Drawing.Point())
 
         'Performance comments:
         ' - Apply BZERO and BSCALE just then reading in - array manipulation access seems to be slow

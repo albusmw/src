@@ -7,6 +7,7 @@ Option Strict On
 Partial Public Class cIntelIPP
 
     Const UInt16Bytes As Integer = 2
+    Const UInt32Bytes As Integer = 4
 
 #Region "Handles and constructors"
 
@@ -1012,6 +1013,20 @@ Partial Public Class cIntelIPP
             Dim srcStep As Integer = UInt16Bytes * (ArrayIn.GetUpperBound(1) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the source image.
             Dim dstStep As Integer = UInt16Bytes * (ArrayIn.GetUpperBound(0) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the destination image.
             Dim ROI As New IppiSize(srcStep \ UInt16Bytes, dstStep \ UInt16Bytes)
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    ''' <summary>Transpose - the destination image is obtained from the source image by transforming the columns to the rows.</summary>
+    ''' <returns>IppStatus error code.</returns>
+    ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-transpose</remarks>
+    Public Function Transpose(ByRef ArrayIn() As Byte, ByRef ArrayOut(,) As UInt32) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPI("ippiTranspose_32s_C1R", GetType(CallSignature.IntPtr_Integer_IntPtr_Integer_IppiSize))
+        Using Pinner As New cPinHandler
+            Dim srcStep As Integer = UInt32Bytes * (ArrayOut.GetUpperBound(0) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the source image.
+            Dim dstStep As Integer = UInt32Bytes * (ArrayOut.GetUpperBound(1) + 1)     'Distance, in bytes, between the starting points of consecutive lines in the destination image.
+            Dim ROI As New IppiSize(srcStep \ UInt32Bytes, dstStep \ UInt32Bytes)
             RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
         End Using : Return RetVal
     End Function

@@ -44,6 +44,11 @@ Module StringExtension
     End Function
 
     <Extension()>
+    Public Function ValRegIndep(ByVal Value As Double, ByVal Format As String) As String
+        Return Value.ToString(Format, Globalization.CultureInfo.InvariantCulture).Trim
+    End Function
+
+    <Extension()>
     Public Function ValRegIndep(ByVal Value As Byte) As String
         Return Value.ToString(Globalization.CultureInfo.InvariantCulture).Trim
     End Function

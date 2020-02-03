@@ -952,15 +952,30 @@ Public Class cFITSWriter
     ' Helper functions (private)
     '======================================================================================================================================================
 
+    '''<summary>Get the bytes to store as specified by the FITS standard without any scaling.</summary>
+    Private Shared Function GetBytesToStore(ByVal Value As Byte) As Byte
+        Return Value
+    End Function
+
+    '''<summary>Get the bytes to store as specified by the FITS standard without any scaling.</summary>
     Private Shared Function GetBytesToStore(ByVal Value As Int16) As Byte()
         Dim RetVal As Byte() = BitConverter.GetBytes(Value)
         Return New Byte() {RetVal(1), RetVal(0)}
     End Function
 
+    '''<summary>Get the bytes to store as specified by the FITS standard without any scaling.</summary>
     Private Shared Function GetBytesToStore(ByVal Value As UInt16) As Byte()
         Dim RetVal As Byte() = BitConverter.GetBytes(Value)
         Return New Byte() {RetVal(1), RetVal(0)}
     End Function
+
+    '''<summary>Get the bytes to store as specified by the FITS standard without any scaling.</summary>
+    Private Shared Function GetBytesToStore(ByVal Value As Int32) As Byte()
+        Dim RetVal As Byte() = BitConverter.GetBytes(Value)
+        Return New Byte() {RetVal(3), RetVal(2), RetVal(1), RetVal(0)}
+    End Function
+
+    '-----------------------------------------------------------------------------------------------------------------------------------------------------
 
     Private Shared Function GetBytesToStore_BitPix8(ByVal Value As Double, ByVal A As Double, ByVal B As Double, ByRef ErrorCount As Integer) As Byte
         Dim Scaled As Double = (A * Value) + B
@@ -983,6 +998,8 @@ Public Class cFITSWriter
         End If
         Return New Byte() {RetVal(1), RetVal(0)}
     End Function
+
+
 
     Private Shared Function GetBytesToStore_BitPix32(ByVal Value As Double, ByVal A As Double, ByVal B As Double, ByRef ErrorCount As Integer) As Byte()
         Dim RetVal As Byte() = {}
@@ -1048,5 +1065,143 @@ Public Class cFITSWriter
             Return (Keyword.PadRight(KeywordLength) & "=" & Value.PadLeft(ValueLength) & " /" & Comment).PadRight(HeaderElementLength)
         End If
     End Function
+
+    '''<summary>Write a FITS test file with raw data.</summary>
+    Public Shared Sub WriteTestFile_Int8(ByVal FileName As String)
+
+        Dim BitPix As Integer = eBitPix.Byte
+        Dim BaseOut As New System.IO.StreamWriter(FileName)
+        Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
+
+        'Create test data
+        Dim ImageSize As Integer = 256
+        Dim ImageData(ImageSize - 1, ImageSize - 1) As Byte
+        Dim Value As Byte = Byte.MinValue
+        For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+            For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                ImageData(Idx2, Idx1) = Value
+                If Value < Byte.MaxValue Then Value = Value + CType(1, Byte) Else Value = Byte.MinValue
+            Next Idx2
+        Next Idx1
+
+        'Load all header elements
+        Dim Header As New List(Of String)
+        Header.Add(FormatHeader("SIMPLE", "T"))
+        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
+        Header.Add(FormatHeader("NAXIS", "2"))
+        Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
+        Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
+        Header.Add(FormatHeader("BZERO", "0"))
+        Header.Add(FormatHeader("BSCALE", "1"))
+
+        'Write header
+        PadHeader(Header)
+        BaseOut.Write(Join(Header.ToArray, String.Empty))
+        BaseOut.Flush()
+
+        'Write content
+        For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+            For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                BytesOut.Write(GetBytesToStore(ImageData(Idx2, Idx1)))
+            Next Idx2
+        Next Idx1
+
+        'Finish
+        BytesOut.Flush()
+        BaseOut.Close()
+
+    End Sub
+
+    '''<summary>Write a FITS test file with raw data.</summary>
+    Public Shared Sub WriteTestFile_Int16(ByVal FileName As String)
+
+        Dim BitPix As Integer = eBitPix.Int16
+        Dim BaseOut As New System.IO.StreamWriter(FileName)
+        Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
+
+        'Create test data
+        Dim ImageSize As Integer = 256
+        Dim ImageData(ImageSize - 1, ImageSize - 1) As Int16
+        Dim Value As Int16 = Int16.MinValue
+        For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+            For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                ImageData(Idx2, Idx1) = Value
+                If Value < Int16.MaxValue Then Value = Value + CType(1, Int16) Else Value = Int16.MinValue
+            Next Idx2
+        Next Idx1
+
+        'Load all header elements
+        Dim Header As New List(Of String)
+        Header.Add(FormatHeader("SIMPLE", "T"))
+        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
+        Header.Add(FormatHeader("NAXIS", "2"))
+        Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
+        Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
+        Header.Add(FormatHeader("BZERO", "0"))
+        Header.Add(FormatHeader("BSCALE", "1"))
+
+        'Write header
+        PadHeader(Header)
+        BaseOut.Write(Join(Header.ToArray, String.Empty))
+        BaseOut.Flush()
+
+        'Write content
+        For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+            For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                BytesOut.Write(GetBytesToStore(ImageData(Idx2, Idx1)))
+            Next Idx2
+        Next Idx1
+
+        'Finish
+        BytesOut.Flush()
+        BaseOut.Close()
+
+    End Sub
+
+    '''<summary>Write a FITS test file with raw data.</summary>
+    Public Shared Sub WriteTestFile_Int32(ByVal FileName As String)
+
+        Dim BitPix As Integer = eBitPix.Int32
+        Dim BaseOut As New System.IO.StreamWriter(FileName)
+        Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
+
+        'Create test data
+        Dim ImageSize As Integer = 256
+        Dim ImageData(ImageSize - 1, ImageSize - 1) As Int32
+        Dim Value As Int32 = Int32.MinValue
+        For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+            For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                ImageData(Idx2, Idx1) = Value
+                If Value < Int32.MaxValue Then Value = Value + CType(1, Int32) Else Value = Int32.MinValue
+            Next Idx2
+        Next Idx1
+
+        'Load all header elements
+        Dim Header As New List(Of String)
+        Header.Add(FormatHeader("SIMPLE", "T"))
+        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
+        Header.Add(FormatHeader("NAXIS", "2"))
+        Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
+        Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
+        Header.Add(FormatHeader("BZERO", "0"))
+        Header.Add(FormatHeader("BSCALE", "1"))
+
+        'Write header
+        PadHeader(Header)
+        BaseOut.Write(Join(Header.ToArray, String.Empty))
+        BaseOut.Flush()
+
+        'Write content
+        For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+            For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                BytesOut.Write(GetBytesToStore(ImageData(Idx2, Idx1)))
+            Next Idx2
+        Next Idx1
+
+        'Finish
+        BytesOut.Flush()
+        BaseOut.Close()
+
+    End Sub
 
 End Class
