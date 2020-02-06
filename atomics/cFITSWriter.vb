@@ -991,7 +991,12 @@ Public Class cFITSWriter
         End If
     End Function
 
+    '################################################################################################
+    ' TEST ROUTINES
+    '################################################################################################
+
     '''<summary>Write a FITS test file with raw data.</summary>
+    '''<remarks>Does work.</remarks>
     Public Shared Sub WriteTestFile_Int8(ByVal FileName As String)
 
         Dim BitPix As Integer = eBitPix.Byte
@@ -1039,6 +1044,7 @@ Public Class cFITSWriter
     End Sub
 
     '''<summary>Write a FITS test file with raw data.</summary>
+    '''<remarks>Does work.</remarks>
     Public Shared Sub WriteTestFile_Int16(ByVal FileName As String)
 
         Dim BitPix As Integer = eBitPix.Int16
@@ -1086,6 +1092,7 @@ Public Class cFITSWriter
     End Sub
 
     '''<summary>Write a FITS test file with raw data.</summary>
+    '''<remarks>Does work but not over the full range of 32-bit floating point.</remarks>
     Public Shared Sub WriteTestFile_Int32(ByVal FileName As String)
 
         Dim BitPix As Integer = eBitPix.Int32
@@ -1094,7 +1101,7 @@ Public Class cFITSWriter
 
         'Create test data
         Dim ImageSize As Integer = 256
-        Dim StartValue As Int32 = Int32.MinValue
+        Dim StartValue As Int32 = -1000000
         Dim ImageData(ImageSize - 1, ImageSize - 1) As Int32
         Dim Value As Int32 = StartValue
         For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
@@ -1133,6 +1140,7 @@ Public Class cFITSWriter
     End Sub
 
     '''<summary>Write a FITS test file with raw data.</summary>
+    '''<remarks>Does work but not over the full range of 32-bit floating point.</remarks>
     Public Shared Sub WriteTestFile_Float32(ByVal FileName As String)
 
         Dim BitPix As Integer = eBitPix.Single
@@ -1141,13 +1149,13 @@ Public Class cFITSWriter
 
         'Create test data
         Dim ImageSize As Integer = 256
-        Dim StartValue As Single = Single.MinValue / 2
+        Dim StartValue As Single = -1000000000.0
         Dim ImageData(ImageSize - 1, ImageSize - 1) As Single
         Dim Value As Single = StartValue
         For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
             For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
                 ImageData(Idx2, Idx1) = Value
-                If Value < Single.MaxValue Then Value = Value + CType(1, Single) Else Value = StartValue
+                If Value < Single.MaxValue Then Value = Value + CType(1000000.0, Single) Else Value = StartValue
             Next Idx2
         Next Idx1
 
@@ -1180,6 +1188,7 @@ Public Class cFITSWriter
     End Sub
 
     '''<summary>Write a FITS test file with raw data.</summary>
+    '''<remarks>Does work but not over the full range of 32-bit floating point.</remarks>
     Public Shared Sub WriteTestFile_Float64(ByVal FileName As String)
 
         Dim BitPix As Integer = eBitPix.Double
@@ -1188,13 +1197,13 @@ Public Class cFITSWriter
 
         'Create test data
         Dim ImageSize As Integer = 256
-        Dim StartValue As Double = Double.MinValue / 2
+        Dim StartValue As Double = -1000000000.0
         Dim ImageData(ImageSize - 1, ImageSize - 1) As Double
         Dim Value As Double = StartValue
         For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
             For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
                 ImageData(Idx2, Idx1) = Value
-                If Value < Double.MaxValue Then Value = Value + CType(1, Double) Else Value = StartValue
+                If Value < Double.MaxValue Then Value = Value + CType(1000000.0, Double) Else Value = StartValue
             Next Idx2
         Next Idx1
 
