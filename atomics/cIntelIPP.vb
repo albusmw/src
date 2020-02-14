@@ -871,8 +871,8 @@ Partial Public Class cIntelIPP
     ''' <summary>Copy.</summary>
     ''' <param name="FirstIndexStart">First (left) matrix index start position (0-based).</param>
     ''' <param name="SecondIndexStart">Second (right) matrix index start position (0-based).</param>
-    ''' <param name="FirstIndexRange">First (left) matrix index range to copy.</param>
-    ''' <param name="SecondIndexRange">Second (right) matrix index range to copy.</param>
+    ''' <param name="SecondIndexRange">First (left) matrix index range to copy.</param>
+    ''' <param name="FirstIndexRange">Second (right) matrix index range to copy.</param>
     ''' <see cref="https://software.intel.com/en-us/ipp-dev-reference-copy-1"/>
     Public Function Copy(ByRef ArrayIn(,) As UInt16, ByRef ArrayOut(,) As UInt16, ByVal FirstIndexStart As Integer, ByVal SecondIndexStart As Integer, ByVal FirstIndexRange As Integer, ByVal SecondIndexRange As Integer) As IppStatus
         Dim RetVal As IppStatus = IppStatus.NoErr
@@ -881,11 +881,11 @@ Partial Public Class cIntelIPP
         Using Pinner As New cPinHandler
             Dim ArrayInWidth As Integer = ArrayIn.GetUpperBound(1) + 1
             Dim ArrayInHeight As Integer = ArrayIn.GetUpperBound(0) + 1
-            ReDim ArrayOut(CInt(SecondIndexRange - 1), CInt(FirstIndexRange - 1))
+            ReDim ArrayOut(CInt(FirstIndexRange - 1), CInt(SecondIndexRange - 1))
             Dim srcStep As Integer = BytePerVal * ArrayInWidth                                          'Distance, in bytes, between the starting points of consecutive lines in the source image.
-            Dim dstStep As Integer = BytePerVal * FirstIndexRange                                       'Distance, in bytes, between the starting points of consecutive lines in the destination image.
-            Dim FirstValue As Integer = CInt(FirstIndexStart + (SecondIndexStart * ArrayInWidth))
-            Dim ROI As New IppiSize(FirstIndexRange, SecondIndexRange)                                 'ROI [element index span - not depending on data format!]
+            Dim dstStep As Integer = BytePerVal * SecondIndexRange                                       'Distance, in bytes, between the starting points of consecutive lines in the destination image.
+            Dim FirstValue As Integer = CInt(SecondIndexStart + (FirstIndexStart * ArrayInWidth))
+            Dim ROI As New IppiSize(SecondIndexRange, FirstIndexRange)                                 'ROI [element index span - not depending on data format!]
             RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn, FirstValue), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)
         End Using : Return RetVal
     End Function
