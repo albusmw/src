@@ -129,6 +129,11 @@ End Structure
 Public Class cFITSKeywords
 
     '''<summary>Formated content for all "DATE..." fields, without time..</summary>
+    Public Shared Function GetDouble(ByVal Value As Double) As String
+        Return Value.ToString.Trim.Replace(",", ".")
+    End Function
+
+    '''<summary>Formated content for all "DATE..." fields, without time..</summary>
     Public Shared Function GetDate() As String
         Return "'" & GetDate(Now) & "'"
     End Function

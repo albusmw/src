@@ -76,7 +76,7 @@ Namespace AstroNET
             '''<summary>Number of characters in the header of the report.</summary>
             Public Shared ReadOnly Property ReportHeaderLength As Integer = 18
             '''<summary>Number of characters in the value of the report.</summary>
-            Public Shared ReadOnly Property ReportValueLength As Integer = 9
+            Public Shared ReadOnly Property ReportValueLength As Integer = 10
             '''<summary>Number of total samples (pixels) in the data set.</summary>
             Public Samples As Long
             '''<summary>Maximum value occured.</summary>
