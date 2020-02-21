@@ -4,8 +4,8 @@ Option Strict On
 '''<summary>Simple class to log different timing events.</summary>
 Public Class cStopper
 
-    Private Watch As New Stopwatch
-    Private TimeLog As New List(Of String)
+    Private Watch As New System.Diagnostics.Stopwatch
+    Private TimeLog As New Collections.Generic.List(Of String)
     Private MessageCache As String = String.Empty       'message in case TIC is called with the log message and TOC is not
 
     Public Property PadMessage As Integer = 30

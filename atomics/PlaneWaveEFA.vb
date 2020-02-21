@@ -28,13 +28,23 @@ Namespace Ato
             FANS_GET = &H28
         End Enum
 
+        '''<summary>Placeholder for number of bytes - to be replaced with real number calculated.</summary>
         Private Shared NUM_placeholder As Byte = &H0
+
+        '''<summary>Placeholder for CRC - to be replaced with real checksum calculated.</summary>
         Private Shared CHK_placeholder As Byte = &H0
 
         '''<summary>Start Of Message byte - must start every message packet.</summary>
         Private Shared SOM As Byte = &H3B
-        Private Shared SRC_PC As Byte = &H20
-        Private Shared RCV_FOC As Byte = &H12
+
+        '''<summary>Address of PC.</summary>
+        Private Shared PC As Byte = &H20
+        '''<summary>Address of Focuser.</summary>
+        Private Shared Focuser As Byte = &H12
+        '''<summary>Address of fan controller.</summary>
+        Private Shared FanController As Byte = &H13
+        '''<summary>Address of temperature sensor.</summary>
+        Private Shared TemperatureSensor As Byte = &H12
 
         Public Shared Sub PrepareCOM(ByRef Port As IO.Ports.SerialPort)
             '-----------------------------------------------------
@@ -98,13 +108,13 @@ Namespace Ato
 
         End Function
 
-        '''<summary>Command to get position.</summary>
+        '''<summary>Command to get focuser position.</summary>
         Public Shared Function MTR_GET_POS() As Byte()
             Dim Buffer As New List(Of Byte)
             Buffer.Add(SOM)
             Buffer.Add(NUM_placeholder)
-            Buffer.Add(SRC_PC)
-            Buffer.Add(RCV_FOC)
+            Buffer.Add(PC)
+            Buffer.Add(Focuser)
             Buffer.Add(Commands.MTR_GET_POS)
             Buffer.Add(CHK_placeholder)
             Dim RetVal As Byte() = Buffer.ToArray
@@ -113,13 +123,13 @@ Namespace Ato
             Return RetVal
         End Function
 
-        '''<summary>Command to get motor status.</summary>
+        '''<summary>Command to get focuser motor status.</summary>
         Public Shared Function MTR_GOTO_OVER() As Byte()
             Dim Buffer As New List(Of Byte)
             Buffer.Add(SOM)
             Buffer.Add(NUM_placeholder)
-            Buffer.Add(SRC_PC)
-            Buffer.Add(RCV_FOC)
+            Buffer.Add(PC)
+            Buffer.Add(Focuser)
             Buffer.Add(Commands.MTR_GOTO_OVER)
             Buffer.Add(CHK_placeholder)
             Dim RetVal As Byte() = Buffer.ToArray
@@ -133,10 +143,41 @@ Namespace Ato
             Dim Buffer As New List(Of Byte)
             Buffer.Add(SOM)
             Buffer.Add(NUM_placeholder)
-            Buffer.Add(SRC_PC)
-            Buffer.Add(RCV_FOC)
+            Buffer.Add(PC)
+            Buffer.Add(Focuser)
             Buffer.Add(Commands.TEMP_GET)
             Buffer.Add(Sensor)
+            Buffer.Add(CHK_placeholder)
+            Dim RetVal As Byte() = Buffer.ToArray
+            SetNUM(RetVal)
+            SetCHK(RetVal)
+            Return RetVal
+        End Function
+
+        '''<summary>Command to get fans state.</summary>
+        Public Shared Function FANS_GET() As Byte()
+            Dim Buffer As New List(Of Byte)
+            Buffer.Add(SOM)
+            Buffer.Add(NUM_placeholder)
+            Buffer.Add(PC)
+            Buffer.Add(FanController)
+            Buffer.Add(Commands.FANS_GET)
+            Buffer.Add(CHK_placeholder)
+            Dim RetVal As Byte() = Buffer.ToArray
+            SetNUM(RetVal)
+            SetCHK(RetVal)
+            Return RetVal
+        End Function
+
+        '''<summary>Command to set fans state.</summary>
+        Public Shared Function FANS_SET(ByVal State As Boolean) As Byte()
+            Dim Buffer As New List(Of Byte)
+            Buffer.Add(SOM)
+            Buffer.Add(NUM_placeholder)
+            Buffer.Add(PC)
+            Buffer.Add(FanController)
+            Buffer.Add(Commands.FANS_SET)
+            Buffer.Add(CByte(IIf(State = True, 1, 0)))
             Buffer.Add(CHK_placeholder)
             Dim RetVal As Byte() = Buffer.ToArray
             SetNUM(RetVal)
@@ -164,24 +205,24 @@ Namespace Ato
 
         '''<summary>Command to parse the answer of TEMP_GET over.</summary>
         Public Shared Function TEMP_GET_decode(ByRef Answer As Byte()) As Double
+            Dim RetVal As Integer = Integer.MinValue
             If Answer.Length >= 8 Then
-                Return GetTemperature((Answer(Answer.GetUpperBound(0) - 2) * 256) + Answer(Answer.GetUpperBound(0) - 1))
+                RetVal = Answer(Answer.GetUpperBound(0) - 1) * 256 + (Answer(Answer.GetUpperBound(0) - 2))
+                If RetVal = &H7F7F Then Return Double.NaN
+                If RetVal > &H8000 Then RetVal = RetVal - &H10000
             Else
                 Return Double.NaN
             End If
+            Return RetVal * (1 / 16)
         End Function
 
-        Public Shared Function GetTemperature(ByVal RawTemp As Integer) As Double
-            Dim TempIsNegative As Boolean = False
-            If RawTemp > 32768 Then
-                TempIsNegative = True
-                RawTemp = 65536 - RawTemp
+        '''<summary>Command to parse the answer of FANS_GET.</summary>
+        Public Shared Function FANS_GET_decode(ByRef Answer As Byte()) As Boolean
+            If Answer.Length >= 7 Then
+                Return CBool(IIf(Answer(Answer.GetUpperBound(0) - 1) = 3, False, True))
+            Else
+                Return False
             End If
-            Dim IntPart As Integer = CInt(RawTemp / 16)
-            Dim FractionDigits As Integer = CInt((RawTemp - IntPart) * (625 / 1000))
-            Dim RetVal As Double = IntPart + (FractionDigits / 10)
-            If TempIsNegative Then RetVal = -RetVal
-            Return RetVal
         End Function
 
         '''<summary>Command to parse the answer of position.</summary>

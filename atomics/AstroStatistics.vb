@@ -38,20 +38,20 @@ Namespace AstroNET
         '''<summary>Total statistics - available as per-channel bayer statistics and as combined statistics.</summary>
         Public Structure sStatistics
             '''<summary>Full-resolution histogram data - bayer data.</summary>
-            Public BayerHistograms(,) As Dictionary(Of Int64, UInt32)
+            Public BayerHistograms(,) As Collections.Generic.Dictionary(Of Int64, UInt32)
             '''<summary>Full-resolution histogram data - mono data, sorted.</summary>
-            Public MonochromHistogram As Dictionary(Of Int64, UInt32)
+            Public MonochromHistogram As Collections.Generic.Dictionary(Of Int64, UInt32)
             '''<summary>Statistics for each channel.</summary>
             Public BayerStatistics(,) As sSingleChannelStatistics
             '''<summary>Statistics for each channel.</summary>
             Public MonoStatistics As sSingleChannelStatistics
             '''<summary>Report of all statistics properties of the structure.</summary>
-            Public Function StatisticsReport() As List(Of String)
+            Public Function StatisticsReport() As Collections.Generic.List(Of String)
                 Return StatisticsReport(String.Empty)
             End Function
             '''<summary>Report of all statistics properties of the structure.</summary>
-            Public Function StatisticsReport(ByVal Indent As String) As List(Of String)
-                Dim RetVal As New List(Of String)
+            Public Function StatisticsReport(ByVal Indent As String) As Collections.Generic.List(Of String)
+                Dim RetVal As New Collections.Generic.List(Of String)
                 RetVal.Add(Indent & "Property".PadRight(sSingleChannelStatistics.ReportHeaderLength) & ":" & "Mono".PadRight(sSingleChannelStatistics.ReportValueLength) & "|")
                 For Each Entry As String In MonoStatistics.StatisticsReport
                     RetVal.Add(Indent & "  " & Entry & "|")
@@ -94,9 +94,9 @@ Namespace AstroNET
             '''<summary>Number of different values in the data.</summary>
             Public DifferentValueCount As Integer
             '''<summary>Percentile.</summary>
-            Public Percentile As Dictionary(Of Integer, Int64)
+            Public Percentile As Collections.Generic.Dictionary(Of Integer, Int64)
             '''<summary>Pixel value that is present the most often.</summary>
-            Public Modus As KeyValuePair(Of Int64, UInt32)
+            Public Modus As Collections.Generic.KeyValuePair(Of Int64, UInt32)
             '''<summary>Init all inner variables.</summary>
             Public Shared Function InitForShort() As sSingleChannelStatistics
                 Dim RetVal As New sSingleChannelStatistics
@@ -108,13 +108,13 @@ Namespace AstroNET
                 RetVal.StdDev = Double.NaN
                 RetVal.DifferentValueCount = 0
                 RetVal.Median = Int64.MinValue
-                RetVal.Percentile = New Dictionary(Of Integer, Int64)
+                RetVal.Percentile = New Collections.Generic.Dictionary(Of Integer, Int64)
                 RetVal.Modus = Nothing
                 Return RetVal
             End Function
             '''<summary>Report of all statistics properties of the structure.</summary>
-            Public Function StatisticsReport() As List(Of String)
-                Dim RetVal As New List(Of String)
+            Public Function StatisticsReport() As Collections.Generic.List(Of String)
+                Dim RetVal As New Collections.Generic.List(Of String)
                 RetVal.Add("Total pixel     : " & Samples.ValRegIndep.PadLeft(ReportValueLength))
                 RetVal.Add("Total pixel     : " & ((Samples / 1000000).ValRegIndep("0.0") & "M").PadLeft(ReportValueLength))
                 RetVal.Add("Different values: " & DifferentValueCount.ValRegIndep.PadLeft(ReportValueLength))
@@ -140,7 +140,7 @@ Namespace AstroNET
 
             Dim RetVal As New sStatistics
 
-            Dim Stopper As New Stopwatch : Stopper.Reset() : Stopper.Start()
+            Dim Stopper As New System.Diagnostics.Stopwatch : Stopper.Reset() : Stopper.Start()
 
             'Calculate a 2x2 bayer statistics (also for mono data - if thread-based this may even speed up ...)
             RetVal.BayerHistograms = BayerStatistics()
@@ -162,7 +162,7 @@ Namespace AstroNET
             ReDim RetVal.BayerHistograms(StatA.BayerHistograms.GetUpperBound(0), StatA.BayerHistograms.GetUpperBound(1))
             For BayIdx1 As Integer = 0 To StatA.BayerHistograms.GetUpperBound(0)
                 For BayIdx2 As Integer = 0 To StatA.BayerHistograms.GetUpperBound(1)
-                    RetVal.BayerHistograms(BayIdx1, BayIdx2) = New Dictionary(Of Int64, UInteger)
+                    RetVal.BayerHistograms(BayIdx1, BayIdx2) = New Collections.Generic.Dictionary(Of Int64, UInteger)
                     'Init return bayer histogram with StatA data
                     For Each PixelValue As UInt16 In StatA.BayerHistograms(BayIdx1, BayIdx2).Keys
                         RetVal.BayerHistograms(BayIdx1, BayIdx2).Add(PixelValue, StatA.BayerHistograms(BayIdx1, BayIdx2)(PixelValue))
@@ -201,11 +201,11 @@ Namespace AstroNET
         End Sub
 
         '''<summary>Calculate the statistic data from the passed histogram data.</summary>
-        Private Shared Function CalcStatisticFromHistogram(ByRef Histogram As Dictionary(Of Int64, UInt32)) As sSingleChannelStatistics
+        Private Shared Function CalcStatisticFromHistogram(ByRef Histogram As Collections.Generic.Dictionary(Of Int64, UInt32)) As sSingleChannelStatistics
 
             Dim RetVal As sSingleChannelStatistics = sSingleChannelStatistics.InitForShort()
             Dim SamplesProcessed As UInt32 = 0
-            Dim AllPixelValues As List(Of Int64) = cGenerics.GetDictionaryKeys(Histogram)
+            Dim AllPixelValues As Collections.Generic.List(Of Int64) = cGenerics.GetDictionaryKeys(Histogram)
 
             'Count number of samples
             For Each PixelValue As Int64 In Histogram.Keys
@@ -221,7 +221,7 @@ Namespace AstroNET
             Dim MeanPow2Sum As System.Double = 0
             RetVal.Min = AllPixelValues(0)
             RetVal.Max = AllPixelValues(AllPixelValues.Count - 1)
-            RetVal.Modus = New KeyValuePair(Of Int64, UInt32)(AllPixelValues(0), Histogram(AllPixelValues(0)))
+            RetVal.Modus = New Collections.Generic.KeyValuePair(Of Int64, UInt32)(AllPixelValues(0), Histogram(AllPixelValues(0)))
 
             'Percentiles are from 1 to 99 pct in steps of 1 pct
             Dim NextPct As Integer = 1
@@ -236,7 +236,7 @@ Namespace AstroNET
                 SamplesProcessed += HistCount
                 MeanSum += WeightCount
                 MeanPow2Sum += WeightPow2
-                If HistCount > RetVal.Modus.Value Then RetVal.Modus = New KeyValuePair(Of Int64, UInteger)(PixelValue, Histogram(PixelValue))
+                If HistCount > RetVal.Modus.Value Then RetVal.Modus = New Collections.Generic.KeyValuePair(Of Int64, UInteger)(PixelValue, Histogram(PixelValue))
                 If SamplesProcessed >= RetVal.Samples \ 2 And RetVal.Median = Int64.MinValue Then RetVal.Median = PixelValue
                 If SumSampleCount >= NextPctLimit Then
                     RetVal.Percentile.Add(NextPct, PixelValue)
@@ -254,8 +254,8 @@ Namespace AstroNET
         End Function
 
         '''<summary>Combine all bayer statistics to a monochromatic statistic of all pixel of the image.</summary>
-        Public Shared Function CombineBayerToMonoStatistics(Of T)(ByRef BayerHistData(,) As Dictionary(Of T, UInt32)) As Dictionary(Of T, UInt32)
-            Dim RetVal As New Dictionary(Of T, UInt32)
+        Public Shared Function CombineBayerToMonoStatistics(Of T)(ByRef BayerHistData(,) As Collections.Generic.Dictionary(Of T, UInt32)) As Collections.Generic.Dictionary(Of T, UInt32)
+            Dim RetVal As New Collections.Generic.Dictionary(Of T, UInt32)
             For Idx1 As Integer = 0 To BayerHistData.GetUpperBound(0)
                 For Idx2 As Integer = 0 To BayerHistData.GetUpperBound(1)
                     For Each KeyIdx As T In BayerHistData(Idx1, Idx2).Keys
@@ -275,10 +275,10 @@ Namespace AstroNET
         '''<param name="XEntries">Number of different X entries - 1 for B/W, 2 for normal RGGB, other values are exotic.</param>
         '''<param name="YEntries">Number of different Y entries - 1 for B/W, 2 for normal RGGB, other values are exotic.</param>
         '''<returns>A sorted dictionary which contains all found values of type T in the Data matrix and its count.</returns>
-        Public Function BayerStatistics() As Dictionary(Of Int64, UInt32)(,)
+        Public Function BayerStatistics() As Collections.Generic.Dictionary(Of Int64, UInt32)(,)
 
             'Count all values
-            Dim RetVal(1, 1) As Dictionary(Of Int64, UInt32)
+            Dim RetVal(1, 1) As Collections.Generic.Dictionary(Of Int64, UInt32)
 
             'Data are UInt16
             If IsNothing(DataProcessor_UInt16) = False Then
@@ -334,7 +334,7 @@ Namespace AstroNET
         ''' <param name="Steps">Number of X axis steps to group - 0 for full resolution, -1 for integer resolution.</param>
         ''' <returns>Dictionary of center distance vs mean value.</returns>
         ''' <remarks>We start in the middle, move down and right and always take 4 pixel symmetrical to the middle.</remarks>
-        Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt16, ByVal Steps As Integer) As Dictionary(Of Double, Double)
+        Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt16, ByVal Steps As Integer) As Collections.Generic.Dictionary(Of Double, Double)
             Dim UInt4 As UInt32 = 4
             Dim BinSum(Steps) As UInt64
             Dim BinCount(Steps) As UInt32
@@ -372,7 +372,7 @@ Namespace AstroNET
             Next CursorX
 
             'Calculate the final output
-            Dim RetVal As New Dictionary(Of Double, Double)
+            Dim RetVal As New Collections.Generic.Dictionary(Of Double, Double)
             For EntryIdx As Integer = 0 To BinSum.GetUpperBound(0)
                 RetVal.Add((EntryIdx / Steps) * MaxDistance, BinSum(EntryIdx) / BinCount(EntryIdx))
             Next EntryIdx
@@ -385,7 +385,7 @@ Namespace AstroNET
         ''' <param name="Steps">Number of X axis steps to group - 0 for full resolution, -1 for integer resolution.</param>
         ''' <returns>Dictionary of center distance vs mean value.</returns>
         ''' <remarks>We start in the middle, move down and right and always take 4 pixel symmetrical to the middle.</remarks>
-        Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt32, ByVal Steps As Integer) As Dictionary(Of Double, Double)
+        Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt32, ByVal Steps As Integer) As Collections.Generic.Dictionary(Of Double, Double)
 
             Dim UInt4 As UInt32 = 4
             Dim BinSum(Steps) As UInt64
@@ -424,7 +424,7 @@ Namespace AstroNET
             Next CursorX
 
             'Calculate the final output
-            Dim RetVal As New Dictionary(Of Double, Double)
+            Dim RetVal As New Collections.Generic.Dictionary(Of Double, Double)
             For EntryIdx As Integer = 0 To BinSum.GetUpperBound(0)
                 RetVal.Add((EntryIdx / Steps) * MaxDistance, BinSum(EntryIdx) / BinCount(EntryIdx))
             Next EntryIdx
@@ -433,7 +433,7 @@ Namespace AstroNET
         End Function
 
         ''' <summary>Correct the vignette.</summary>
-        Public Shared Sub CorrectVignette(ByRef FITSSumImage(,) As UInt32, ByRef VignetteCorrection As Dictionary(Of Double, Double))
+        Public Shared Sub CorrectVignette(ByRef FITSSumImage(,) As UInt32, ByRef VignetteCorrection As Collections.Generic.Dictionary(Of Double, Double))
 
             'Calculate the maximum distance possible from the center in X, Y and R direction
             Dim MaxDistX As Double = Double.NaN

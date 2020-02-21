@@ -20,23 +20,23 @@ Public Class cZEDGraphService
 
   '''<summary>Graph the library is currently attached to.</summary>
   Private MainGraph As ZedGraph.ZedGraphControl
-  '''<summary>All curves added with the plot functions.</summary>
-  Private CurveList As New Dictionary(Of String, ZedGraph.LineItem)
+    '''<summary>All curves added with the plot functions.</summary>
+    Private CurveList As New Collections.Generic.Dictionary(Of String, ZedGraph.LineItem)
 
-  '''<summary>This class can be used to generate a sequence of curve styles which look all different.</summary>
-  Public Class cLineStyleGenerator
+    '''<summary>This class can be used to generate a sequence of curve styles which look all different.</summary>
+    Public Class cLineStyleGenerator
 
-    Private ColorList As List(Of Drawing.Color)
-    Private ColorPtr As Integer = -1
-    Private LineStyleList As List(Of Drawing.Drawing2D.DashStyle)
-    Private LineStylePtr As Integer = -1
+        Private ColorList As Collections.Generic.List(Of Drawing.Color)
+        Private ColorPtr As Integer = -1
+        Private LineStyleList As Collections.Generic.List(Of Drawing.Drawing2D.DashStyle)
+        Private LineStylePtr As Integer = -1
 
     Public Sub New()
 
       ColorPtr = -1
-      ColorList = New List(Of Drawing.Color)
+            ColorList = New Collections.Generic.List(Of Drawing.Color)
 
-      ColorList.Add(Drawing.Color.Red)
+            ColorList.Add(Drawing.Color.Red)
       ColorList.Add(Drawing.Color.Green)
       ColorList.Add(Drawing.Color.Blue)
       ColorList.Add(Drawing.Color.Cyan)
@@ -51,8 +51,8 @@ Public Class cZEDGraphService
       ColorList.Add(Drawing.Color.DarkOrange)
 
       LineStylePtr = 0
-      LineStyleList = New List(Of Drawing.Drawing2D.DashStyle)
-      LineStyleList.Add(Drawing.Drawing2D.DashStyle.Solid)
+            LineStyleList = New Collections.Generic.List(Of Drawing.Drawing2D.DashStyle)
+            LineStyleList.Add(Drawing.Drawing2D.DashStyle.Solid)
       LineStyleList.Add(Drawing.Drawing2D.DashStyle.Dot)
       LineStyleList.Add(Drawing.Drawing2D.DashStyle.Dash)
 
@@ -363,8 +363,8 @@ Public Class cZEDGraphService
     '''<param name="Radius">Radius of the markers</param>
     Public Sub PlotConstellationMarker(ByVal Name As String, ByRef X As Single(), ByRef Y As Single(), ByVal Radius As Double, ByVal CircleColor As Drawing.Color)
 
-        Dim Points_X As New List(Of Double)
-        Dim Points_Y As New List(Of Double)
+        Dim Points_X As New Collections.Generic.List(Of Double)
+        Dim Points_Y As New Collections.Generic.List(Of Double)
         Const PointsPerCircle As Integer = 100
 
         For Idx As Integer = 0 To X.GetUpperBound(0)
@@ -395,7 +395,7 @@ Public Class cZEDGraphService
     '''<param name="X">Vector of X axis values.</param>
     '''<param name="Y">Vector of Y axis values.</param>
     '''<param name="Style">Style to use (line, point, line and points, color, ...).</param>
-    Public Sub PlotXvsY(ByRef CurveName As String, ByRef Elements As Dictionary(Of Int64, UInteger), ByVal Style As sGraphStyle)
+    Public Sub PlotXvsY(ByRef CurveName As String, ByRef Elements As Collections.Generic.Dictionary(Of Int64, UInteger), ByVal Style As sGraphStyle)
         Dim X(Elements.Count - 1) As Double
         Dim Y(Elements.Count - 1) As Double
         Dim Ptr As Integer = 0
@@ -493,9 +493,9 @@ Public Class cZEDGraphService
 
   Public Sub SaveAllTraces(ByVal FileName As String)
 
-    Dim Columns As New List(Of String)
+        Dim Columns As New Collections.Generic.List(Of String)
 
-    Dim CurveCount As Integer = 0
+        Dim CurveCount As Integer = 0
     For Each CurveName As String In CurveList.Keys
       With CurveList(CurveName)
         For Idx As Integer = 0 To .Points.Count - 1

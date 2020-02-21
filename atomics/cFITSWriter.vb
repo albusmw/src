@@ -16,7 +16,7 @@ Public Class cFITSWriter
     '''<summary>Value that is stored if the passed data could not be stored as Single value..</summary>
     Private Const SingleValueInvalid As Single = Single.NaN
 
-    Private Shared UInt16Table As Dictionary(Of UInt16, Byte())
+    Private Shared UInt16Table As Collections.Generic.Dictionary(Of UInt16, Byte())
 
     '''<summary>Path to ipps.dll and ippvm.dll - if not set IPP will not be used.</summary>
     Public Shared Property IPPPath As String = String.Empty
@@ -73,7 +73,7 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Byte, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Byte, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As Collections.Generic.List(Of String())) As Integer
         Return Write(FileName, ImageData, BitPix, BZeroNotUsed, BScaleNotUsed, CustomHeaderElements)
     End Function
 
@@ -81,14 +81,14 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Byte, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Byte, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As Collections.Generic.List(Of String())) As Integer
 
         Dim RetVal As Integer = 0
         Dim BaseOut As New System.IO.StreamWriter(FileName)
         Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
 
         'Load all header elements
-        Dim Header As New List(Of String)
+        Dim Header As New Collections.Generic.List(Of String)
         Header.Add(FormatHeader("SIMPLE", "T"))
         Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
         Header.Add(FormatHeader("NAXIS", "2"))
@@ -144,7 +144,7 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int16, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int16, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As Collections.Generic.List(Of String())) As Integer
         Return Write(FileName, ImageData, BitPix, BZeroNotUsed, BScaleNotUsed, CustomHeaderElements)
     End Function
 
@@ -152,14 +152,14 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int16, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int16, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As Collections.Generic.List(Of String())) As Integer
 
         Dim RetVal As Integer = 0
         Dim BaseOut As New System.IO.StreamWriter(FileName)
         Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
 
         'Load all header elements
-        Dim Header As New List(Of String)
+        Dim Header As New Collections.Generic.List(Of String)
         Header.Add(FormatHeader("SIMPLE", "T"))
         Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
         Header.Add(FormatHeader("NAXIS", "2"))
@@ -215,7 +215,7 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt16, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt16, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As Collections.Generic.List(Of String())) As Integer
         Return Write(FileName, ImageData, BitPix, Int16UsignedToFITS, BScaleNotUsed, CustomHeaderElements)
     End Function
 
@@ -223,7 +223,7 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt16, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt16, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As Collections.Generic.List(Of String())) As Integer
 
         Dim RetVal As Integer = 0
         Dim BaseOut As New System.IO.StreamWriter(FileName)
@@ -231,7 +231,7 @@ Public Class cFITSWriter
 
         'Init table for conversion of UIn16 values to bytes to write
         If IsNothing(UInt16Table) = True Then
-            UInt16Table = New Dictionary(Of UShort, Byte())
+            UInt16Table = New Collections.Generic.Dictionary(Of UShort, Byte())
             For InDat As UInt16 = UInt16.MinValue To UInt16.MaxValue - 1
                 UInt16Table.Add(InDat, GetBytes_BitPix16(CType(InDat - Int16UsignedToFITS, Int16)))
             Next InDat
@@ -239,7 +239,7 @@ Public Class cFITSWriter
         End If
 
         'Load all header elements
-        Dim Header As New List(Of String)
+        Dim Header As New Collections.Generic.List(Of String)
         Header.Add(FormatHeader("SIMPLE", "T"))
         Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
         Header.Add(FormatHeader("NAXIS", "2"))
@@ -266,7 +266,7 @@ Public Class cFITSWriter
                     'We write the data blockwise to speed up writing ...
                     If UseIPPForWriting Then
                         Dim IntelIPP As New cIntelIPP(IPPPath)
-                        Dim IPPStatus As New List(Of cIntelIPP.IppStatus)
+                        Dim IPPStatus As New Collections.Generic.List(Of cIntelIPP.IppStatus)
                         Dim BytesToWrite((ImageData.Length * 2) - 1) As Byte
                         IPPStatus.Add(IntelIPP.SwapBytes(ImageData))
                         IPPStatus.Add(IntelIPP.XorC(ImageData, &H80))
@@ -321,7 +321,7 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt32, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt32, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As Collections.Generic.List(Of String())) As Integer
         Return Write(FileName, ImageData, BitPix, Int32UsignedToFITS, BScaleNotUsed, CustomHeaderElements)
     End Function
 
@@ -329,7 +329,7 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt32, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt32, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As Collections.Generic.List(Of String())) As Integer
 
         Dim BitPerPixel As Integer = 4
         Dim RetVal As Integer = 0
@@ -337,7 +337,7 @@ Public Class cFITSWriter
         Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
 
         'Load all header elements
-        Dim Header As New List(Of String)
+        Dim Header As New Collections.Generic.List(Of String)
         Header.Add(FormatHeader("SIMPLE", "T"))
         Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
         Header.Add(FormatHeader("NAXIS", "2"))
@@ -366,7 +366,7 @@ Public Class cFITSWriter
                     'We write the data blockwise to speed up writing ...
                     If UseIPP = True Then
                         Dim IntelIPP As New cIntelIPP(IPPPath)
-                        Dim IPPStatus As New List(Of cIntelIPP.IppStatus)
+                        Dim IPPStatus As New Collections.Generic.List(Of cIntelIPP.IppStatus)
                         Dim BytesToWrite((ImageData.Length * 2) - 1) As Byte
                         Dim UnsignedXOR As UInt32 = BitConverter.ToUInt32(New Byte() {&H80, 0, 0, 0}, 0)
                         'IPPStatus.Add(IntelIPP.XorC(ImageData, UnsignedXOR))
@@ -423,7 +423,7 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int32, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int32, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As Collections.Generic.List(Of String())) As Integer
         Return Write(FileName, ImageData, BitPix, BZeroNotUsed, BScaleNotUsed, CustomHeaderElements)
     End Function
 
@@ -431,14 +431,14 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int32, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int32, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As Collections.Generic.List(Of String())) As Integer
 
         Dim RetVal As Integer = 0
         Dim BaseOut As New System.IO.StreamWriter(FileName)
         Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
 
         'Load all header elements
-        Dim Header As New List(Of String)
+        Dim Header As New Collections.Generic.List(Of String)
         Header.Add(FormatHeader("SIMPLE", "T"))
         Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
         Header.Add(FormatHeader("NAXIS", "2"))
@@ -516,7 +516,7 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function WriteRGB(ByVal FileName As String, ByRef ImageDataR(,) As Int32, ByRef ImageDataG(,) As Int32, ByRef ImageDataB(,) As Int32, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function WriteRGB(ByVal FileName As String, ByRef ImageDataR(,) As Int32, ByRef ImageDataG(,) As Int32, ByRef ImageDataB(,) As Int32, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As Collections.Generic.List(Of String())) As Integer
         Return WriteRGB(FileName, ImageDataR, ImageDataG, ImageDataB, BitPix, BZeroNotUsed, BScaleNotUsed, Nothing)
     End Function
 
@@ -524,14 +524,14 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function WriteRGB(ByVal FileName As String, ByRef ImageDataR(,) As Int32, ByRef ImageDataG(,) As Int32, ByRef ImageDataB(,) As Int32, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function WriteRGB(ByVal FileName As String, ByRef ImageDataR(,) As Int32, ByRef ImageDataG(,) As Int32, ByRef ImageDataB(,) As Int32, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As Collections.Generic.List(Of String())) As Integer
 
         Dim RetVal As Integer = 0
         Dim BaseOut As New System.IO.StreamWriter(FileName)
         Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
 
         'Load all header elements
-        Dim Header As New List(Of String)
+        Dim Header As New Collections.Generic.List(Of String)
         Header.Add(FormatHeader("SIMPLE", "T"))
         Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
         Header.Add(FormatHeader("NAXIS", "3"))
@@ -636,13 +636,13 @@ Public Class cFITSWriter
         Write(FileName, ImageData, BitPix, BZeroNotUsed, BScaleNotUsed, Nothing)
     End Sub
 
-    Public Shared Sub Write(ByVal FileName As String, ByRef ImageData(,) As Single, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String()))
+    Public Shared Sub Write(ByVal FileName As String, ByRef ImageData(,) As Single, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As Collections.Generic.List(Of String()))
 
         Dim BaseOut As New System.IO.StreamWriter(FileName)
         Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
 
         'Load all header elements
-        Dim Header As New List(Of String)
+        Dim Header As New Collections.Generic.List(Of String)
         Header.Add(FormatHeader("SIMPLE", "T"))
         Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
         Header.Add(FormatHeader("NAXIS", "2"))
@@ -687,13 +687,13 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Sub Write(ByVal FileName As String, ByRef ImageDataR(,) As Single, ByRef ImageDataG(,) As Single, ByRef ImageDataB(,) As Single, ByVal BZero As Single, ByVal BScale As Single, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String()))
+    Public Shared Sub Write(ByVal FileName As String, ByRef ImageDataR(,) As Single, ByRef ImageDataG(,) As Single, ByRef ImageDataB(,) As Single, ByVal BZero As Single, ByVal BScale As Single, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As Collections.Generic.List(Of String()))
 
         Dim BaseOut As New System.IO.StreamWriter(FileName)
         Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
 
         'Load all header elements
-        Dim Header As New List(Of String)
+        Dim Header As New Collections.Generic.List(Of String)
         Header.Add(FormatHeader("SIMPLE", "T"))
         Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
         Header.Add(FormatHeader("NAXIS", "3"))
@@ -786,14 +786,14 @@ Public Class cFITSWriter
     ''' <param name="BScale">BScale of the formular RealValue = BZero + (BScale * StoredValue).</param>
     ''' <param name="CustomHeaderElements">Custom FITS elements to store.</param>
     ''' <returns>Number of values that could NOT be stored.</returns>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Double, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Double, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As Collections.Generic.List(Of String())) As Integer
 
         Dim RetVal As Integer = 0
         Dim BaseOut As New System.IO.StreamWriter(FileName)
         Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
 
         'Load all header elements
-        Dim Header As New List(Of String)
+        Dim Header As New Collections.Generic.List(Of String)
         Header.Add(FormatHeader("SIMPLE", "T"))
         Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
         Header.Add(FormatHeader("NAXIS", "2"))
@@ -951,7 +951,7 @@ Public Class cFITSWriter
     End Function
 
     '''<summary>Add a custom header to the passed header element.</summary>
-    Private Shared Sub AddCustomHeaders(ByRef Header As List(Of String), ByRef CustomHeaderElements As List(Of String()))
+    Private Shared Sub AddCustomHeaders(ByRef Header As Collections.Generic.List(Of String), ByRef CustomHeaderElements As Collections.Generic.List(Of String()))
         If IsNothing(CustomHeaderElements) = True Then Exit Sub
         For Each Element As String() In CustomHeaderElements
             If IsNothing(Element) = False Then
@@ -966,7 +966,7 @@ Public Class cFITSWriter
     End Sub
 
     '''<summary>Ensure that the header length is conform with the FITS specification.</summary>
-    Private Shared Sub PadHeader(ByRef Header As List(Of String))
+    Private Shared Sub PadHeader(ByRef Header As Collections.Generic.List(Of String))
         Header.Add("END".PadRight(HeaderElementLength))
         If Header.Count Mod HeaderElements <> 0 Then
             Do
@@ -1016,7 +1016,7 @@ Public Class cFITSWriter
         Next Idx1
 
         'Load all header elements
-        Dim Header As New List(Of String)
+        Dim Header As New Collections.Generic.List(Of String)
         Header.Add(FormatHeader("SIMPLE", "T"))
         Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
         Header.Add(FormatHeader("NAXIS", "2"))
@@ -1064,7 +1064,7 @@ Public Class cFITSWriter
         Next Idx1
 
         'Load all header elements
-        Dim Header As New List(Of String)
+        Dim Header As New Collections.Generic.List(Of String)
         Header.Add(FormatHeader("SIMPLE", "T"))
         Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
         Header.Add(FormatHeader("NAXIS", "2"))
@@ -1112,7 +1112,7 @@ Public Class cFITSWriter
         Next Idx1
 
         'Load all header elements
-        Dim Header As New List(Of String)
+        Dim Header As New Collections.Generic.List(Of String)
         Header.Add(FormatHeader("SIMPLE", "T"))
         Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
         Header.Add(FormatHeader("NAXIS", "2"))
@@ -1160,7 +1160,7 @@ Public Class cFITSWriter
         Next Idx1
 
         'Load all header elements
-        Dim Header As New List(Of String)
+        Dim Header As New Collections.Generic.List(Of String)
         Header.Add(FormatHeader("SIMPLE", "T"))
         Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
         Header.Add(FormatHeader("NAXIS", "2"))
@@ -1208,7 +1208,7 @@ Public Class cFITSWriter
         Next Idx1
 
         'Load all header elements
-        Dim Header As New List(Of String)
+        Dim Header As New Collections.Generic.List(Of String)
         Header.Add(FormatHeader("SIMPLE", "T"))
         Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
         Header.Add(FormatHeader("NAXIS", "2"))

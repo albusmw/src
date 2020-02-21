@@ -32,6 +32,14 @@ Partial Public Class cIntelIPP
         End Get
     End Property
 
+    '''<summary>Currently used IPP path.</summary>
+    Public ReadOnly Property IPPPath() As String
+        Get
+            Return MyIPPPath
+        End Get
+    End Property
+    Private MyIPPPath As String = String.Empty
+
     '''<summary>Init with the DLL specified.</summary>
     Public Sub New(ByVal ippRoot As String)
         Me.New(System.IO.Path.Combine(ippRoot, "ipps.dll"), System.IO.Path.Combine(ippRoot, "ippvm.dll"), System.IO.Path.Combine(ippRoot, "ippi.dll"))
@@ -41,10 +49,12 @@ Partial Public Class cIntelIPP
     Public Sub New(ByVal ippsDLL As String, ByVal ippvmDLL As String, ByVal ippiDLL As String)
         If System.IO.File.Exists(ippsDLL) And System.IO.File.Exists(ippvmDLL) And System.IO.File.Exists(ippiDLL) Then
             Try
-                ChDir(System.IO.Path.GetDirectoryName(ippsDLL))
+                Dim IPPPathUsed As String = System.IO.Path.GetDirectoryName(ippsDLL)
+                ChDir(IPPPathUsed)
                 ippsHandle = LoadLibrary(ippsDLL)
                 ippvmHandle = LoadLibrary(ippvmDLL)
                 ippiHandle = LoadLibrary(ippiDLL)
+                MyIPPPath = IPPPathUsed
             Catch ex As Exception
                 MyLoadError = ex.Message
                 ippsHandle = Nothing
@@ -97,7 +107,7 @@ Partial Public Class cIntelIPP
     '''<summary>Class to handle GAC pinning and release.</summary>
     Public Class cPinHandler : Implements IDisposable
         Private Disposed As Boolean = False
-        Private Pinned As New List(Of Runtime.InteropServices.GCHandle)
+        Private Pinned As New Collections.Generic.List(Of Runtime.InteropServices.GCHandle)
         '''<summary>Pin the array and get the pointer.</summary>
         Public Function Pin(ByRef VariableToPin As Double) As IntPtr
             Pinned.Add(Runtime.InteropServices.GCHandle.Alloc(VariableToPin, Runtime.InteropServices.GCHandleType.Pinned))
@@ -1222,7 +1232,7 @@ Partial Public Class cIntelIPP
     End Function
 
     Public Shared Sub DisplayArray(ByRef Data() As UInt16, ByVal Size As Integer)
-        Dim Out As New List(Of String)
+        Dim Out As New Collections.Generic.List(Of String)
         For Idx1 As Integer = 0 To Data.GetUpperBound(0)
             Out.Add(Data(Idx1).ValRegIndep.PadLeft(Size))
         Next Idx1
@@ -1231,7 +1241,7 @@ Partial Public Class cIntelIPP
 
     Public Shared Sub DisplayArray(ByRef Data(,) As UInt16, ByVal Size As Integer)
         For Idx1 As Integer = 0 To Data.GetUpperBound(0)
-            Dim Out As New List(Of String)
+            Dim Out As New Collections.Generic.List(Of String)
             For Idx2 As Integer = 0 To Data.GetUpperBound(1)
                 Out.Add(Data(Idx1, Idx2).ValRegIndep.PadLeft(Size))
             Next Idx2

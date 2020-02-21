@@ -13,7 +13,7 @@ Public Class cStatMultiThread_UInt16
     Public Class cStateObj
         Friend XOffset As Integer = -1
         Friend YOffset As Integer = -1
-        Friend HistDataBayer As New Dictionary(Of Int64, UInt32)
+        Friend HistDataBayer As New Collections.Generic.Dictionary(Of Int64, UInt32)
         Friend Done As Boolean = False
     End Class
 
@@ -76,7 +76,7 @@ Public Class cStatMultiThread_UInt16
         Next IdxX
 
         'Form return value
-        StateObj.HistDataBayer = New Dictionary(Of Int64, UInt32)
+        StateObj.HistDataBayer = New Collections.Generic.Dictionary(Of Int64, UInt32)
         For Idx As UInt16 = 0 To CUShort(HistCount.GetUpperBound(0))
             If HistCount(Idx) > 0 Then StateObj.HistDataBayer.Add(Idx, HistCount(Idx))
             If Idx = HistCount.GetUpperBound(0) Then Exit For
@@ -100,7 +100,7 @@ Public Class cStatMultiThread_UInt32
     Public Class cStateObj
         Friend XOffset As Integer = -1
         Friend YOffset As Integer = -1
-        Friend HistDataBayer As New Dictionary(Of Int64, UInt32)
+        Friend HistDataBayer As New Collections.Generic.Dictionary(Of Int64, UInt32)
         Friend Done As Boolean = False
     End Class
 
@@ -150,7 +150,7 @@ Public Class cStatMultiThread_UInt32
         StateObj.Done = False
 
         'Count one bayer part
-        StateObj.HistDataBayer = New Dictionary(Of Int64, UInt32)
+        StateObj.HistDataBayer = New Collections.Generic.Dictionary(Of Int64, UInt32)
         For IdxX As Integer = StateObj.XOffset To ImageData.GetUpperBound(0) - 1 + StateObj.XOffset Step 2
             For IdxY As Integer = StateObj.YOffset To ImageData.GetUpperBound(1) - 1 + StateObj.YOffset Step 2
                 Dim PixelValue As UInt32 = ImageData(IdxX, IdxY)
@@ -180,7 +180,7 @@ Public Class cStatMultiThread_Int32
     Public Class cStateObj
         Friend XOffset As Integer = -1
         Friend YOffset As Integer = -1
-        Friend HistDataBayer As New Dictionary(Of Int64, UInt32)
+        Friend HistDataBayer As New Collections.Generic.Dictionary(Of Int64, UInt32)
         Friend Done As Boolean = False
     End Class
 
@@ -230,7 +230,7 @@ Public Class cStatMultiThread_Int32
         StateObj.Done = False
 
         'Count one bayer part
-        StateObj.HistDataBayer = New Dictionary(Of Int64, UInt32)
+        StateObj.HistDataBayer = New Collections.Generic.Dictionary(Of Int64, UInt32)
         For IdxX As Integer = StateObj.XOffset To ImageData.GetUpperBound(0) - 1 + StateObj.XOffset Step 2
             For IdxY As Integer = StateObj.YOffset To ImageData.GetUpperBound(1) - 1 + StateObj.YOffset Step 2
                 Dim PixelValue As Int32 = ImageData(IdxX, IdxY)
