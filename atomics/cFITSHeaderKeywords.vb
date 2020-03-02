@@ -42,6 +42,8 @@ Public Structure eFITSKeywords
     Public Const [TELSCALE] As String = "TELFOC"
     '''<summary>Focus value (from logbook). Used when a single value is given in the logs.</summary>
     Public Const [FOCUS] As String = "FOCUS"
+    '''<summary>The value field shall contain a character string identifying who compiled the information In the data associated With the header. This keyword Is appropriate When the data originate In a published paper Or are compiled from many sources.</summary>
+    Public Const [AUTHOR] As String = "AUTHOR"
 
     '''<summary>The value field shall contain a character string that gives the date on which the observation started, format 'yyyy-mm-dd', or 'yyyy-mm-ddThh:mm:ss.sss'.</summary>
     Public Const [DATE_OBS] As String = "DATE-OBS"
@@ -122,6 +124,15 @@ Public Structure eFITSKeywords
     '''<summary>Configured GAIN value of the camera.</summary>
     Public Const [GAIN] As String = "GAIN"
 
+    '=====================================================================================
+    ' Parameters that need to be clarified how they are named
+    '=====================================================================================
+
+    '''<summary>Configured OFFSET value of the camera.</summary>
+    Public Const [OFFSET] As String = "OFFSET"
+    '''<summary>Configured BRIGHTNESS value of the camera.</summary>
+    Public Const [BRIGHTNESS] As String = "BRIGHTNESS"
+
 
 
 End Structure
@@ -151,6 +162,11 @@ Public Class cFITSKeywords
     '''<summary>Formated content for all "DATE..." fields, time..</summary>
     Public Shared Function GetDateWithTime(ByVal Moment As DateTime) As String
         Return "'" & Format(Moment, "yyyy-dd-MMTHH:mm:ss.fff") & "'"
+    End Function
+
+    '''<summary>Formated content for all "TIME..." fields, time..</summary>
+    Public Shared Function GetTime(ByVal Moment As DateTime) As String
+        Return "'" & Format(Moment, "HH:mm:ss.fff") & "'"
     End Function
 
 End Class
