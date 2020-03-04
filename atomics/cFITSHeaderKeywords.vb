@@ -39,7 +39,7 @@ Public Structure eFITSKeywords
     '''<summary>Focal length of the telescope [m].</summary>
     Public Const [TELFOC] As String = "TELFOC"
     '''<summary>Plate scale of the telescope [arcsec/mm].</summary>
-    Public Const [TELSCALE] As String = "TELFOC"
+    Public Const [TELSCALE] As String = "TELSCALE"
     '''<summary>Focus value (from logbook). Used when a single value is given in the logs.</summary>
     Public Const [FOCUS] As String = "FOCUS"
     '''<summary>The value field shall contain a character string identifying who compiled the information In the data associated With the header. This keyword Is appropriate When the data originate In a published paper Or are compiled from many sources.</summary>
