@@ -91,6 +91,12 @@ Namespace AstroNET
             Public MeanPow2 As Double
             '''<summary>Standard deviation (calculated as in FitsWork).</summary>
             Public StdDev As Double
+            '''<summary>Standard deviation (calculated as in FitsWork).</summary>
+            Public ReadOnly Property Variance As Double
+                Get
+                    Return StdDev ^ 2
+                End Get
+            End Property
             '''<summary>Number of different values in the data.</summary>
             Public DifferentValueCount As Integer
             '''<summary>Percentile.</summary>
@@ -121,16 +127,14 @@ Namespace AstroNET
                 RetVal.Add("Min value       : " & Min.ValRegIndep.PadLeft(ReportValueLength))
                 RetVal.Add("Max value       : " & Max.ValRegIndep.PadLeft(ReportValueLength))
                 RetVal.Add("Median value    : " & Median.ValRegIndep.PadLeft(ReportValueLength))
-                RetVal.Add("Mean value      : " & Format(Mean, "0.00").ToString.Trim.PadLeft(ReportValueLength))
-                RetVal.Add("Modus           : " & Modus.Key.ValRegIndep.PadLeft(ReportValueLength))
+                RetVal.Add("Mean value      : " & Format(Mean, "0.000").ToString.Trim.PadLeft(ReportValueLength))
+                RetVal.Add("Standard dev.   : " & Format(StdDev, "0.000").ToString.Trim.PadLeft(ReportValueLength))
+                RetVal.Add("Variance        : " & Format(Variance, "0.000").ToString.Trim.PadLeft(ReportValueLength))
+                RetVal.Add("Modus pixel val.: " & Modus.Key.ValRegIndep.PadLeft(ReportValueLength))
                 RetVal.Add("Modus count     : " & (Modus.Value.ValRegIndep & " x").PadLeft(ReportValueLength))
-                RetVal.Add("Percentil -  1 %: " & Format(Percentile(1)).ToString.Trim.PadLeft(ReportValueLength))
-                RetVal.Add("Percentil -  5 %: " & Format(Percentile(5)).ToString.Trim.PadLeft(ReportValueLength))
-                RetVal.Add("Percentil - 25 %: " & Format(Percentile(25)).ToString.Trim.PadLeft(ReportValueLength))
-                RetVal.Add("Percentil - 50 %: " & Format(Percentile(50)).ToString.Trim.PadLeft(ReportValueLength))
-                RetVal.Add("Percentil - 75 %: " & Format(Percentile(75)).ToString.Trim.PadLeft(ReportValueLength))
-                RetVal.Add("Percentil - 95 %: " & Format(Percentile(95)).ToString.Trim.PadLeft(ReportValueLength))
-                RetVal.Add("Percentil - 99 %: " & Format(Percentile(99)).ToString.Trim.PadLeft(ReportValueLength))
+                For Each Pct As Integer In New Integer() {1, 5, 10, 25, 50, 75, 90, 95, 99}
+                    If Percentile.ContainsKey(Pct) Then RetVal.Add("Percentil - " & Pct.ToString.Trim.PadLeft(2) & " %: " & Format(Percentile(Pct)).ToString.Trim.PadLeft(ReportValueLength))
+                Next Pct
                 Return RetVal
             End Function
         End Structure
@@ -246,9 +250,9 @@ Namespace AstroNET
             Next PixelValue
 
             'Calculate final outputs
-            RetVal.StdDev = Math.Sqrt(((RetVal.MeanPow2) - ((RetVal.Mean * RetVal.Mean) / RetVal.Samples)) / (RetVal.Samples - 1))
             RetVal.Mean = MeanSum / RetVal.Samples
             RetVal.MeanPow2 = MeanPow2Sum / RetVal.Samples
+            RetVal.StdDev = Math.Sqrt(RetVal.MeanPow2 - (RetVal.Mean * RetVal.Mean))
             Return RetVal
 
         End Function

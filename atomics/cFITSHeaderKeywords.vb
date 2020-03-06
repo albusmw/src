@@ -132,6 +132,8 @@ Public Structure eFITSKeywords
     Public Const [OFFSET] As String = "OFFSET"
     '''<summary>Configured BRIGHTNESS value of the camera.</summary>
     Public Const [BRIGHTNESS] As String = "BRIGHTNESS"
+    '''<summary>QHY read-out mode.</summary>
+    Public Const [QHY_MODE] As String = "QHY_MODE"
 
 
 
@@ -139,32 +141,37 @@ End Structure
 
 Public Class cFITSKeywords
 
-    '''<summary>Formated content for all "DATE..." fields, without time..</summary>
+    '''<summary>Formated content as a string.</summary>
+    Public Shared Function GetString(ByVal Value As String) As String
+        Return "'" & Value & "'"
+    End Function
+
+    '''<summary>Formated content for all "DATE..." fields, without time.</summary>
     Public Shared Function GetDouble(ByVal Value As Double) As String
         Return Value.ToString.Trim.Replace(",", ".")
     End Function
 
-    '''<summary>Formated content for all "DATE..." fields, without time..</summary>
+    '''<summary>Formated content for all "DATE..." fields, without time.</summary>
     Public Shared Function GetDate() As String
         Return "'" & GetDate(Now) & "'"
     End Function
 
-    '''<summary>Formated content for all "DATE..." fields, without time..</summary>
+    '''<summary>Formated content for all "DATE..." fields, without time.</summary>
     Public Shared Function GetDate(ByVal Moment As DateTime) As String
         Return "'" & Format(Moment, "yyyy-dd-MM") & "'"
     End Function
 
-    '''<summary>Formated content for all "DATE..." fields, time..</summary>
+    '''<summary>Formated content for all "DATE..." fields, time.</summary>
     Public Shared Function GetDateWithTime() As String
         Return "'" & GetDateWithTime(Now) & "'"
     End Function
 
-    '''<summary>Formated content for all "DATE..." fields, time..</summary>
+    '''<summary>Formated content for all "DATE..." fields, time.</summary>
     Public Shared Function GetDateWithTime(ByVal Moment As DateTime) As String
         Return "'" & Format(Moment, "yyyy-dd-MMTHH:mm:ss.fff") & "'"
     End Function
 
-    '''<summary>Formated content for all "TIME..." fields, time..</summary>
+    '''<summary>Formated content for all "TIME..." fields, time.</summary>
     Public Shared Function GetTime(ByVal Moment As DateTime) As String
         Return "'" & Format(Moment, "HH:mm:ss.fff") & "'"
     End Function
