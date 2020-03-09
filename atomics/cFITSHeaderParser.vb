@@ -165,10 +165,11 @@ Public Class cFITSHeaderParser
     Public Function GetListAsDictionary() As Dictionary(Of String, Object)
         Dim RetVal As New Dictionary(Of String, Object)
         For Each Entry As cFITSHeaderParser.sHeaderElement In AllCards
-            If RetVal.ContainsKey(Entry.Keyword) = False Then
-                RetVal.Add(Entry.Keyword, Entry.Value)          'entry is new -> add
+            Dim KeyTrim As String = Entry.Keyword.Trim
+            If RetVal.ContainsKey(KeyTrim) = False Then
+                RetVal.Add(KeyTrim, Entry.Value)          'entry is new -> add
             Else
-                RetVal(Entry.Keyword) = Entry.Value             'entry already exists -> update
+                RetVal(KeyTrim) = Entry.Value             'entry already exists -> update
             End If
         Next Entry
         Return RetVal
