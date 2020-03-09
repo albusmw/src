@@ -406,6 +406,34 @@ Namespace Ato
             Return (IntProps.SquareSum - ((IntProps.Sum * IntProps.Sum) / IntProps.ValueCount)) / (IntProps.ValueCount - 1)
         End Function
 
+        '''<summary>X axis for the selected vector of statistics.</summary>
+        Public Shared Function GetAspectVectorXAxis(ByRef Stats() As cSingleValueStatistics) As Double()
+            Dim RetVal(Stats.GetUpperBound(0)) As Double
+            For Idx As Integer = 0 To RetVal.GetUpperBound(0)
+                RetVal(Idx) = Idx
+            Next Idx
+            Return RetVal
+        End Function
+
+        Public Shared Function GetAspectVector(ByRef Stats() As cSingleValueStatistics, ByVal Aspect As eAspects) As Double()
+            Dim RetVal(Stats.GetUpperBound(0)) As Double
+            Select Case Aspect
+                Case eAspects.Mean
+                    For Idx As Integer = 0 To RetVal.GetUpperBound(0)
+                        RetVal(Idx) = Stats(Idx).Mean
+                    Next Idx
+                Case eAspects.Maximum
+                    For Idx As Integer = 0 To RetVal.GetUpperBound(0)
+                        RetVal(Idx) = Stats(Idx).Maximum
+                    Next Idx
+                Case eAspects.Minimum
+                    For Idx As Integer = 0 To RetVal.GetUpperBound(0)
+                        RetVal(Idx) = Stats(Idx).Minimum
+                    Next Idx
+            End Select
+            Return RetVal
+        End Function
+
     End Class
 
 End Namespace
