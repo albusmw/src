@@ -485,6 +485,7 @@ EXPORTC uint32_t STDCALL GetQHYCCDExposureRemaining(qhyccd_handle *h);
 	  another QHYCCD_ERROR code on other failures
  */
 EXPORTC uint32_t STDCALL GetQHYCCDFWVersion(qhyccd_handle *h,uint8_t *buf);
+EXPORTC uint32_t STDCALL GetQHYCCDFPGAVersion(qhyccd_handle *h, uint8_t fpga_index, uint8_t *buf);
 
 /** @fn uint32_t SetQHYCCDInterCamSerialParam(qhyccd_handle *h,uint32_t opt)
       @brief Set InterCam serial2 params
@@ -758,7 +759,7 @@ EXPORTC QHYDWORD STDCALL SetQHYCCDCallBack(QHYCCDProcCallBack ProcCallBack,
  * Populates the fpga_info_list pointer with all FPGAs registered in the system.
  * Returns 0 on success, non-zero on error.
  */
-EXPORTC int STDCALL QHYCCD_fpga_list();
+EXPORTC int STDCALL QHYCCD_fpga_list(struct fpga_info_list &list);
 
 /**
  * Initializes the FPGA specified by id. On success, returns a pointer to a
@@ -766,7 +767,7 @@ EXPORTC int STDCALL QHYCCD_fpga_list();
  * channels can be accessed. Once opened, any number of threads can use the
  * fpga_t struct.
  */
-EXPORTC fpga_t * STDCALL QHYCCD_fpga_open(int id);
+EXPORTC uint32_t STDCALL QHYCCD_fpga_open(int id);
 
 /**
  * Cleans up memory/resources for the FPGA specified by the fd descriptor.

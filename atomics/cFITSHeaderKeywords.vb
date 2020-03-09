@@ -23,7 +23,8 @@ Public Structure eFITSKeywords
     Public Const [BAYERPAT] As String = "BAYERPAT"
     '''<summary>Type of color sensor Bayer array or zero for monochrome.</summary>
     Public Const [COLORTYP] As String = "COLORTYP"
-
+    '''<summary>The value field shall contain a character string which uniquely identifies the dataset contained In the FITS file. This Is typically a sequence number that can contain a mixture Of numerical And character values. Example '10315-01-01-30A'.</summary>
+    Public Const [OBS_ID] As String = "OBS_ID"
     '''<summary>The value field shall contain a character string identifying the organization or institution responsible for creating the FITS file.</summary>
     Public Const [ORIGIN] As String = "ORIGIN"
     '''<summary>The value field shall contain a character string identifying the telescope used to acquire the data associated with the header.</summary>
@@ -34,6 +35,8 @@ Public Structure eFITSKeywords
     Public Const [OBSERVER] As String = "OBSERVER"
     '''<summary>The value field shall contain a character string giving a name for the object observed.</summary>
     Public Const [OBJECT] As String = "OBJECT"
+    '''<summary>The value field shall contain a character string giving a name for the observed object that conforms to the IAU astronomical Object naming conventions. The value of this keyword Is more strictly constrained than For the standard Object keyword which In practice has often been used To record other ancillary information about the observation (e.g. filter, exposure time, weather conditions, etc.).</summary>
+    Public Const [OBJNAME] As String = "OBJNAME"
     '''<summary>Clear aperture of the telescope [m].</summary>
     Public Const [TELAPER] As String = "TELAPER"
     '''<summary>Focal length of the telescope [m].</summary>
@@ -44,6 +47,8 @@ Public Structure eFITSKeywords
     Public Const [FOCUS] As String = "FOCUS"
     '''<summary>The value field shall contain a character string identifying who compiled the information In the data associated With the header. This keyword Is appropriate When the data originate In a published paper Or are compiled from many sources.</summary>
     Public Const [AUTHOR] As String = "AUTHOR"
+    '''<summary>The value field shall contain a character string giving the name, And optionally, the version of the program that originally created the current FITS HDU. This keyword Is synonymous With the CREATOR keyword.  Example 'TASKNAME V1.2.3'.</summary>
+    Public Const [PROGRAM] As String = "PROGRAM"
 
     '''<summary>The value field shall contain a character string that gives the date on which the observation started, format 'yyyy-mm-dd', or 'yyyy-mm-ddThh:mm:ss.sss'.</summary>
     Public Const [DATE_OBS] As String = "DATE-OBS"
@@ -83,6 +88,10 @@ Public Structure eFITSKeywords
     Public Const [IMAGETYP] As String = "IMAGETYP"
     '''<summary>Electronic gain in photoelectrons per ADU.</summary>
     Public Const [EGAIN] As String = "EGAIN"
+
+    '''<summary>The value field shall contain a floating point number giving the geographic latitude from which the observation was made in units of degrees.</summary>
+    Public Const [LATITUDE] As String = "LATITUDE"
+
 
     '=============================================================================
     'Found in FITS and need additional comments
@@ -131,11 +140,9 @@ Public Structure eFITSKeywords
     '''<summary>Configured OFFSET value of the camera.</summary>
     Public Const [OFFSET] As String = "OFFSET"
     '''<summary>Configured BRIGHTNESS value of the camera.</summary>
-    Public Const [BRIGHTNESS] As String = "BRIGHTNESS"
+    Public Const [BRIGHTNESS] As String = "BRIGHTN"
     '''<summary>QHY read-out mode.</summary>
     Public Const [QHY_MODE] As String = "QHY_MODE"
-
-
 
 End Structure
 

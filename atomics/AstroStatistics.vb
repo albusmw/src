@@ -52,7 +52,7 @@ Namespace AstroNET
             '''<summary>Report of all statistics properties of the structure.</summary>
             Public Function StatisticsReport(ByVal Indent As String) As Collections.Generic.List(Of String)
                 Dim RetVal As New Collections.Generic.List(Of String)
-                RetVal.Add(Indent & "Property".PadRight(sSingleChannelStatistics.ReportHeaderLength) & ":" & "Mono".PadRight(sSingleChannelStatistics.ReportValueLength) & "|")
+                RetVal.Add(Indent & "Property".PadRight(sSingleChannelStatistics.ReportHeaderLength) & ": " & "Mono".PadRight(sSingleChannelStatistics.ReportValueLength) & "|")
                 For Each Entry As String In MonoStatistics.StatisticsReport
                     RetVal.Add(Indent & "  " & Entry & "|")
                 Next Entry
@@ -76,13 +76,13 @@ Namespace AstroNET
             '''<summary>Number of characters in the header of the report.</summary>
             Public Shared ReadOnly Property ReportHeaderLength As Integer = 18
             '''<summary>Number of characters in the value of the report.</summary>
-            Public Shared ReadOnly Property ReportValueLength As Integer = 10
+            Public Shared ReadOnly Property ReportValueLength As Integer = 16
             '''<summary>Number of total samples (pixels) in the data set.</summary>
             Public Samples As Long
-            '''<summary>Maximum value occured.</summary>
-            Public Max As Int64
-            '''<summary>Minimum value occured.</summary>
-            Public Min As Int64
+            '''<summary>Maximum value occured (value and number of pixel that have this value).</summary>
+            Public Max As Collections.Generic.KeyValuePair(Of Int64, UInt32)
+            '''<summary>Minimum value occured (value and number of pixel that have this value).</summary>
+            Public Min As Collections.Generic.KeyValuePair(Of Int64, UInt32)
             '''<summary>Value where half of the samples are below and half are above.</summary>
             Public Median As Int64
             '''<summary>Arithmetic mean value.</summary>
@@ -107,8 +107,8 @@ Namespace AstroNET
             Public Shared Function InitForShort() As sSingleChannelStatistics
                 Dim RetVal As New sSingleChannelStatistics
                 RetVal.Samples = 0
-                RetVal.Max = Int64.MinValue
-                RetVal.Min = Int64.MaxValue
+                RetVal.Max = Nothing
+                RetVal.Min = Nothing
                 RetVal.Mean = 0
                 RetVal.MeanPow2 = 0
                 RetVal.StdDev = Double.NaN
@@ -124,14 +124,13 @@ Namespace AstroNET
                 RetVal.Add("Total pixel     : " & Samples.ValRegIndep.PadLeft(ReportValueLength))
                 RetVal.Add("Total pixel     : " & ((Samples / 1000000).ValRegIndep("0.0") & "M").PadLeft(ReportValueLength))
                 RetVal.Add("Different values: " & DifferentValueCount.ValRegIndep.PadLeft(ReportValueLength))
-                RetVal.Add("Min value       : " & Min.ValRegIndep.PadLeft(ReportValueLength))
-                RetVal.Add("Max value       : " & Max.ValRegIndep.PadLeft(ReportValueLength))
+                RetVal.Add("Min value       : " & (Min.Key.ValRegIndep & " (" & Min.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
+                RetVal.Add("Modus value     : " & (Modus.Key.ValRegIndep & " (" & Modus.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
+                RetVal.Add("Max value       : " & (Max.Key.ValRegIndep & " (" & Max.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
                 RetVal.Add("Median value    : " & Median.ValRegIndep.PadLeft(ReportValueLength))
                 RetVal.Add("Mean value      : " & Format(Mean, "0.000").ToString.Trim.PadLeft(ReportValueLength))
                 RetVal.Add("Standard dev.   : " & Format(StdDev, "0.000").ToString.Trim.PadLeft(ReportValueLength))
                 RetVal.Add("Variance        : " & Format(Variance, "0.000").ToString.Trim.PadLeft(ReportValueLength))
-                RetVal.Add("Modus pixel val.: " & Modus.Key.ValRegIndep.PadLeft(ReportValueLength))
-                RetVal.Add("Modus count     : " & (Modus.Value.ValRegIndep & " x").PadLeft(ReportValueLength))
                 For Each Pct As Integer In New Integer() {1, 5, 10, 25, 50, 75, 90, 95, 99}
                     If Percentile.ContainsKey(Pct) Then RetVal.Add("Percentil - " & Pct.ToString.Trim.PadLeft(2) & " %: " & Format(Percentile(Pct)).ToString.Trim.PadLeft(ReportValueLength))
                 Next Pct
@@ -223,8 +222,8 @@ Namespace AstroNET
             Dim SumSampleCount As Long = 0
             Dim MeanSum As Double = 0
             Dim MeanPow2Sum As System.Double = 0
-            RetVal.Min = AllPixelValues(0)
-            RetVal.Max = AllPixelValues(AllPixelValues.Count - 1)
+            RetVal.Min = New Collections.Generic.KeyValuePair(Of Int64, UInt32)(AllPixelValues(0), Histogram(AllPixelValues(0)))
+            RetVal.Max = New Collections.Generic.KeyValuePair(Of Int64, UInt32)(AllPixelValues(0), Histogram(AllPixelValues(0)))
             RetVal.Modus = New Collections.Generic.KeyValuePair(Of Int64, UInt32)(AllPixelValues(0), Histogram(AllPixelValues(0)))
 
             'Percentiles are from 1 to 99 pct in steps of 1 pct
@@ -240,6 +239,8 @@ Namespace AstroNET
                 SamplesProcessed += HistCount
                 MeanSum += WeightCount
                 MeanPow2Sum += WeightPow2
+                If PixelValue > RetVal.Max.Key Then RetVal.Max = New Collections.Generic.KeyValuePair(Of Int64, UInteger)(PixelValue, Histogram(PixelValue))
+                If PixelValue < RetVal.Min.Key Then RetVal.Min = New Collections.Generic.KeyValuePair(Of Int64, UInteger)(PixelValue, Histogram(PixelValue))
                 If HistCount > RetVal.Modus.Value Then RetVal.Modus = New Collections.Generic.KeyValuePair(Of Int64, UInteger)(PixelValue, Histogram(PixelValue))
                 If SamplesProcessed >= RetVal.Samples \ 2 And RetVal.Median = Int64.MinValue Then RetVal.Median = PixelValue
                 If SumSampleCount >= NextPctLimit Then

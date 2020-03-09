@@ -106,6 +106,66 @@ Public Class cFITSReader
     End Sub
 
     '================================================================================================================================================================
+    ' Read UInt8 data (data are read to an UInt16 matrix)
+    '================================================================================================================================================================
+
+    '''<summary>Read FITS data from the passed file.</summary>
+    '''<param name="FileName">File name to load FITS data from.</param>
+    '''<param name="UseIPP">Use the Intel IPP (if found) for processing.</param>
+    '''<remarks>Tested and works.</remarks>
+    Public Function ReadInUInt8(ByVal FileName As String, ByVal UseIPP As Boolean) As UInt16(,)
+
+        'TODO: Read-in start offset seems to be incorrect
+        Dim BaseIn As New System.IO.StreamReader(FileName)
+
+        'Read header elements
+        FITSHeaderParser = New cFITSHeaderParser(ReadHeader(BaseIn))
+
+        'Calculate data stream properties
+        Dim StartOffset As Long = BaseIn.BaseStream.Position
+        Dim StreamLength As Long = BaseIn.BaseStream.Length
+        Dim TotalByte As Long = StreamLength - StartOffset
+        BaseIn.Close()
+
+        'Read data content
+        Return ReadDataContentUInt8(FileName, DataStartIdx, UseIPP)
+
+    End Function
+
+    '''<summary>Read FITS data from the passed file - only in case BitPix is 16.</summary>
+    Private Function ReadDataContentUInt8(ByVal FileName As String, ByVal StartPosition As Integer, ByVal UseIPP As Boolean) As UInt16(,)
+
+        Dim BytePerPixel As Integer = 1
+
+        'Delete content and exit if format is wrong
+        If FITSHeaderParser.BitPix <> 8 Then Return New UInt16(,) {}
+
+        'Open reader and position to start
+        Dim DataReader As New System.IO.BinaryReader(System.IO.File.OpenRead(FileName))
+        DataReader.BaseStream.Position = DataStartIdx
+
+        'Read complete block
+        Dim ImageData(FITSHeaderParser.Width - 1, FITSHeaderParser.Height - 1) As UInt16
+        DataReader.BaseStream.Position = DataStartIdx
+
+        Dim Bytes((FITSHeaderParser.Width * FITSHeaderParser.Height * BytePerPixel) - 1) As Byte
+        Bytes = DataReader.ReadBytes(Bytes.Length)
+        Dim BytesPtr As Integer = 0
+        For H As Integer = 0 To FITSHeaderParser.Height - 1
+            For W As Integer = 0 To FITSHeaderParser.Width - 1
+                ImageData(W, H) = Bytes(BytesPtr)
+                BytesPtr += BytePerPixel
+            Next W
+        Next H
+
+        'Close data stream
+        DataReader.Close()
+
+        Return ImageData
+
+    End Function
+
+    '================================================================================================================================================================
     ' Read UInt16 data
     '================================================================================================================================================================
 
@@ -284,6 +344,10 @@ Public Class cFITSReader
                     BytesPtr += BytePerPixel
                 Next W
             Next H
+        Else
+            Dim IPPStatus As New List(Of cIntelIPP.IppStatus)
+            IPPStatus.Add(IntelIPP.Transpose(Bytes, ImageData))
+            IPPStatus.Add(IntelIPP.SwapBytes(ImageData))
         End If
 
         'Close data stream

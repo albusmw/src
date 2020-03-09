@@ -45,6 +45,7 @@ Public Class cFITSHeaderParser
         Public BitPix As Integer = 0
         Public BZERO As Double = 0.0
         Public BSCALE As Double = 1.0
+        Public NAXIS As Integer = -1
         Public Width As Integer = -1
         Public Height As Integer = -1
         Public ColorValues As Integer = 0
@@ -69,6 +70,12 @@ Public Class cFITSHeaderParser
     Public ReadOnly Property BSCALE() As Double
         Get
             Return MyProps.BSCALE
+        End Get
+    End Property
+
+    Public ReadOnly Property NAXIS() As Integer
+        Get
+            Return MyProps.NAXIS
         End Get
     End Property
 
@@ -103,6 +110,7 @@ Public Class cFITSHeaderParser
             End If
             Select Case Card.Keyword.Trim
                 Case "BITPIX" : MyProps.BitPix = CInt(Card.Value)
+                Case "NAXIS" : MyProps.NAXIS = CInt(Card.Value)
                 Case "NAXIS1" : MyProps.Width = CInt(Card.Value)
                 Case "NAXIS2" : MyProps.Height = CInt(Card.Value)
                 Case "NAXIS3" : MyProps.ColorValues = CInt(Card.Value)

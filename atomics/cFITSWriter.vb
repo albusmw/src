@@ -975,19 +975,23 @@ Public Class cFITSWriter
         End If
     End Sub
 
+    '''<summary>Format the header according to the FITS standards.</summary>
     Private Shared Function FormatHeader(ByVal Keyword As String, ByVal Value As Integer) As String
         Return FormatHeader(Keyword, Value.ValRegIndep)
     End Function
 
+    '''<summary>Format the header according to the FITS standards.</summary>
     Private Shared Function FormatHeader(ByVal Keyword As String, ByVal Value As String) As String
         Return FormatHeader(Keyword, Value, String.Empty)
     End Function
 
+    '''<summary>Format the header according to the FITS standards.</summary>
     Private Shared Function FormatHeader(ByVal Keyword As String, ByVal Value As String, ByVal Comment As String) As String
+        If Keyword.Length > KeywordLength Then Keyword = Keyword.Substring(0, KeywordLength)
         If String.IsNullOrEmpty(Comment) = True Then
-            Return (Keyword.PadRight(KeywordLength) & "=" & Value.PadLeft(ValueLength)).PadRight(HeaderElementLength)
+            Return (Keyword.PadRight(KeywordLength) & "= " & Value.PadLeft(ValueLength)).PadRight(HeaderElementLength)
         Else
-            Return (Keyword.PadRight(KeywordLength) & "=" & Value.PadLeft(ValueLength) & " /" & Comment).PadRight(HeaderElementLength)
+            Return (Keyword.PadRight(KeywordLength) & "= " & Value.PadLeft(ValueLength) & " /" & Comment).PadRight(HeaderElementLength)
         End If
     End Function
 
