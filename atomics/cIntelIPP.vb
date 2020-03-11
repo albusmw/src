@@ -269,6 +269,7 @@ Partial Public Class cIntelIPP
         Public Delegate Function IntPtr_IntPtr_IntPtr_Integer(ByVal pSrc1 As IntPtr, ByVal PSrc2 As IntPtr, ByVal pDst As IntPtr, ByVal len As Integer) As IppStatus
         Public Delegate Function Double_Double_Double_IntPtr(ByVal angle As Double, ByVal xShift As Double, ByVal yShift As Double, ByVal coeffs As IntPtr) As IppStatus
         Public Delegate Function sIppiSize_sIppiSize_eIppDataType_IntPtr_eIppiInterpolationType_eIppiWarpDirection_eIppiBorderType_IntPtr_IntPtr(ByVal srcSize As IppiSize, ByVal dstSize As IppiSize, ByVal dataType As IppDataType, ByVal coeffs As IntPtr, ByVal interpolation As IppiInterpolationType, ByVal direction As IppiWarpDirection, ByVal borderType As IppiBorderType, ByVal SpecSize As IntPtr, ByVal InitBufSize As IntPtr) As IppStatus
+        Public Delegate Function sIppiSize_sIppiSize_eIppDataType_IntPtr_eIppiWarpDirection_Integer_eIppiBorderType_Double_Integer_IppiWrapSpec(ByVal srcSize As IppiSize, ByVal dstSize As IppiSize, ByVal dataType As IppDataType, ByVal coeffs As IntPtr, ByVal direction As IppiWarpDirection, ByVal numChannels As Integer, ByVal borderType As IppiBorderType, ByVal boarderValue As IntPtr, ByVal smoothEdge As Integer, ByVal Spec As IntPtr) As IppStatus
     End Class
 
 
@@ -1188,6 +1189,30 @@ Partial Public Class cIntelIPP
             RetVal = CType(Caller.DynamicInvoke(srcSize, dstSize, dataType, Pinner.Pin(coeffs), interpolation, direction, borderType, Pinner.Pin(RefTypes, 0), Pinner.Pin(RefTypes, 1)), IppStatus)
             pSpecSize = RefTypes(0)
             pInitBufSize = RefTypes(1)
+        End Using : Return RetVal
+    End Function
+
+    ''' <summary>   
+    ''' 
+    ''' </summary>
+    ''' <param name="srcSize"></param>
+    ''' <param name="dstSize"></param>
+    ''' <param name="dataType"></param>
+    ''' <param name="coeffs"></param>
+    ''' <param name="direction"></param>
+    ''' <param name="numChannels"></param>
+    ''' <param name="borderType"></param>
+    ''' <param name="borderValue"></param>
+    ''' <param name="smoothEdge">Flag for edge smoothing. Supported values: 0: transformation without edge smoothing / 1: transformation with edge smoothing. This feature Is supported only for the ippBorderTransp And ippBorderInMem border types.</param>
+    ''' <param name="pSpec"></param>
+    ''' <returns></returns>
+    Public Function WarpAffineLinearInit(ByVal srcSize As IppiSize, ByVal dstSize As IppiSize, ByVal dataType As IppDataType, ByVal coeffs(,) As Double, ByVal direction As IppiWarpDirection, ByVal numChannels As Integer, ByVal borderType As IppiBorderType, ByVal borderValue As Double, ByVal smoothEdge As Integer, ByRef pSpec() As Byte) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPI("ippiWarpAffineLinearInit", GetType(CallSignature.sIppiSize_sIppiSize_eIppDataType_IntPtr_eIppiWarpDirection_Integer_eIppiBorderType_Double_Integer_IppiWrapSpec))
+        Using Pinner As New cPinHandler
+            Dim RefTypes_dbl(0) As Double
+            RetVal = CType(Caller.DynamicInvoke(srcSize, dstSize, dataType, Pinner.Pin(coeffs), direction, numChannels, borderType, Pinner.Pin(RefTypes_dbl, 0), 0, Pinner.Pin(pSpec, 0)), IppStatus)
+            borderValue = RefTypes_dbl(0)
         End Using : Return RetVal
     End Function
 
