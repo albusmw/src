@@ -21,7 +21,7 @@ Namespace Ato
             End Get
         End Property
 
-        Private Entries As New Dictionary(Of String, List(Of String))
+        Private Entries As New Collections.Generic.Dictionary(Of String, Collections.Generic.List(Of String))
 
         '''<summary>Allow multiple values for 1 key.</summary>
         Public Property AllowMultipleEntries() As Boolean
@@ -46,15 +46,15 @@ Namespace Ato
         Private MySortBeforeStore As Boolean = True
 
         '''<summary>Sign(s) that are used to indicate a comment.</summary>
-        Public Property CommentSigns() As List(Of String)
+        Public Property CommentSigns() As Collections.Generic.List(Of String)
             Get
                 Return MyCommentSigns
             End Get
-            Set(ByVal value As List(Of String))
+            Set(ByVal value As Collections.Generic.List(Of String))
                 MyCommentSigns = value
             End Set
         End Property
-        Private MyCommentSigns As New List(Of String)(New String() {";", "%", "/"})
+        Private MyCommentSigns As New Collections.Generic.List(Of String)(New String() {";", "%", "/"})
 
         Private Function ContentValid() As Boolean
             If IsNothing(Entries) = True Then Return False
@@ -66,7 +66,7 @@ Namespace Ato
         '''<remarks>All previous loaded entries will be removed.</remarks>
         Public Sub Load(ByVal FileName As String)
             If System.IO.File.Exists(FileName) = True Then
-                Entries = New Dictionary(Of String, List(Of String))
+                Entries = New Collections.Generic.Dictionary(Of String, Collections.Generic.List(Of String))
                 ParseContent(System.IO.File.ReadAllLines(FileName))
             End If
         End Sub
@@ -76,14 +76,14 @@ Namespace Ato
         Public Sub Load(ByVal Content As String())
             If IsNothing(Content) = True Then Exit Sub
             If Content.Length = 0 Then Exit Sub
-            Entries = New Dictionary(Of String, List(Of String))
+            Entries = New Collections.Generic.Dictionary(Of String, Collections.Generic.List(Of String))
             ParseContent(Content)
         End Sub
 
         '''<summary>Save the content of the given INI file.</summary>
         Public Sub Save(ByVal FileName As String)
             'Create a flat list of elements to store
-            Dim ToStore As New List(Of String)
+            Dim ToStore As New Collections.Generic.List(Of String)
             For Each Key As String In Entries.Keys
                 For Each Value As String In Entries(Key)
                     ToStore.Add(Key & "=" & Value)
@@ -92,7 +92,7 @@ Namespace Ato
             'Sort if requested
             If SortBeforeStore = True Then ToStore.Sort(AddressOf INISorter)
             'Parse through the list
-            Dim FileContent As New List(Of String)
+            Dim FileContent As New Collections.Generic.List(Of String)
             Dim CurrentSection As String = String.Empty
             For Each Entry As String In ToStore
                 If Entry.StartsWith("[") And Entry.Contains("]") Then
@@ -140,12 +140,12 @@ Namespace Ato
                             Dim Value As String = LineTrim.Substring(LineTrim.IndexOf("=") + 1)
                             'Create a new entry if the key does not exist
                             If Entries.ContainsKey(Key) = False Then
-                                Entries.Add(Key, New List(Of String)(New String() {Value}))
+                                Entries.Add(Key, New Collections.Generic.List(Of String)(New String() {Value}))
                             Else
                                 If AllowMultipleEntries Then
                                     Entries(Key).Add(Value)
                                 Else
-                                    Entries(Key) = New List(Of String)(New String() {Value})
+                                    Entries(Key) = New Collections.Generic.List(Of String)(New String() {Value})
                                 End If
                             End If
                         End If
@@ -215,7 +215,7 @@ Namespace Ato
                 Dim Key As String = String.Empty
                 If String.IsNullOrEmpty(Section) = False Then Key = "[" & Section & "]." & KeyName Else Key = KeyName
                 If Entries.ContainsKey(Key) Then
-                    Dim RetVal As List(Of String) = Entries(Key)
+                    Dim RetVal As Collections.Generic.List(Of String) = Entries(Key)
                     If IsNothing(RetVal) = True Then Return String.Empty
                     Select Case RetVal.Count
                         Case 0 : Return String.Empty
@@ -235,13 +235,13 @@ Namespace Ato
             If String.IsNullOrEmpty(Section) = False Then Key = "[" & Section & "]." & Key
             'If there is no content in the entries, create new lust
             If ContentValid() = False Then
-                Entries = New Dictionary(Of String, List(Of String))
-                Entries.Add(Key, New List(Of String)(New String() {Value}))
+                Entries = New Collections.Generic.Dictionary(Of String, Collections.Generic.List(Of String))
+                Entries.Add(Key, New Collections.Generic.List(Of String)(New String() {Value}))
             Else
                 If Entries.ContainsKey(Key) = False Then
-                    Entries.Add(Key, New List(Of String)(New String() {Value}))
+                    Entries.Add(Key, New Collections.Generic.List(Of String)(New String() {Value}))
                 Else
-                    Entries(Key) = New List(Of String)(New String() {Value})
+                    Entries(Key) = New Collections.Generic.List(Of String)(New String() {Value})
                 End If
             End If
         End Sub
