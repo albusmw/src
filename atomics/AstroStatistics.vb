@@ -207,7 +207,6 @@ Namespace AstroNET
         Private Shared Function CalcStatisticFromHistogram(ByRef Histogram As Collections.Generic.Dictionary(Of Int64, UInt32)) As sSingleChannelStatistics
 
             Dim RetVal As sSingleChannelStatistics = sSingleChannelStatistics.InitForShort()
-            Dim SamplesProcessed As UInt32 = 0
             Dim AllPixelValues As Collections.Generic.List(Of Int64) = cGenerics.GetDictionaryKeys(Histogram)
 
             'Count number of samples
@@ -226,29 +225,36 @@ Namespace AstroNET
             RetVal.Max = New Collections.Generic.KeyValuePair(Of Int64, UInt32)(AllPixelValues(0), Histogram(AllPixelValues(0)))
             RetVal.Modus = New Collections.Generic.KeyValuePair(Of Int64, UInt32)(AllPixelValues(0), Histogram(AllPixelValues(0)))
 
-            'Percentiles are from 1 to 99 pct in steps of 1 pct
-            Dim NextPct As Integer = 1
-            Dim NextPctLimit As Long = CLng(RetVal.Samples * (NextPct / 100))
+            'Init percentile - percentiles are writen in each bin as an incremental processing fails in fast-changing histograms
+            For Pct As Integer = 0 To 100
+                RetVal.Percentile.Add(Pct, Long.MinValue)
+            Next Pct
 
             'Move over the histogram
-            For Each PixelValue As Int64 In AllPixelValues
-                Dim HistCount As UInteger = Histogram(PixelValue)
-                SumSampleCount += HistCount
-                Dim WeightCount As Double = (CType(PixelValue, Double) * CType(HistCount, Double))
-                Dim WeightPow2 As Double = (CType(PixelValue, Double) * CType(PixelValue, Double)) * CType(HistCount, Double)
-                SamplesProcessed += HistCount
+            For Each HistoX As Int64 In AllPixelValues
+                Dim HistoY As UInteger = Histogram(HistoX)
+                SumSampleCount += HistoY
+                Dim WeightCount As Double = (CType(HistoX, Double) * CType(HistoY, Double))
+                Dim WeightPow2 As Double = (CType(HistoX, Double) * CType(HistoX, Double)) * CType(HistoY, Double)
                 MeanSum += WeightCount
                 MeanPow2Sum += WeightPow2
-                If PixelValue > RetVal.Max.Key Then RetVal.Max = New Collections.Generic.KeyValuePair(Of Int64, UInteger)(PixelValue, Histogram(PixelValue))
-                If PixelValue < RetVal.Min.Key Then RetVal.Min = New Collections.Generic.KeyValuePair(Of Int64, UInteger)(PixelValue, Histogram(PixelValue))
-                If HistCount > RetVal.Modus.Value Then RetVal.Modus = New Collections.Generic.KeyValuePair(Of Int64, UInteger)(PixelValue, Histogram(PixelValue))
-                If SamplesProcessed >= RetVal.Samples \ 2 And RetVal.Median = Int64.MinValue Then RetVal.Median = PixelValue
-                If SumSampleCount >= NextPctLimit Then
-                    RetVal.Percentile.Add(NextPct, PixelValue)
-                    NextPct += 1
-                    NextPctLimit = CLng(RetVal.Samples * (NextPct / 100))
+                If HistoX > RetVal.Max.Key Then RetVal.Max = New Collections.Generic.KeyValuePair(Of Int64, UInteger)(HistoX, Histogram(HistoX))
+                If HistoX < RetVal.Min.Key Then RetVal.Min = New Collections.Generic.KeyValuePair(Of Int64, UInteger)(HistoX, Histogram(HistoX))
+                If HistoY > RetVal.Modus.Value Then RetVal.Modus = New Collections.Generic.KeyValuePair(Of Int64, UInteger)(HistoX, Histogram(HistoX))
+                If SumSampleCount >= RetVal.Samples \ 2 And RetVal.Median = Int64.MinValue Then RetVal.Median = HistoX
+                Dim PctIdx As Integer = CInt(100 * (SumSampleCount / RetVal.Samples))
+                If RetVal.Percentile(PctIdx) = Long.MinValue Then RetVal.Percentile(PctIdx) = HistoX
+            Next HistoX
+
+            'Set percentiles in bin which to not have a valid entry
+            Dim LastValidPct As Long = RetVal.Percentile(1)
+            For Pct As Integer = 0 To 100
+                If RetVal.Percentile(Pct) = Long.MinValue Then
+                    RetVal.Percentile(Pct) = LastValidPct
+                Else
+                    LastValidPct = RetVal.Percentile(Pct)
                 End If
-            Next PixelValue
+            Next Pct
 
             'Calculate final outputs
             RetVal.Mean = MeanSum / RetVal.Samples

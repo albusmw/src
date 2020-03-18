@@ -9,7 +9,7 @@ Public Class ImageProcessing
 
     '''<summary>Calculate a color-balanced flat image.</summary>
     '''<remarks>Color balance is done by multiplying with the median values.</remarks>
-    Public Shared Sub BayerFlatBalance(ByRef Data(,) As UInt32, ByRef Stat(,) As Dictionary(Of UInt32, UInt32))
+    Public Shared Sub BayerFlatBalance(ByRef Data(,) As UInt32, ByRef Stat(,) As Dictionary(Of Long, UInt32))
 
         Dim BayerCountX As Integer = Stat.GetUpperBound(0) + 1
         Dim BayerCountY As Integer = Stat.GetUpperBound(1) + 1
