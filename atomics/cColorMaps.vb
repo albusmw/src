@@ -18,13 +18,13 @@ Public Class cColorMaps
     End Enum
 
     '''<summary>Invalid color in NONE schema.</summary>
-    Private Shared ColorInvalid_None As Color = Color.Red
+    Private Shared ColorInvalid_None As Drawing.Color = Drawing.Color.Red
     '''<summary>Invalid color in HOT schema.</summary>
-    Private Shared ColorInvalid_Hot As Color = Color.Blue
+    Private Shared ColorInvalid_Hot As Drawing.Color = Drawing.Color.Blue
     '''<summary>Invalid color in JET schema.</summary>
-    Private Shared ColorInvalid_Jet As Color = Color.Black
+    Private Shared ColorInvalid_Jet As Drawing.Color = Drawing.Color.Black
     '''<summary>Invalid color in BONE schema.</summary>
-    Private Shared ColorInvalid_Bone As Color = Color.Red
+    Private Shared ColorInvalid_Bone As Drawing.Color = Drawing.Color.Red
 
     '''<summary>Calculate the gray color according to the passed double value.</summary>
     '''<param name="X">Value to calculate color for (0..255).</param>
@@ -141,8 +141,8 @@ Public Class cColorMaps
     '''<returns>Color according to the value.</returns>
     Public Shared Function FalseColorHSL(ByVal X As Double) As Drawing.Color
         X = X * (360 / 255)
-        If X < 0 Then Return Color.Black
-        If X > 360 Then Return Color.White
+        If X < 0 Then Return Drawing.Color.Black
+        If X > 360 Then Return Drawing.Color.White
         Return HLS_to_RGB(X, 1, 1)
     End Function
 
@@ -151,11 +151,11 @@ Public Class cColorMaps
     '''<param name="L">Lightness - 0 ... 1.</param>
     '''<param name="S">Saturation - 0 ... 1.</param>
     '''<returns>Calculated color.</returns>
-    Public Shared Function HLS_to_RGB(ByVal H As Double, ByVal L As Double, ByVal S As Double) As Color
+    Public Shared Function HLS_to_RGB(ByVal H As Double, ByVal L As Double, ByVal S As Double) As Drawing.Color
 
         Dim p1 As Double
         Dim p2 As Double
-        Dim RetVal As Color
+        Dim RetVal As Drawing.Color
 
         If L <= 0.5 Then
             p2 = L * (1 + S)
@@ -164,12 +164,12 @@ Public Class cColorMaps
         End If
         p1 = 2 * L - p2
         If S = 0 Then
-            RetVal = Color.FromArgb(CInt(L), CInt(L), CInt(L))
+            RetVal = Drawing.Color.FromArgb(CInt(L), CInt(L), CInt(L))
         Else
             Dim R As Double = QqhToRgb(p1, p2, H + 120) * 255
             Dim G As Double = QqhToRgb(p1, p2, H) * 255
             Dim B As Double = QqhToRgb(p1, p2, H - 120) * 255
-            RetVal = Color.FromArgb(CInt(R), CInt(G), CInt(B))
+            RetVal = Drawing.Color.FromArgb(CInt(R), CInt(G), CInt(B))
         End If
 
         Return RetVal
