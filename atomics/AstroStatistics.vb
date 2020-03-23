@@ -269,13 +269,15 @@ Namespace AstroNET
             Dim RetVal As New Collections.Generic.Dictionary(Of T, UInt32)
             For Idx1 As Integer = 0 To BayerHistData.GetUpperBound(0)
                 For Idx2 As Integer = 0 To BayerHistData.GetUpperBound(1)
-                    For Each KeyIdx As T In BayerHistData(Idx1, Idx2).Keys
-                        If RetVal.ContainsKey(KeyIdx) = False Then
-                            RetVal.Add(KeyIdx, BayerHistData(Idx1, Idx2)(KeyIdx))
-                        Else
-                            RetVal(KeyIdx) += BayerHistData(Idx1, Idx2)(KeyIdx)
-                        End If
-                    Next KeyIdx
+                    If IsNothing(BayerHistData(Idx1, Idx2)) = False Then
+                        For Each KeyIdx As T In BayerHistData(Idx1, Idx2).Keys
+                            If RetVal.ContainsKey(KeyIdx) = False Then
+                                RetVal.Add(KeyIdx, BayerHistData(Idx1, Idx2)(KeyIdx))
+                            Else
+                                RetVal(KeyIdx) += BayerHistData(Idx1, Idx2)(KeyIdx)
+                            End If
+                        Next KeyIdx
+                    End If
                 Next Idx2
             Next Idx1
             Return cGenerics.SortDictionary(RetVal)

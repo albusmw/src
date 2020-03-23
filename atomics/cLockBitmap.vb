@@ -9,21 +9,21 @@ Public Class cLockBitmap
         B
     End Enum
 
-    Public BitmapData As Imaging.BitmapData = Nothing
+    Public BitmapData As Drawing.Imaging.BitmapData = Nothing
     Public ColorBytesPerPixel As Integer = 0
 
-    Public BitmapToProcess As Bitmap = Nothing
+    Public BitmapToProcess As Drawing.Bitmap = Nothing
     Private BitmapDataPtr As IntPtr = IntPtr.Zero
 
     Public Pixels As Byte()
 
     Public Property Width() As Integer = -1
     Public Property Height() As Integer = -1
-    Public Property InvalidColor As Color = Color.HotPink
+    Public Property InvalidColor As Drawing.Color = Drawing.Color.HotPink
 
 
     Public Sub New(ByVal Width As Integer, ByVal Height As Integer)
-        Me.BitmapToProcess = New Bitmap(Width, Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb)
+        Me.BitmapToProcess = New Drawing.Bitmap(Width, Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb)
     End Sub
 
     '''<summary>Lock bitmap data.</summary>
@@ -37,7 +37,7 @@ Public Class cLockBitmap
         Dim PixelCount As Integer = Width * Height
 
         'Create rectangle to lock
-        Dim rect As New Rectangle(0, 0, Width, Height)
+        Dim rect As New Drawing.Rectangle(0, 0, Width, Height)
 
         'Get source bitmap pixel format size
         ColorBytesPerPixel = System.Drawing.Bitmap.GetPixelFormatSize(BitmapToProcess.PixelFormat) \ 8
@@ -51,7 +51,7 @@ Public Class cLockBitmap
         End Select
 
         'Lock bitmap and return bitmap data
-        BitmapData = BitmapToProcess.LockBits(rect, Imaging.ImageLockMode.ReadWrite, BitmapToProcess.PixelFormat)
+        BitmapData = BitmapToProcess.LockBits(rect, Drawing.Imaging.ImageLockMode.ReadWrite, BitmapToProcess.PixelFormat)
 
         'Create byte array to copy pixel values
         Pixels = New Byte(BitmapData.Stride * Height - 1) {}
@@ -76,9 +76,9 @@ Public Class cLockBitmap
     '''<param name="X">X coordinate - from left to right, X=0 is top-left.</param>
     '''<param name="Y">Y coordinate - from top to bottom, Y=0 is top.</param>
     '''<returns>Color value.</returns>
-    Public Function GetPixel(x As Integer, y As Integer) As Color
+    Public Function GetPixel(x As Integer, y As Integer) As Drawing.Color
 
-        Dim ColorToSet As Color = Color.Empty
+        Dim ColorToSet As Drawing.Color = Drawing.Color.Empty
 
         ' Get start index of the specified pixel
         Dim i As Integer = (y * BitmapData.Stride) + (x * ColorBytesPerPixel)
@@ -94,7 +94,7 @@ Public Class cLockBitmap
             Dim r As Byte = Pixels(i + 2)
             Dim a As Byte = Pixels(i + 3)
             ' a
-            ColorToSet = Color.FromArgb(a, r, g, b)
+            ColorToSet = Drawing.Color.FromArgb(a, r, g, b)
         End If
 
         If ColorBytesPerPixel = 3 Then
@@ -102,13 +102,13 @@ Public Class cLockBitmap
             Dim b As Byte = Pixels(i)
             Dim g As Byte = Pixels(i + 1)
             Dim r As Byte = Pixels(i + 2)
-            ColorToSet = Color.FromArgb(r, g, b)
+            ColorToSet = Drawing.Color.FromArgb(r, g, b)
         End If
 
         If ColorBytesPerPixel = 1 Then
             ' For 8 bpp get color value (Red, Green and Blue values are the same)
             Dim c As Byte = Pixels(i)
-            ColorToSet = Color.FromArgb(c, c, c)
+            ColorToSet = Drawing.Color.FromArgb(c, c, c)
         End If
 
         Return ColorToSet
@@ -116,7 +116,7 @@ Public Class cLockBitmap
     End Function
 
     '''<summary>Set the complete image to the given color.</summary>
-    Public Sub SetAll(ByVal Color As Color)
+    Public Sub SetAll(ByVal Color As Drawing.Color)
 
         ' Get start index of the specified pixel
         Dim R As Byte = Color.R
@@ -134,7 +134,7 @@ Public Class cLockBitmap
     '''<summary>Set the color of the specified pixel</summary>
     '''<param name="X">X coordinate - from left to right, X=0 is top-left.</param>
     '''<param name="Y">Y coordinate - from top to bottom, Y=0 is top.</param>
-    Public Sub SetPixel(x As Integer, y As Integer, ByVal Color As Color)
+    Public Sub SetPixel(x As Integer, y As Integer, ByVal Color As Drawing.Color)
 
         ' Get start index of the specified pixel
         Dim i As Integer = (y * BitmapData.Stride) + (x * ColorBytesPerPixel)
