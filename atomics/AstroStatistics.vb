@@ -119,6 +119,7 @@ Namespace AstroNET
                 Return RetVal
             End Function
             '''<summary>Report of all statistics properties of the structure.</summary>
+            '''<param name="DispHeader">TRUE to display the header, FALSE else.</param>
             Public Function StatisticsReport() As Collections.Generic.List(Of String)
                 Dim RetVal As New Collections.Generic.List(Of String)
                 RetVal.Add("Total pixel     : " & Samples.ValRegIndep.PadLeft(ReportValueLength))
@@ -208,6 +209,7 @@ Namespace AstroNET
 
             Dim RetVal As sSingleChannelStatistics = sSingleChannelStatistics.InitForShort()
             Dim AllPixelValues As Collections.Generic.List(Of Int64) = cGenerics.GetDictionaryKeys(Histogram)
+            AllPixelValues.Sort()
 
             'Count number of samples
             For Each PixelValue As Int64 In Histogram.Keys
@@ -222,12 +224,13 @@ Namespace AstroNET
             Dim MeanSum As Double = 0
             Dim MeanPow2Sum As System.Double = 0
             RetVal.Min = New Collections.Generic.KeyValuePair(Of Int64, UInt32)(AllPixelValues(0), Histogram(AllPixelValues(0)))
-            RetVal.Max = New Collections.Generic.KeyValuePair(Of Int64, UInt32)(AllPixelValues(0), Histogram(AllPixelValues(0)))
+            RetVal.Max = New Collections.Generic.KeyValuePair(Of Int64, UInt32)(AllPixelValues(AllPixelValues.Count - 1), Histogram(AllPixelValues(AllPixelValues.Count - 1)))
             RetVal.Modus = New Collections.Generic.KeyValuePair(Of Int64, UInt32)(AllPixelValues(0), Histogram(AllPixelValues(0)))
 
             'Init percentile - percentiles are writen in each bin as an incremental processing fails in fast-changing histograms
+            Dim PCTInvalid As Long = Long.MinValue
             For Pct As Integer = 0 To 100
-                RetVal.Percentile.Add(Pct, Long.MinValue)
+                RetVal.Percentile.Add(Pct, PCTInvalid)
             Next Pct
 
             'Move over the histogram
@@ -238,18 +241,16 @@ Namespace AstroNET
                 Dim WeightPow2 As Double = (CType(HistoX, Double) * CType(HistoX, Double)) * CType(HistoY, Double)
                 MeanSum += WeightCount
                 MeanPow2Sum += WeightPow2
-                If HistoX > RetVal.Max.Key Then RetVal.Max = New Collections.Generic.KeyValuePair(Of Int64, UInteger)(HistoX, Histogram(HistoX))
-                If HistoX < RetVal.Min.Key Then RetVal.Min = New Collections.Generic.KeyValuePair(Of Int64, UInteger)(HistoX, Histogram(HistoX))
                 If HistoY > RetVal.Modus.Value Then RetVal.Modus = New Collections.Generic.KeyValuePair(Of Int64, UInteger)(HistoX, Histogram(HistoX))
                 If SumSampleCount >= RetVal.Samples \ 2 And RetVal.Median = Int64.MinValue Then RetVal.Median = HistoX
                 Dim PctIdx As Integer = CInt(100 * (SumSampleCount / RetVal.Samples))
-                If RetVal.Percentile(PctIdx) = Long.MinValue Then RetVal.Percentile(PctIdx) = HistoX
+                If RetVal.Percentile(PctIdx) = PCTInvalid Then RetVal.Percentile(PctIdx) = HistoX
             Next HistoX
 
             'Set percentiles in bin which to not have a valid entry
-            Dim LastValidPct As Long = RetVal.Percentile(1)
+            Dim LastValidPct As Long = RetVal.Min.Key
             For Pct As Integer = 0 To 100
-                If RetVal.Percentile(Pct) = Long.MinValue Then
+                If RetVal.Percentile(Pct) = PCTInvalid Then
                     RetVal.Percentile(Pct) = LastValidPct
                 Else
                     LastValidPct = RetVal.Percentile(Pct)
