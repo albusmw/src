@@ -134,6 +134,23 @@ Public Class Everything
     Public Shared Sub Everything_Reset()
     End Sub
 
+    '''<summary>Run a Everything search as in the Everything GUI.</summary>
+    '''<param name="SearchQuery">e.g. "C:\GIT" IPP*.dll"</param>
+    '''<returns></returns>
+    Public Shared Function GetSearchResult(ByVal SearchQuery As String) As Collections.Generic.List(Of String)
+        Dim RetVal As New Collections.Generic.List(Of String)
+        Everything.Everything_SetSearchW(SearchQuery)
+        Everything.Everything_QueryW(True)
+        'Get all found files
+        Dim bufsize As Integer = 260
+        Dim buf As New System.Text.StringBuilder(bufsize)
+        For Idx As Integer = 0 To Everything.Everything_GetNumResults() - 1
+            Everything.Everything_GetResultFullPathNameW(Idx, buf, bufsize)
+            RetVal.Add(buf.ToString)
+        Next Idx
+        Return RetVal
+    End Function
+
     Const MY_REPLY_ID As Integer = 0
 
 End Class
