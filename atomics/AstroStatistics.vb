@@ -125,7 +125,7 @@ Namespace AstroNET
             '''<param name="DispHeader">TRUE to display the header, FALSE else.</param>
             Public Function StatisticsReport() As Collections.Generic.List(Of String)
                 Dim RetVal As New Collections.Generic.List(Of String)
-                Dim HistXDist_keys As List(Of Long) = cGenerics.GetDictionaryKeys(HistXDist)
+                Dim HistXDist_keys As Collections.Generic.List(Of UInteger) = cGenerics.GetDictionaryKeys(HistXDist)
                 RetVal.Add("Total pixel       : " & Samples.ValRegIndep.PadLeft(ReportValueLength))
                 RetVal.Add("Total pixel       : " & ((Samples / 1000000).ValRegIndep("0.0") & "M").PadLeft(ReportValueLength))
                 RetVal.Add("Different values  : " & DifferentValueCount.ValRegIndep.PadLeft(ReportValueLength))

@@ -88,11 +88,11 @@ End Module
 Module VectorExtension
 
     <Extension()>
-    Public Function ToDouble(ByVal Vector As List(Of UInt32)) As Double()
+    Public Function ToDouble(ByVal Vector As Collections.Generic.List(Of UInt32)) As Double()
         Dim RetVal(Vector.Count - 1) As Double
-        Parallel.For(0, RetVal.GetUpperBound(0) + 1, Sub(Idx As Integer)
-                                                         RetVal(Idx) = Vector.Item(Idx)
-                                                     End Sub)
+        Threading.Tasks.Parallel.For(0, RetVal.GetUpperBound(0) + 1, Sub(Idx As Integer)
+                                                                         RetVal(Idx) = Vector.Item(Idx)
+                                                                     End Sub)
 
         Return RetVal
     End Function
@@ -100,9 +100,9 @@ Module VectorExtension
     <Extension()>
     Public Function ToDouble(ByVal Vector() As UInt32) As Double()
         Dim RetVal(Vector.GetUpperBound(0) - 1) As Double
-        Parallel.For(0, Vector.GetUpperBound(0) + 1, Sub(Idx As Integer)
-                                                         RetVal(Idx) = Vector(Idx)
-                                                     End Sub)
+        Threading.Tasks.Parallel.For(0, Vector.GetUpperBound(0) + 1, Sub(Idx As Integer)
+                                                                         RetVal(Idx) = Vector(Idx)
+                                                                     End Sub)
 
         Return RetVal
     End Function
@@ -128,11 +128,10 @@ Module VectorExtension
     End Function
 
     <Extension()>
-    Public Function ToDouble(ByVal Vector As List(Of ULong)) As Double()
         Dim RetVal(Vector.Count - 1) As Double
-        Parallel.For(0, RetVal.GetUpperBound(0) + 1, Sub(Idx As Integer)
-                                                         RetVal(Idx) = Vector.Item(Idx)
-                                                     End Sub)
+        Threading.Tasks.Parallel.For(0, RetVal.GetUpperBound(0) + 1, Sub(Idx As Integer)
+                                                                         RetVal(Idx) = Vector.Item(Idx)
+                                                                     End Sub)
 
         Return RetVal
     End Function
@@ -140,9 +139,9 @@ Module VectorExtension
     <Extension()>
     Public Function ToDouble(ByVal Vector() As ULong) As Double()
         Dim RetVal(Vector.GetUpperBound(0) - 1) As Double
-        Parallel.For(0, Vector.GetUpperBound(0) + 1, Sub(Idx As Integer)
-                                                         RetVal(Idx) = Vector(Idx)
-                                                     End Sub)
+        Threading.Tasks.Parallel.For(0, Vector.GetUpperBound(0) + 1, Sub(Idx As Integer)
+                                                                         RetVal(Idx) = Vector(Idx)
+                                                                     End Sub)
 
         Return RetVal
     End Function
