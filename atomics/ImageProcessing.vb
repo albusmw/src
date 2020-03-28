@@ -7,6 +7,16 @@ Option Strict On
 
 Public Class ImageProcessing
 
+    '''<summary>Helping structure e.g. for non-linear operations.</summary>
+    Private Structure sCoordIntensity
+        Public X As Integer
+        Public Y As Integer
+        Public Intensity As Double
+        Public Shared Function Sorter(ByVal Element1 As sCoordIntensity, ByVal Element2 As sCoordIntensity) As Integer
+            Return Element1.Intensity.CompareTo(Element2.Intensity)
+        End Function
+    End Structure
+
     '''<summary>Calculate a color-balanced flat image.</summary>
     '''<remarks>Color balance is done by multiplying with the median values.</remarks>
     Public Shared Sub BayerFlatBalance(ByRef Data(,) As UInt32, ByRef Stat(,) As Dictionary(Of Long, UInt32))
@@ -46,6 +56,27 @@ Public Class ImageProcessing
             Next Idx2
         Next Idx1
 
+    End Sub
+
+    '''<summary>Make the histogram a straight line.</summary>
+    Public Shared Sub MakeHistoStraight(ByRef Data(,) As UInt16)
+        Dim ToSort As New List(Of sCoordIntensity)
+        For Idx1 As Integer = 0 To Data.GetUpperBound(0)
+            For Idx2 As Integer = 0 To Data.GetUpperBound(1)
+                Dim NewElement As sCoordIntensity
+                NewElement.X = Idx1
+                NewElement.Y = Idx2
+                NewElement.Intensity = Data(Idx1, Idx2)
+                ToSort.Add(NewElement)
+            Next Idx2
+        Next Idx1
+        ToSort.Sort(AddressOf sCoordIntensity.Sorter)
+        Dim CurrentIntense As Double = 0
+        Dim IntenseStepping As Double = UInt16.MaxValue / ToSort.Count
+        For Each Entry As sCoordIntensity In ToSort
+            Data(Entry.X, Entry.Y) = CUShort(CurrentIntense)
+            CurrentIntense += IntenseStepping
+        Next Entry
     End Sub
 
     '''<summary>Calculate the number of all samples taken.</summary>

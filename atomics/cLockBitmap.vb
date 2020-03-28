@@ -1,6 +1,7 @@
 Option Explicit On
 Option Strict On
 
+'''<summary>Class for fast access to bitmap data in memory.</summary>
 Public Class cLockBitmap
 
     Public Enum RGBChannel
@@ -9,10 +10,14 @@ Public Class cLockBitmap
         B
     End Enum
 
-    Public BitmapData As Drawing.Imaging.BitmapData = Nothing
+    Private PixelFormat As System.Drawing.Imaging.PixelFormat = System.Drawing.Imaging.PixelFormat.Format24bppRgb
+
     Public ColorBytesPerPixel As Integer = 0
 
+
     Public BitmapToProcess As Drawing.Bitmap = Nothing
+    Public BitmapData As Drawing.Imaging.BitmapData = Nothing
+
     Private BitmapDataPtr As IntPtr = IntPtr.Zero
 
     Public Pixels As Byte()
@@ -21,9 +26,9 @@ Public Class cLockBitmap
     Public Property Height() As Integer = -1
     Public Property InvalidColor As Drawing.Color = Drawing.Color.HotPink
 
-
+    '''<summary>Init a new bitmap with the given width and height.</summary>
     Public Sub New(ByVal Width As Integer, ByVal Height As Integer)
-        Me.BitmapToProcess = New Drawing.Bitmap(Width, Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb)
+        Me.BitmapToProcess = New Drawing.Bitmap(Width, Height, PixelFormat)
     End Sub
 
     '''<summary>Lock bitmap data.</summary>
@@ -158,6 +163,7 @@ Public Class cLockBitmap
 
         ' Get start index of the specified pixel
         Dim i As Integer = (y * BitmapData.Stride) + (x * ColorBytesPerPixel)
+
         'Cache the invalid color code
         Dim Invalid_R As Byte = InvalidColor.R
         Dim Invalid_G As Byte = InvalidColor.G
@@ -165,7 +171,7 @@ Public Class cLockBitmap
 
         If ColorBytesPerPixel = 3 Then
             ' For 24 bpp set Red, Green and Blue
-            If B >= 0 And B <= 255 And B >= 0 And B <= 255 And B >= 0 And B <= 255 Then
+            If R >= 0 And R <= 255 And G >= 0 And G <= 255 And B >= 0 And B <= 255 Then
                 Pixels(i) = CByte(B)
                 Pixels(i + 1) = CByte(G)
                 Pixels(i + 2) = CByte(R)
@@ -220,5 +226,29 @@ Public Class cLockBitmap
 
     End Sub
 
+    '''<summary>Calculate a linear grayscale image from the passed data.</summary>
+    '''<param name="ImageData">Data to calculate cLockBitmap from.</param>
+    '''<param name="MaxData">Data maximum.</param>
+    Public Shared Function CalculateOutputBitmap(ByRef ImageData(,) As UInt16, ByVal MaxData As Double) As cLockBitmap
+        Dim OutputImage As New cLockBitmap(ImageData.GetUpperBound(0), ImageData.GetUpperBound(1))
+        OutputImage.LockBits()
+        Dim Stride As Integer = OutputImage.BitmapData.Stride
+        Dim BytePerPixel As Integer = OutputImage.ColorBytesPerPixel
+        Dim YOffset As Integer = 0
+        For Y As Integer = 0 To OutputImage.Height - 1
+            Dim BaseOffset As Integer = YOffset
+            For X As Integer = 0 To OutputImage.Width - 1
+                Dim DispVal As Integer = CInt(ImageData(X, Y) * (255 / MaxData))
+                Dim Coloring As Drawing.Color = Drawing.Color.FromArgb(DispVal, DispVal, DispVal)
+                OutputImage.Pixels(BaseOffset) = Coloring.B
+                OutputImage.Pixels(BaseOffset + 1) = Coloring.G
+                OutputImage.Pixels(BaseOffset + 2) = Coloring.R
+                BaseOffset += BytePerPixel
+            Next X
+            YOffset += Stride
+        Next Y
+        OutputImage.UnlockBits()
+        Return OutputImage
+    End Function
 
 End Class

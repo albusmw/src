@@ -430,6 +430,10 @@ Namespace Ato
                     For Idx As Integer = 0 To RetVal.GetUpperBound(0)
                         RetVal(Idx) = Stats(Idx).Minimum
                     Next Idx
+                Case eAspects.Sigma
+                    For Idx As Integer = 0 To RetVal.GetUpperBound(0)
+                        RetVal(Idx) = Stats(Idx).Sigma
+                    Next Idx
             End Select
             Return RetVal
         End Function

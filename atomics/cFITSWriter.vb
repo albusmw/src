@@ -293,7 +293,7 @@ Public Class cFITSWriter
                     Next Idx1
                 End If
             Case Else
-                Throw New FITSWriterException("Conversion from Int32 to BitPix <" & CStr(CInt(BitPix)).Trim & "> is not supported!")
+                Throw New FITSWriterException("Conversion from Int16 to BitPix <" & CStr(CInt(BitPix)).Trim & "> is not supported!")
         End Select
 
         'Finish

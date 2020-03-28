@@ -74,7 +74,7 @@ Namespace AstroNET
         '''<remarks>The maximum word with is taken as pixel values to cover all fixed-point formats ...</remarks>
         Public Structure sSingleChannelStatistics
             '''<summary>Number of characters in the header of the report.</summary>
-            Public Shared ReadOnly Property ReportHeaderLength As Integer = 18
+            Public Shared ReadOnly Property ReportHeaderLength As Integer = 20
             '''<summary>Number of characters in the value of the report.</summary>
             Public Shared ReadOnly Property ReportValueLength As Integer = 16
             '''<summary>Number of total samples (pixels) in the data set.</summary>
@@ -91,18 +91,20 @@ Namespace AstroNET
             Public MeanPow2 As Double
             '''<summary>Standard deviation (calculated as in FitsWork).</summary>
             Public StdDev As Double
+            '''<summary>Number of different values in the data.</summary>
+            Public DifferentValueCount As Integer
+            '''<summary>Distance between the histogram X axis points.</summary>
+            Public HistXDist As Collections.Generic.Dictionary(Of UInt32, UInt64)
+            '''<summary>Percentile.</summary>
+            Public Percentile As Collections.Generic.Dictionary(Of Integer, Int64)
+            '''<summary>Pixel value that is present the most often.</summary>
+            Public Modus As Collections.Generic.KeyValuePair(Of Int64, UInt32)
             '''<summary>Standard deviation (calculated as in FitsWork).</summary>
             Public ReadOnly Property Variance As Double
                 Get
                     Return StdDev ^ 2
                 End Get
             End Property
-            '''<summary>Number of different values in the data.</summary>
-            Public DifferentValueCount As Integer
-            '''<summary>Percentile.</summary>
-            Public Percentile As Collections.Generic.Dictionary(Of Integer, Int64)
-            '''<summary>Pixel value that is present the most often.</summary>
-            Public Modus As Collections.Generic.KeyValuePair(Of Int64, UInt32)
             '''<summary>Init all inner variables.</summary>
             Public Shared Function InitForShort() As sSingleChannelStatistics
                 Dim RetVal As New sSingleChannelStatistics
@@ -113,6 +115,7 @@ Namespace AstroNET
                 RetVal.MeanPow2 = 0
                 RetVal.StdDev = Double.NaN
                 RetVal.DifferentValueCount = 0
+                RetVal.HistXDist = New Collections.Generic.Dictionary(Of UInt32, UInt64)
                 RetVal.Median = Int64.MinValue
                 RetVal.Percentile = New Collections.Generic.Dictionary(Of Integer, Int64)
                 RetVal.Modus = Nothing
@@ -122,18 +125,21 @@ Namespace AstroNET
             '''<param name="DispHeader">TRUE to display the header, FALSE else.</param>
             Public Function StatisticsReport() As Collections.Generic.List(Of String)
                 Dim RetVal As New Collections.Generic.List(Of String)
-                RetVal.Add("Total pixel     : " & Samples.ValRegIndep.PadLeft(ReportValueLength))
-                RetVal.Add("Total pixel     : " & ((Samples / 1000000).ValRegIndep("0.0") & "M").PadLeft(ReportValueLength))
-                RetVal.Add("Different values: " & DifferentValueCount.ValRegIndep.PadLeft(ReportValueLength))
-                RetVal.Add("Min value       : " & (Min.Key.ValRegIndep & " (" & Min.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
-                RetVal.Add("Modus value     : " & (Modus.Key.ValRegIndep & " (" & Modus.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
-                RetVal.Add("Max value       : " & (Max.Key.ValRegIndep & " (" & Max.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
-                RetVal.Add("Median value    : " & Median.ValRegIndep.PadLeft(ReportValueLength))
-                RetVal.Add("Mean value      : " & Format(Mean, "0.000").ToString.Trim.PadLeft(ReportValueLength))
-                RetVal.Add("Standard dev.   : " & Format(StdDev, "0.000").ToString.Trim.PadLeft(ReportValueLength))
-                RetVal.Add("Variance        : " & Format(Variance, "0.000").ToString.Trim.PadLeft(ReportValueLength))
+                Dim HistXDist_keys As List(Of UInteger) = cGenerics.GetDictionaryKeys(HistXDist)
+                RetVal.Add("Total pixel       : " & Samples.ValRegIndep.PadLeft(ReportValueLength))
+                RetVal.Add("Total pixel       : " & ((Samples / 1000000).ValRegIndep("0.0") & "M").PadLeft(ReportValueLength))
+                RetVal.Add("Different values  : " & DifferentValueCount.ValRegIndep.PadLeft(ReportValueLength))
+                RetVal.Add("Min value         : " & (Min.Key.ValRegIndep & " (" & Min.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
+                RetVal.Add("Modus value       : " & (Modus.Key.ValRegIndep & " (" & Modus.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
+                RetVal.Add("Max value         : " & (Max.Key.ValRegIndep & " (" & Max.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
+                RetVal.Add("Median value      : " & Median.ValRegIndep.PadLeft(ReportValueLength))
+                RetVal.Add("Mean value        : " & Format(Mean, "0.000").ToString.Trim.PadLeft(ReportValueLength))
+                RetVal.Add("Standard dev.     : " & Format(StdDev, "0.000").ToString.Trim.PadLeft(ReportValueLength))
+                RetVal.Add("Variance          : " & Format(Variance, "0.000").ToString.Trim.PadLeft(ReportValueLength))
+                RetVal.Add("ADU step size min : " & Format(HistXDist_keys(0), "####0").ToString.Trim.PadLeft(ReportValueLength))
+                RetVal.Add("ADU different step: " & Format(HistXDist_keys.Count, "####0").ToString.Trim.PadLeft(ReportValueLength))
                 For Each Pct As Integer In New Integer() {1, 5, 10, 25, 50, 75, 90, 95, 99}
-                    If Percentile.ContainsKey(Pct) Then RetVal.Add("Percentil - " & Pct.ToString.Trim.PadLeft(2) & " %: " & Format(Percentile(Pct)).ToString.Trim.PadLeft(ReportValueLength))
+                    If Percentile.ContainsKey(Pct) Then RetVal.Add(("Percentil - " & Pct.ToString.Trim.PadLeft(2) & " %: ").PadRight(ReportHeaderLength) & Format(Percentile(Pct)).ToString.Trim.PadLeft(ReportValueLength))
                 Next Pct
                 Return RetVal
             End Function
@@ -205,6 +211,7 @@ Namespace AstroNET
         End Sub
 
         '''<summary>Calculate the statistic data from the passed histogram data.</summary>
+        '''<param name="Histogram">Calculated histogram data.</param>
         Private Shared Function CalcStatisticFromHistogram(ByRef Histogram As Collections.Generic.Dictionary(Of Int64, UInt32)) As sSingleChannelStatistics
 
             Dim RetVal As sSingleChannelStatistics = sSingleChannelStatistics.InitForShort()
@@ -226,6 +233,7 @@ Namespace AstroNET
             RetVal.Min = New Collections.Generic.KeyValuePair(Of Int64, UInt32)(AllPixelValues(0), Histogram(AllPixelValues(0)))
             RetVal.Max = New Collections.Generic.KeyValuePair(Of Int64, UInt32)(AllPixelValues(AllPixelValues.Count - 1), Histogram(AllPixelValues(AllPixelValues.Count - 1)))
             RetVal.Modus = New Collections.Generic.KeyValuePair(Of Int64, UInt32)(AllPixelValues(0), Histogram(AllPixelValues(0)))
+            RetVal.HistXDist = New Collections.Generic.Dictionary(Of UInt32, UInt64)
 
             'Init percentile - percentiles are writen in each bin as an incremental processing fails in fast-changing histograms
             Dim PCTInvalid As Long = Long.MinValue
@@ -233,7 +241,7 @@ Namespace AstroNET
                 RetVal.Percentile.Add(Pct, PCTInvalid)
             Next Pct
 
-            'Move over the histogram
+            'Move over the histogram for percentile
             For Each HistoX As Int64 In AllPixelValues
                 Dim HistoY As UInteger = Histogram(HistoX)
                 SumSampleCount += HistoY
@@ -246,6 +254,7 @@ Namespace AstroNET
                 Dim PctIdx As Integer = CInt(100 * (SumSampleCount / RetVal.Samples))
                 If RetVal.Percentile(PctIdx) = PCTInvalid Then RetVal.Percentile(PctIdx) = HistoX
             Next HistoX
+            RetVal.HistXDist = GetQuantizationHisto(Histogram)
 
             'Set percentiles in bin which to not have a valid entry
             Dim LastValidPct As Long = RetVal.Min.Key
@@ -263,6 +272,24 @@ Namespace AstroNET
             RetVal.StdDev = Math.Sqrt(RetVal.MeanPow2 - (RetVal.Mean * RetVal.Mean))
             Return RetVal
 
+        End Function
+
+        '''<summary>Get the histogram for all quanization level differences found.</summary>
+        Public Shared Function GetQuantizationHisto(ByRef Histo As Collections.Generic.Dictionary(Of Long, UInt32)) As Collections.Generic.Dictionary(Of UInt32, UInt64)
+            Dim RetVal As New Collections.Generic.Dictionary(Of UInt32, UInt64)
+            Dim LastHistX As Int64 = Int64.MaxValue
+            For Each HistoX As Int64 In cGenerics.GetDictionaryKeys(Histo)
+                If LastHistX <> Int64.MaxValue Then
+                    Dim Distance As UInteger = CUInt(HistoX - LastHistX)
+                    If RetVal.ContainsKey(Distance) = False Then
+                        RetVal.Add(Distance, 1)
+                    Else
+                        RetVal(Distance) = CULng(RetVal(Distance) + 1)
+                    End If
+                End If
+                LastHistX = HistoX
+            Next HistoX
+            Return cGenerics.SortDictionary(RetVal)
         End Function
 
         '''<summary>Combine all bayer statistics to a monochromatic statistic of all pixel of the image.</summary>
