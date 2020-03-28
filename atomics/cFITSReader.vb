@@ -357,6 +357,81 @@ Public Class cFITSReader
 
     End Function
 
+    '''<summary>Read FITS data from the passed file.</summary>
+    '''<param name="FileName">File name to load FITS data from.</param>
+    '''<param name="UseIPP">Use the Intel IPP (if found) for processing.</param>
+    Public Function ReadInFloat32(ByVal FileName As String, ByVal UseIPP As Boolean) As Single(,)
+
+        'TODO: Read-in start offset seems to be incorrect
+        Dim BaseIn As New System.IO.StreamReader(FileName)
+
+        'Read header elements
+        FITSHeaderParser = New cFITSHeaderParser(ReadHeader(BaseIn))
+
+        'Calculate data stream properties
+        Dim StartOffset As Long = BaseIn.BaseStream.Position
+        Dim StreamLength As Long = BaseIn.BaseStream.Length
+        Dim TotalByte As Long = StreamLength - StartOffset
+        BaseIn.Close()
+
+        'Read data content
+        Return ReadDataContentFloat32(FileName, DataStartIdx, UseIPP)
+
+    End Function
+
+    '''<summary>Read FITS data from the passed file - only in case BitPix is 32.</summary>
+    Private Function ReadDataContentFloat32(ByVal FileName As String, ByVal StartPosition As Integer, ByVal UseIPP As Boolean) As Single(,)
+
+        Dim BytePerPixel As Integer = 4
+
+        'Delete content and exit if format is wrong
+        If FITSHeaderParser.BitPix <> -32 Then Return New Single(,) {}
+
+        'Open reader and position to start
+        Dim DataReader As New System.IO.BinaryReader(System.IO.File.OpenRead(FileName))
+        DataReader.BaseStream.Position = DataStartIdx
+
+        'Read complete block
+        Dim ImageData(FITSHeaderParser.Width - 1, FITSHeaderParser.Height - 1) As Single
+        DataReader.BaseStream.Position = DataStartIdx
+
+        Dim Bytes((FITSHeaderParser.Width * FITSHeaderParser.Height * BytePerPixel) - 1) As Byte
+        Bytes = DataReader.ReadBytes(Bytes.Length)
+        'If UseIPP = False Then
+        'VB implementation
+        Dim FileValue As Single = 0
+        Dim BytesPtr As Integer = 0
+        If FITSHeaderParser.BSCALE = 1 And FITSHeaderParser.BZERO = 0 Then
+            'Direct copy as no scaling is applied
+            For H As Integer = 0 To FITSHeaderParser.Height - 1
+                For W As Integer = 0 To FITSHeaderParser.Width - 1
+                    ImageData(W, H) = BitConverter.ToSingle({Bytes(BytesPtr + 3), Bytes(BytesPtr + 2), Bytes(BytesPtr + 1), Bytes(BytesPtr)}, 0)
+                    BytesPtr += BytePerPixel
+                Next W
+            Next H
+        Else
+            'BSCALE and BZERO must be applied
+            For H As Integer = 0 To FITSHeaderParser.Height - 1
+                For W As Integer = 0 To FITSHeaderParser.Width - 1
+                    FileValue = BitConverter.ToSingle({Bytes(BytesPtr + 3), Bytes(BytesPtr + 2), Bytes(BytesPtr + 1), Bytes(BytesPtr)}, 0)
+                    ImageData(W, H) = CSng((FITSHeaderParser.BSCALE * FileValue) + FITSHeaderParser.BZERO)
+                    BytesPtr += BytePerPixel
+                Next W
+            Next H
+        End If
+        'Else
+        'Dim IPPStatus As New List(Of cIntelIPP.IppStatus)
+        'IPPStatus.Add(IntelIPP.Transpose(Bytes, ImageData))
+        'IPPStatus.Add(IntelIPP.SwapBytes(ImageData))
+        'End If
+
+        'Close data stream
+        DataReader.Close()
+
+        Return ImageData
+
+    End Function
+
     '================================================================================================================================================================
     ' Read any data to an Double matrix
     '================================================================================================================================================================

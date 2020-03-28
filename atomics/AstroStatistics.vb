@@ -94,7 +94,7 @@ Namespace AstroNET
             '''<summary>Number of different values in the data.</summary>
             Public DifferentValueCount As Integer
             '''<summary>Distance between the histogram X axis points.</summary>
-            Public HistXDist As Collections.Generic.Dictionary(Of UInt32, UInt64)
+            Public HistXDist As Collections.Generic.Dictionary(Of Long, UInt32)
             '''<summary>Percentile.</summary>
             Public Percentile As Collections.Generic.Dictionary(Of Integer, Int64)
             '''<summary>Pixel value that is present the most often.</summary>
@@ -115,7 +115,7 @@ Namespace AstroNET
                 RetVal.MeanPow2 = 0
                 RetVal.StdDev = Double.NaN
                 RetVal.DifferentValueCount = 0
-                RetVal.HistXDist = New Collections.Generic.Dictionary(Of UInt32, UInt64)
+                RetVal.HistXDist = New Collections.Generic.Dictionary(Of Long, UInt32)
                 RetVal.Median = Int64.MinValue
                 RetVal.Percentile = New Collections.Generic.Dictionary(Of Integer, Int64)
                 RetVal.Modus = Nothing
@@ -125,7 +125,7 @@ Namespace AstroNET
             '''<param name="DispHeader">TRUE to display the header, FALSE else.</param>
             Public Function StatisticsReport() As Collections.Generic.List(Of String)
                 Dim RetVal As New Collections.Generic.List(Of String)
-                Dim HistXDist_keys As List(Of UInteger) = cGenerics.GetDictionaryKeys(HistXDist)
+                Dim HistXDist_keys As List(Of Long) = cGenerics.GetDictionaryKeys(HistXDist)
                 RetVal.Add("Total pixel       : " & Samples.ValRegIndep.PadLeft(ReportValueLength))
                 RetVal.Add("Total pixel       : " & ((Samples / 1000000).ValRegIndep("0.0") & "M").PadLeft(ReportValueLength))
                 RetVal.Add("Different values  : " & DifferentValueCount.ValRegIndep.PadLeft(ReportValueLength))
@@ -150,15 +150,8 @@ Namespace AstroNET
 
             Dim RetVal As New sStatistics
 
-            Dim Stopper As New System.Diagnostics.Stopwatch : Stopper.Reset() : Stopper.Start()
-
-            'Calculate a 2x2 bayer statistics (also for mono data - if thread-based this may even speed up ...)
-            RetVal.BayerHistograms = BayerStatistics()
-            Stopper.Stop()
-            Dim T1 As Long = Stopper.ElapsedMilliseconds
-
-            'Add all other data (mono histo and statistics)
-            CalculateAllFromBayerStatistics(RetVal)
+            RetVal.BayerHistograms = BayerStatistics()      'Calculate a 2x2 bayer statistics (also for mono data as thread-based will speed up ...)
+            CalculateAllFromBayerStatistics(RetVal)         'Add all other data (mono histo and statistics)
 
             'Return results
             Return RetVal
@@ -233,7 +226,7 @@ Namespace AstroNET
             RetVal.Min = New Collections.Generic.KeyValuePair(Of Int64, UInt32)(AllPixelValues(0), Histogram(AllPixelValues(0)))
             RetVal.Max = New Collections.Generic.KeyValuePair(Of Int64, UInt32)(AllPixelValues(AllPixelValues.Count - 1), Histogram(AllPixelValues(AllPixelValues.Count - 1)))
             RetVal.Modus = New Collections.Generic.KeyValuePair(Of Int64, UInt32)(AllPixelValues(0), Histogram(AllPixelValues(0)))
-            RetVal.HistXDist = New Collections.Generic.Dictionary(Of UInt32, UInt64)
+            RetVal.HistXDist = New Collections.Generic.Dictionary(Of Long, UInt32)
 
             'Init percentile - percentiles are writen in each bin as an incremental processing fails in fast-changing histograms
             Dim PCTInvalid As Long = Long.MinValue
@@ -275,8 +268,9 @@ Namespace AstroNET
         End Function
 
         '''<summary>Get the histogram for all quanization level differences found.</summary>
-        Public Shared Function GetQuantizationHisto(ByRef Histo As Collections.Generic.Dictionary(Of Long, UInt32)) As Collections.Generic.Dictionary(Of UInt32, UInt64)
-            Dim RetVal As New Collections.Generic.Dictionary(Of UInt32, UInt64)
+        '''<param name="Histo">Histogram data with ADU value and number of pixel with this ADU value.</param>
+        Public Shared Function GetQuantizationHisto(ByRef Histo As Collections.Generic.Dictionary(Of Long, UInt32)) As Collections.Generic.Dictionary(Of Long, UInt32)
+            Dim RetVal As New Collections.Generic.Dictionary(Of Long, UInt32)
             Dim LastHistX As Int64 = Int64.MaxValue
             For Each HistoX As Int64 In cGenerics.GetDictionaryKeys(Histo)
                 If LastHistX <> Int64.MaxValue Then
@@ -284,7 +278,26 @@ Namespace AstroNET
                     If RetVal.ContainsKey(Distance) = False Then
                         RetVal.Add(Distance, 1)
                     Else
-                        RetVal(Distance) = CULng(RetVal(Distance) + 1)
+                        RetVal(Distance) = CUInt(RetVal(Distance) + 1)
+                    End If
+                End If
+                LastHistX = HistoX
+            Next HistoX
+            Return cGenerics.SortDictionary(RetVal)
+        End Function
+
+        '''<summary>Get the histogram for all quanization level differences found.</summary>
+        '''<param name="Histo">Histogram data with ADU value and number of pixel with this ADU value.</param>
+        Public Shared Function GetQuantizationHisto(ByRef Histo As Collections.Generic.Dictionary(Of Single, UInt32)) As Collections.Generic.Dictionary(Of Single, UInt32)
+            Dim RetVal As New Collections.Generic.Dictionary(Of Single, UInt32)
+            Dim LastHistX As Single = Single.NaN
+            For Each HistoX As Single In cGenerics.GetDictionaryKeys(Histo)
+                If Single.IsNaN(LastHistX) = False Then
+                    Dim Distance As Single = HistoX - LastHistX
+                    If RetVal.ContainsKey(Distance) = False Then
+                        RetVal.Add(Distance, 1)
+                    Else
+                        RetVal(Distance) = CUInt(RetVal(Distance) + 1)
                     End If
                 End If
                 LastHistX = HistoX
