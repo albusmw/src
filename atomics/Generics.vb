@@ -28,14 +28,4 @@ Public Class cGenerics
         Return Keys(Index)
     End Function
 
-    '''<summary>Get a list of all keys in the dictionary passed.</summary>
-    Public Shared Function GetDictionaryKeys(Of T1, T2)(ByRef Dict As Collections.Generic.Dictionary(Of T1, T2)) As Collections.Generic.List(Of T1)
-        Return New Collections.Generic.List(Of T1)(Dict.Keys)
-    End Function
-
-    '''<summary>Get a list of all values in the dictionary passed.</summary>
-    Public Shared Function GetDictionaryValues(Of T1, T2)(ByRef Dict As Collections.Generic.Dictionary(Of T1, T2)) As Collections.Generic.List(Of T2)
-        Return New Collections.Generic.List(Of T2)(Dict.Values)
-    End Function
-
 End Class

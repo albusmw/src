@@ -88,62 +88,65 @@ End Module
 Module VectorExtension
 
     <Extension()>
-    Public Function ToDouble(ByVal Vector As Collections.Generic.List(Of UInt32)) As Double()
-        Dim RetVal(Vector.Count - 1) As Double
+    Public Function ToDouble(ByVal Argument As UInt16()) As Double()
+        Dim RetVal(Argument.Length - 1) As Double
         Threading.Tasks.Parallel.For(0, RetVal.GetUpperBound(0) + 1, Sub(Idx As Integer)
-                                                                         RetVal(Idx) = Vector.Item(Idx)
+                                                                         RetVal(Idx) = Argument(Idx)
                                                                      End Sub)
 
         Return RetVal
     End Function
 
     <Extension()>
-    Public Function ToDouble(ByVal Vector() As UInt32) As Double()
-        Dim RetVal(Vector.GetUpperBound(0) - 1) As Double
-        Threading.Tasks.Parallel.For(0, Vector.GetUpperBound(0) + 1, Sub(Idx As Integer)
-                                                                         RetVal(Idx) = Vector(Idx)
-                                                                     End Sub)
-
-        Return RetVal
-    End Function
-
-    <Extension()>
-    Public Function ToDouble(ByVal Vector As List(Of Long)) As Double()
-        Dim RetVal(Vector.Count - 1) As Double
-        Parallel.For(0, RetVal.GetUpperBound(0) + 1, Sub(Idx As Integer)
-                                                         RetVal(Idx) = Vector.Item(Idx)
-                                                     End Sub)
-
-        Return RetVal
-    End Function
-
-    <Extension()>
-    Public Function ToDouble(ByVal Vector() As Long) As Double()
-        Dim RetVal(Vector.GetUpperBound(0) - 1) As Double
-        Parallel.For(0, Vector.GetUpperBound(0) + 1, Sub(Idx As Integer)
-                                                         RetVal(Idx) = Vector(Idx)
-                                                     End Sub)
-
-        Return RetVal
-    End Function
-
-    <Extension()>
-        Dim RetVal(Vector.Count - 1) As Double
+    Public Function ToDouble(ByVal Argument As UInt32()) As Double()
+        Dim RetVal(Argument.Length - 1) As Double
         Threading.Tasks.Parallel.For(0, RetVal.GetUpperBound(0) + 1, Sub(Idx As Integer)
-                                                                         RetVal(Idx) = Vector.Item(Idx)
+                                                                         RetVal(Idx) = Argument(Idx)
                                                                      End Sub)
 
         Return RetVal
     End Function
 
     <Extension()>
-    Public Function ToDouble(ByVal Vector() As ULong) As Double()
-        Dim RetVal(Vector.GetUpperBound(0) - 1) As Double
-        Threading.Tasks.Parallel.For(0, Vector.GetUpperBound(0) + 1, Sub(Idx As Integer)
-                                                                         RetVal(Idx) = Vector(Idx)
+    Public Function ToDouble(ByVal Argument As List(Of UInteger)) As Double()
+        Dim RetVal(Argument.Count - 1) As Double
+        Threading.Tasks.Parallel.For(0, RetVal.GetUpperBound(0) + 1, Sub(Idx As Integer)
+                                                                         RetVal(Idx) = Argument(Idx)
                                                                      End Sub)
 
         Return RetVal
+    End Function
+
+    <Extension()>
+    Public Function ToDouble(ByVal Argument As Long()) As Double()
+        Dim RetVal(Argument.Length - 1) As Double
+        Threading.Tasks.Parallel.For(0, RetVal.GetUpperBound(0) + 1, Sub(Idx As Integer)
+                                                                         RetVal(Idx) = Argument(Idx)
+                                                                     End Sub)
+
+        Return RetVal
+    End Function
+
+    <Extension()>
+    Public Function ToDouble(ByVal Argument As List(Of Long)) As Double()
+        Dim RetVal(Argument.Count - 1) As Double
+        Threading.Tasks.Parallel.For(0, RetVal.GetUpperBound(0) + 1, Sub(Idx As Integer)
+                                                                         RetVal(Idx) = Argument(Idx)
+                                                                     End Sub)
+
+        Return RetVal
+    End Function
+
+    '''<summary>Get a list of all keys in the dictionary passed.</summary>
+    <Extension()>
+    Public Function KeyList(Of T1, T2)(ByRef Dict As Collections.Generic.Dictionary(Of T1, T2)) As Collections.Generic.List(Of T1)
+        Return New Collections.Generic.List(Of T1)(Dict.Keys)
+    End Function
+
+    '''<summary>Get a list of all values in the dictionary passed.</summary>
+    <Extension()>
+    Public Function ValueList(Of T1, T2)(ByRef Dict As Collections.Generic.Dictionary(Of T1, T2)) As Collections.Generic.List(Of T2)
+        Return New Collections.Generic.List(Of T2)(Dict.Values)
     End Function
 
 End Module

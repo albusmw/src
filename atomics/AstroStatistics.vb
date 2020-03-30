@@ -125,7 +125,7 @@ Namespace AstroNET
             '''<param name="DispHeader">TRUE to display the header, FALSE else.</param>
             Public Function StatisticsReport() As Collections.Generic.List(Of String)
                 Dim RetVal As New Collections.Generic.List(Of String)
-                Dim HistXDist_keys As Collections.Generic.List(Of UInteger) = cGenerics.GetDictionaryKeys(HistXDist)
+                Dim HistXDist_keys As Collections.Generic.List(Of Long) = HistXDist.KeyList
                 RetVal.Add("Total pixel       : " & Samples.ValRegIndep.PadLeft(ReportValueLength))
                 RetVal.Add("Total pixel       : " & ((Samples / 1000000).ValRegIndep("0.0") & "M").PadLeft(ReportValueLength))
                 RetVal.Add("Different values  : " & DifferentValueCount.ValRegIndep.PadLeft(ReportValueLength))
@@ -208,7 +208,7 @@ Namespace AstroNET
         Private Shared Function CalcStatisticFromHistogram(ByRef Histogram As Collections.Generic.Dictionary(Of Int64, UInt32)) As sSingleChannelStatistics
 
             Dim RetVal As sSingleChannelStatistics = sSingleChannelStatistics.InitForShort()
-            Dim AllPixelValues As Collections.Generic.List(Of Int64) = cGenerics.GetDictionaryKeys(Histogram)
+            Dim AllPixelValues As Collections.Generic.List(Of Int64) = Histogram.KeyList
             AllPixelValues.Sort()
 
             'Count number of samples
@@ -272,7 +272,7 @@ Namespace AstroNET
         Public Shared Function GetQuantizationHisto(ByRef Histo As Collections.Generic.Dictionary(Of Long, UInt32)) As Collections.Generic.Dictionary(Of Long, UInt32)
             Dim RetVal As New Collections.Generic.Dictionary(Of Long, UInt32)
             Dim LastHistX As Int64 = Int64.MaxValue
-            For Each HistoX As Int64 In cGenerics.GetDictionaryKeys(Histo)
+            For Each HistoX As Int64 In Histo.KeyList
                 If LastHistX <> Int64.MaxValue Then
                     Dim Distance As UInteger = CUInt(HistoX - LastHistX)
                     If RetVal.ContainsKey(Distance) = False Then
@@ -291,7 +291,7 @@ Namespace AstroNET
         Public Shared Function GetQuantizationHisto(ByRef Histo As Collections.Generic.Dictionary(Of Single, UInt32)) As Collections.Generic.Dictionary(Of Single, UInt32)
             Dim RetVal As New Collections.Generic.Dictionary(Of Single, UInt32)
             Dim LastHistX As Single = Single.NaN
-            For Each HistoX As Single In cGenerics.GetDictionaryKeys(Histo)
+            For Each HistoX As Single In Histo.KeyList
                 If Single.IsNaN(LastHistX) = False Then
                     Dim Distance As Single = HistoX - LastHistX
                     If RetVal.ContainsKey(Distance) = False Then

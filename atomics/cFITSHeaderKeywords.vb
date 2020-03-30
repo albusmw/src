@@ -4,7 +4,7 @@ Option Strict On
 '================================================================================
 '''<summary>Attribute used for hold the FITS keyword.</summary>
 <AttributeUsage(AttributeTargets.All, Inherited:=True, AllowMultiple:=False)>
-Public Class Keyword
+Public Class FITSKeyword
     Inherits System.Attribute
     Public Sub New()
         Me.New(String.Empty)
@@ -18,9 +18,35 @@ Public Class Keyword
         End Get
     End Property
     Private MyKeyword As String = String.Empty
+    '''<summary>The keyword string associated with the given keyword.</summary>
     Public Shared Function GetKeyword(ByRef Element As eFITSKeywords) As String
-        Dim attributes As Keyword() = CType(Element.GetType.GetField(Element.ToString).GetCustomAttributes(GetType(Keyword), False), Keyword())
+        Dim attributes As FITSKeyword() = CType(Element.GetType.GetField(Element.ToString).GetCustomAttributes(GetType(FITSKeyword), False), FITSKeyword())
         If attributes.Length > 0 Then Return attributes(0).Keyword Else Return String.Empty
+    End Function
+End Class
+'================================================================================
+
+'================================================================================
+'''<summary>Attribute used for hold the FITS keyword.</summary>
+<AttributeUsage(AttributeTargets.All, Inherited:=True, AllowMultiple:=False)>
+Public Class FITSComment
+    Inherits System.Attribute
+    Public Sub New()
+        Me.New(String.Empty)
+    End Sub
+    Public Sub New(ByVal Comment As String)
+        MyComment = Comment
+    End Sub
+    Public ReadOnly Property Comment() As String
+        Get
+            Return MyComment
+        End Get
+    End Property
+    Private MyComment As String = String.Empty
+    '''<summary>The comment string associated with the given keyword.</summary>
+    Public Shared Function GetComment(ByRef Element As eFITSKeywords) As String
+        Dim attributes As FITSComment() = CType(Element.GetType.GetField(Element.ToString).GetCustomAttributes(GetType(FITSComment), False), FITSComment())
+        If attributes.Length > 0 Then Return attributes(0).Comment Else Return String.Empty
     End Function
 End Class
 '================================================================================
@@ -34,209 +60,220 @@ Public Enum eFITSKeywords
 
 
     '''<summary>The value field shall contain a character string identifying who compiled the information In the data associated With the header. This keyword Is appropriate When the data originate In a published paper Or are compiled from many sources.</summary>
-    <Keyword("AUTHOR")>
+    <FITSKeyword("AUTHOR")>
     <ComponentModel.Description("")>
     [AUTHOR]
 
     '''<summary>If present the image has a valid Bayer color pattern.</summary>
-    <Keyword("BAYERPAT")>
+    <FITSKeyword("BAYERPAT")>
     <ComponentModel.Description("")>
     [BAYERPAT]
 
     '''<summary>8 unsigned int, 16 & 32 int, -32 & -64 real.</summary>
-    <Keyword("BITPIX")>
+    <FITSKeyword("BITPIX")>
+    <FITSComment("8 unsigned int, 16 & 32 int, -32 & -64 real")>
     <ComponentModel.Description("8 unsigned int, 16 & 32 int, -32 & -64 real")>
     [BITPIX]
 
     '''<summary>Configured BRIGHTNESS value of the camera.</summary>
-    <Keyword("BRIGHTN")>
+    <FITSKeyword("BRIGHTN")>
     <ComponentModel.Description("")>
     [BRIGHTNESS]
 
     '''<summary>Zero point in scaling equation.</summary>
-    <Keyword("BZERO")>
+    <FITSKeyword("BZERO")>
     <ComponentModel.Description("")>
     [BZERO]
 
     '''<summary>Actual measured sensor temperature at the start of exposure in degrees C. Absent if temperature is not available.</summary>
-    <Keyword("CCD-TEMP")>
+    <FITSKeyword("CCD-TEMP")>
     <ComponentModel.Description("")>
     [CCDTEMP]
 
     '''<summary>Type of color sensor Bayer array or zero for monochrome.</summary>
-    <Keyword("COLORTYP")>
+    <FITSKeyword("COLORTYP")>
     <ComponentModel.Description("")>
     [COLORTYP]
 
     '''<summary>The value field shall contain a floating point number, identifying the location Of a reference point along axis n, In units Of the axis index.  This value Is based upon a counter that runs from 1 To NAXISn with an increment of 1 per pixel.  The reference point value need Not be that for the center of a pixel nor lie within the actual data array.  Use comments To indicate the location Of the index point relative to the pixel..</summary>
     '''<remarks>For center, set to 0.5*(NAXIS1+1)</remarks>
-    <Keyword("CRPIX1")>
+    <FITSKeyword("CRPIX1")>
     <ComponentModel.Description("")>
     [CRPIX1]
 
     '''<summary>The value field shall contain a floating point number, identifying the location Of a reference point along axis n, In units Of the axis index.  This value Is based upon a counter that runs from 1 To NAXISn with an increment of 1 per pixel.  The reference point value need Not be that for the center of a pixel nor lie within the actual data array.  Use comments To indicate the location Of the index point relative to the pixel..</summary>
     '''<remarks>For center, set to 0.5*(NAXIS2+1)</remarks>
-    <Keyword("CRPIX2")>
+    <FITSKeyword("CRPIX2")>
     <ComponentModel.Description("")>
     [CRPIX2]
 
     '''<summary>The value field shall contain a character string that gives the date on which the observation ended, format 'yyyy-mm-dd', or 'yyyy-mm-ddThh:mm:ss.sss'.</summary>
-    <Keyword("DATE_END")>
+    <FITSKeyword("DATE_END")>
     <ComponentModel.Description("")>
     [DATE_END]
 
     '''<summary>The value field shall contain a character string that gives the date on which the observation started, format 'yyyy-mm-dd', or 'yyyy-mm-ddThh:mm:ss.sss'.</summary>
-    <Keyword("DATE_OBS")>
+    <FITSKeyword("DATE_OBS")>
     <ComponentModel.Description("YYYY-MM-DDThh:mm:ss observation start, UT")>
     [DATE_OBS]
 
     '''<summary>The value field gives the declination of the observation. It may be expressed either as a floating point number in units of decimal degrees, or as a character string in 'dd:mm:ss.sss' format where the decimal point and number of fractional digits are optional.</summary>
-    <Keyword("DEC")>
+    <FITSKeyword("DEC")>
     <ComponentModel.Description("")>
     [DEC]
 
     '''<summary>Primary HDU.</summary>
-    <Keyword("END")>
+    <FITSKeyword("END")>
     <ComponentModel.Description("")>
     [END]
 
     '''<summary>The value field shall contain a floating point number giving the exposure time of the observation in units of seconds.</summary>
-    <Keyword("EXPTIME")>
+    <FITSKeyword("EXPTIME")>
     <ComponentModel.Description("Exposure time in seconds")>
     [EXPTIME]
 
+    '''<summary>Focus value (from logbook). Used when a single value is given in the logs.</summary>
+    <FITSKeyword("FOCUS")>
+    <ComponentModel.Description("Exposure time in seconds")>
+    [FOCUS]
+
     '''<summary>Field of view [°] along axis 1.</summary>
-    <Keyword("FOV1")>
+    <FITSKeyword("FOV1")>
     <ComponentModel.Description("")>
     [FOV1]
 
     '''<summary>Field of view [°] along axis 2.</summary>
-    <Keyword("FOV2")>
+    <FITSKeyword("FOV2")>
     <ComponentModel.Description("")>
     [FOV2]
 
     '''<summary>Configured GAIN value of the camera.</summary>
-    <Keyword("GAIN")>
+    <FITSKeyword("GAIN")>
     <ComponentModel.Description("")>
     [GAIN]
 
     '''<summary>Type of image: Light Frame, Bias Frame, Dark Frame, Flat Frame, or Tricolor Image.</summary>
-    <Keyword("IMAGETYP")>
+    <FITSKeyword("IMAGETYP")>
     <ComponentModel.Description("")>
     [IMAGETYP]
 
     '''<summary>The value field shall contain a character string identifying the instrument used to acquire the data associated with the header.</summary>
-    <Keyword("INSTRUME")>
+    <FITSKeyword("INSTRUME")>
     <ComponentModel.Description("")>
     [INSTRUME]
 
     '''<summary>Primary HDU.</summary>
-    <Keyword("NAXIS")>
+    <FITSKeyword("NAXIS")>
     <ComponentModel.Description("")>
     [NAXIS]
 
     '''<summary>Primary HDU.</summary>
-    <Keyword("NAXIS1")>
+    <FITSKeyword("NAXIS1")>
     <ComponentModel.Description("")>
     [NAXIS1]
 
     '''<summary>The value field shall contain a character string giving a name for the object observed.</summary>
-    <Keyword("OBJECT")>
+    <FITSKeyword("OBJECT")>
     <ComponentModel.Description("")>
     [OBJECT]
 
     '''<summary>The value field shall contain a character string giving a name for the observed object that conforms to the IAU astronomical Object naming conventions. The value of this keyword Is more strictly constrained than For the standard Object keyword which In practice has often been used To record other ancillary information about the observation (e.g. filter, exposure time, weather conditions, etc.).</summary>
-    <Keyword("OBJNAME")>
+    <FITSKeyword("OBJNAME")>
     <ComponentModel.Description("")>
     [OBJNAME]
 
+    '''<summary>The value field shall contain a character string identifying who acquired the data associated with the header.</summary>
+    <FITSKeyword("OBSERVER")>
+    <ComponentModel.Description("")>
+    [OBSERVER]
+
     ''''<summary>The value field shall contain a character string which uniquely identifies the dataset contained In the FITS file. This Is typically a sequence number that can contain a mixture Of numerical And character values. Example '10315-01-01-30A'.</summary>
-    <Keyword("OBS_ID")>
+    <FITSKeyword("OBS_ID")>
     <ComponentModel.Description("")>
     [OBS_ID]
 
     '''<summary>Configured OFFSET value of the camera.</summary>
-    <Keyword("OFFSET")>
+    <FITSKeyword("OFFSET")>
     <ComponentModel.Description("")>
     [OFFSET]
 
     '''<summary>The value field shall contain a character string identifying the organization or institution responsible for creating the FITS file.</summary>
-    <Keyword("ORIGIN")>
+    <FITSKeyword("ORIGIN")>
     <ComponentModel.Description("")>
     [ORIGIN]
 
     '''<summary>Pixel size [um] along axis 1.</summary>
-    <Keyword("PIXSIZE1")>
+    <FITSKeyword("PIXSIZE1")>
     <ComponentModel.Description("")>
     [PIXSIZE1]
 
     '''<summary>Pixel size [um] along axis 2.</summary>
-    <Keyword("PIXSIZE2")>
+    <FITSKeyword("PIXSIZE2")>
     <ComponentModel.Description("")>
     [PIXSIZE2]
 
     ''<summary>Plate size [cm] along axis 1.</summary>
-    <Keyword("[PLATESZ1]")>
+    <FITSKeyword("PLATESZ1]")>
     <ComponentModel.Description("")>
     [PLATESZ1]
 
     ''<summary>Plate size [cm] along axis 2.</summary>
-    <Keyword("[PLATESZ2]")>
+    <FITSKeyword("PLATESZ2]")>
     <ComponentModel.Description("")>
     [PLATESZ2]
 
     '''<summary>The value field shall contain a character string giving the name, And optionally, the version of the program that originally created the current FITS HDU. This keyword Is synonymous With the CREATOR keyword.  Example 'TASKNAME V1.2.3'.</summary>
-    <Keyword("PROGRAM")>
+    <FITSKeyword("PROGRAM")>
     <ComponentModel.Description("")>
     [PROGRAM]
 
     '''<summary>QHY read-out mode.</summary>
-    <Keyword("QHY_MODE")>
+    <FITSKeyword("QHY_MODE")>
     <ComponentModel.Description("")>
     [QHY_MODE]
 
     '''<summary>The value field gives the Right Ascension of the observation.  It may be expressed either as a floating point number in units of decimal degrees, or as a character string in 'HH:MM:SS.sss' format where the decimal point and number of fractional digits are optional.</summary>
-    <Keyword("RA")>
+    <FITSKeyword("RA")>
     <ComponentModel.Description("")>
     [RA]
 
     '''<summary>CCD temperature setpoint in degrees C. Absent if setpoint was not entered.</summary>
-    <Keyword("SET-TEMP")>
+    <FITSKeyword("SET-TEMP")>
     <ComponentModel.Description("")>
     [SETTEMP]
 
     '''<summary>Primary HDU.</summary>
-    <Keyword("SIMPLE")>
+    <FITSKeyword("SIMPLE")>
     <ComponentModel.Description("")>
     [SIMPLE]
 
     '''<summary>Clear aperture of the telescope [m].</summary>
-    <Keyword("TELAPER")>
+    <FITSKeyword("TELAPER")>
     <ComponentModel.Description("")>
     [TELAPER]
 
     '''<summary>The value field shall contain a character string identifying the telescope used to acquire the data associated with the header.</summary>
-    <Keyword("TELESCOP")>
+    <FITSKeyword("TELESCOP")>
     <ComponentModel.Description("")>
     [TELESCOP]
 
     ''<summary>Focal length of the telescope [m].</summary>
-    <Keyword("TELFOC")>
+    <FITSKeyword("TELFOC")>
     <ComponentModel.Description("")>
     [TELFOC]
 
     '''<summary>Plate scale of the telescope [arcsec/mm].</summary>
-    <Keyword("TELSCALE")>
+    <FITSKeyword("TELSCALE")>
     <ComponentModel.Description("")>
     [TELSCALE]
 
     '''<summary>The value field shall contain a character string that gives the time at which the observation ended, format 'hh:mm:ss.sss'.</summary>
-    <Keyword("TIME_END")>
+    <FITSKeyword("TIME_END")>
     <ComponentModel.Description("")>
     [TIME_END]
 
     ''''<summary>The value field shall contain a character string that gives the time at which the observation started, format 'hh:mm:ss.sss'.</summary>
-    <Keyword("TIME_OBS")>
+    <FITSKeyword("TIME_OBS")>
     <ComponentModel.Description("")>
     [TIME_OBS]
 
@@ -246,20 +283,18 @@ End Enum
 Public Class cFITSKey
     Default Public ReadOnly Property Key(ByVal Element As eFITSKeywords) As String
         Get
-            Return Keyword.GetKeyword(Element)
+            Return FITSKeyword.GetKeyword(Element)
+        End Get
+    End Property
+    Public ReadOnly Property Comment(ByVal Element As eFITSKeywords) As String
+        Get
+            Return FITSComment.GetComment(Element)
         End Get
     End Property
 End Class
 
 
 Public Structure sFITSKeywords
-
-
-    '''<summary>The value field shall contain a character string identifying who acquired the data associated with the header.</summary>
-    Public Const [OBSERVER] As String = "OBSERVER"
-
-    '''<summary>Focus value (from logbook). Used when a single value is given in the logs.</summary>
-    Public Const [FOCUS] As String = "FOCUS"
 
 
 
