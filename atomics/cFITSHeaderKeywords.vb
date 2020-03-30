@@ -56,6 +56,7 @@ End Class
 '''<see cref="https://heasarc.gsfc.nasa.gov/docs/fcg/standard_dict.html"/>
 '''<see cref="https://heasarc.gsfc.nasa.gov/docs/fcg/common_dict.html"/>
 '''<see cref="https://diffractionlimited.com/help/maximdl/FITS_File_Header_Definitions.htm"/>
+'''<see cref="http://eso-python.github.io/ESOPythonTutorials/FITS-images.html"/>
 Public Enum eFITSKeywords
 
 
@@ -90,6 +91,20 @@ Public Enum eFITSKeywords
     <ComponentModel.Description("")>
     [CCDTEMP]
 
+    '''<summary>The value field shall contain a floating point number giving the Partial derivative Of the coordinate specified by the CTYPEn keywords with respect to the pixel index, evaluated at the reference point CRPIXn, in units Of the coordinate specified by  the CTYPEn keyword.  These units must follow the prescriptions of section 5.3 of the FITS Standard.</summary>
+    '''<remarks>Axis 1 pixel scale at CRPIX1,CRPIX2. See PXSCAL1 For arcsec equivalent.</remarks>
+    '''<example>-0.0003819444391411 degrees/pix</example>
+    <FITSKeyword("CDELT1")>
+    <ComponentModel.Description("Axis 1 pixel scale at CRPIX1,CRPIX2")>
+    [CDELT1]
+
+    '''<summary>The value field shall contain a floating point number giving the Partial derivative Of the coordinate specified by the CTYPEn keywords with respect to the pixel index, evaluated at the reference point CRPIXn, in units Of the coordinate specified by  the CTYPEn keyword.  These units must follow the prescriptions of section 5.3 of the FITS Standard.</summary>
+    '''<remarks>Axis 2 pixel scale at CRPIX1,CRPIX2. See PXSCAL2 For arcsec equivalent.</remarks>
+    '''<example>0.0003819444391411 degrees/pix</example>
+    <FITSKeyword("CDELT2")>
+    <ComponentModel.Description("Axis 2 pixel scale at CRPIX1,CRPIX2")>
+    [CDELT2]
+
     '''<summary>Type of color sensor Bayer array or zero for monochrome.</summary>
     <FITSKeyword("COLORTYP")>
     <ComponentModel.Description("")>
@@ -97,15 +112,41 @@ Public Enum eFITSKeywords
 
     '''<summary>The value field shall contain a floating point number, identifying the location Of a reference point along axis n, In units Of the axis index.  This value Is based upon a counter that runs from 1 To NAXISn with an increment of 1 per pixel.  The reference point value need Not be that for the center of a pixel nor lie within the actual data array.  Use comments To indicate the location Of the index point relative to the pixel..</summary>
     '''<remarks>For center, set to 0.5*(NAXIS1+1)</remarks>
+    '''<example>2048.000000</example>
     <FITSKeyword("CRPIX1")>
-    <ComponentModel.Description("")>
+    <ComponentModel.Description("Axis 1 reference pixel at CRVAL1,CRVAL2")>
     [CRPIX1]
 
     '''<summary>The value field shall contain a floating point number, identifying the location Of a reference point along axis n, In units Of the axis index.  This value Is based upon a counter that runs from 1 To NAXISn with an increment of 1 per pixel.  The reference point value need Not be that for the center of a pixel nor lie within the actual data array.  Use comments To indicate the location Of the index point relative to the pixel..</summary>
     '''<remarks>For center, set to 0.5*(NAXIS2+1)</remarks>
+    '''<example>2048.000000</example>
     <FITSKeyword("CRPIX2")>
-    <ComponentModel.Description("")>
+    <ComponentModel.Description("Axis 2 reference pixel at CRVAL1,CRVAL2")>
     [CRPIX2]
+
+    '''<summary>The value field shall contain a floating point number, giving the value Of the coordinate specified by the CTYPEn keyword at the reference point CRPIXn. Units must follow the prescriptions Of section 5.3 of the FITS Standard.</summary>
+    '''<remarks>Right Ascension at CRPIX1,CRPIX2 for EQUINOX. </remarks>
+    <FITSKeyword("CRVAL1")>
+    <ComponentModel.Description("")>
+    [CRVAL1]
+
+    '''<summary>The value field shall contain a floating point number, giving the value Of the coordinate specified by the CTYPEn keyword at the reference point CRPIXn. Units must follow the prescriptions Of section 5.3 of the FITS Standard.</summary>
+    '''<remarks> Declination at CRPIX1,CRPIX2 for EQUINOX.</remarks>
+    <FITSKeyword("CRVAL2")>
+    <ComponentModel.Description("")>
+    [CRVAL2]
+
+    '''<summary>Projection type for axis 1. Always set to use the SIN (orthographic) projection; For definition, see Calabretta & Greisen, 2002</summary>
+    '''<example>'RA---SIN'</example>
+    <FITSKeyword("CTYPE1")>
+    <ComponentModel.Description("Projection type for axis 1.")>
+    [CTYPE1]
+
+    '''<summary>Projection type for axis 1. Always set to use the SIN (orthographic) projection; For definition, see Calabretta & Greisen, 2002</summary>
+    '''<example>'DEC--SIN'</example>
+    <FITSKeyword("CTYPE2")>
+    <ComponentModel.Description("Projection type for axis 2.")>
+    [CTYPE2]
 
     '''<summary>The value field shall contain a character string that gives the date on which the observation ended, format 'yyyy-mm-dd', or 'yyyy-mm-ddThh:mm:ss.sss'.</summary>
     <FITSKeyword("DATE_END")>
@@ -131,6 +172,12 @@ Public Enum eFITSKeywords
     <FITSKeyword("EXPTIME")>
     <ComponentModel.Description("Exposure time in seconds")>
     [EXPTIME]
+
+    '''<summary>Equinox of the World Coordinate System (WCS).</summary>
+    '''<example>2000.0</example>
+    <FITSKeyword("EQUINOX")>
+    <ComponentModel.Description("")>
+    [EQUINOX]
 
     '''<summary>Focus value (from logbook). Used when a single value is given in the logs.</summary>
     <FITSKeyword("FOCUS")>
@@ -162,15 +209,20 @@ Public Enum eFITSKeywords
     <ComponentModel.Description("")>
     [INSTRUME]
 
-    '''<summary>Primary HDU.</summary>
+    '''<summary>Primary HDU - Number of data axes. Always = 2 for two-dimensional images.</summary>
     <FITSKeyword("NAXIS")>
     <ComponentModel.Description("")>
     [NAXIS]
 
-    '''<summary>Primary HDU.</summary>
+    '''<summary>Primary HDU - Length of data axis 1 or number of columns in image.</summary>
     <FITSKeyword("NAXIS1")>
     <ComponentModel.Description("")>
     [NAXIS1]
+
+    '''<summary>Primary HDU - Length of data axis 2 or number of rows in image.</summary>
+    <FITSKeyword("NAXIS2")>
+    <ComponentModel.Description("")>
+    [NAXIS2]
 
     '''<summary>The value field shall contain a character string giving a name for the object observed.</summary>
     <FITSKeyword("OBJECT")>
@@ -194,7 +246,7 @@ Public Enum eFITSKeywords
 
     '''<summary>Configured OFFSET value of the camera.</summary>
     <FITSKeyword("OFFSET")>
-    <ComponentModel.Description("")>
+    <ComponentModel.Description("Configured OFFSET value of the camera")>
     [OFFSET]
 
     '''<summary>The value field shall contain a character string identifying the organization or institution responsible for creating the FITS file.</summary>
@@ -204,22 +256,22 @@ Public Enum eFITSKeywords
 
     '''<summary>Pixel size [um] along axis 1.</summary>
     <FITSKeyword("PIXSIZE1")>
-    <ComponentModel.Description("")>
+    <ComponentModel.Description("Pixel size [um] along axis 1")>
     [PIXSIZE1]
 
     '''<summary>Pixel size [um] along axis 2.</summary>
     <FITSKeyword("PIXSIZE2")>
-    <ComponentModel.Description("")>
+    <ComponentModel.Description("Pixel size [um] along axis 2")>
     [PIXSIZE2]
 
     ''<summary>Plate size [cm] along axis 1.</summary>
     <FITSKeyword("PLATESZ1]")>
-    <ComponentModel.Description("")>
+    <ComponentModel.Description("Plate size [cm] along axis 1")>
     [PLATESZ1]
 
     ''<summary>Plate size [cm] along axis 2.</summary>
     <FITSKeyword("PLATESZ2]")>
-    <ComponentModel.Description("")>
+    <ComponentModel.Description("Plate size [cm] along axis 2")>
     [PLATESZ2]
 
     '''<summary>The value field shall contain a character string giving the name, And optionally, the version of the program that originally created the current FITS HDU. This keyword Is synonymous With the CREATOR keyword.  Example 'TASKNAME V1.2.3'.</summary>
@@ -227,9 +279,21 @@ Public Enum eFITSKeywords
     <ComponentModel.Description("")>
     [PROGRAM]
 
+    '''<summary>Pixel scale at CRPIX1,CRPIX2 for axis1.</summary>
+    '''<example>1.375 arcsec/pix</example>
+    <FITSKeyword("PXSCAL1")>
+    <ComponentModel.Description("Pixel scale at CRPIX1,CRPIX2 for axis1.")>
+    [PXSCAL1]
+
+    '''<summary>Pixel scale at CRPIX1,CRPIX2 for axis2.</summary>
+    '''<example>1.375 arcsec/pix</example>
+    <FITSKeyword("PXSCAL21")>
+    <ComponentModel.Description("Pixel scale at CRPIX1,CRPIX2 for axis1.")>
+    [PXSCAL2]
+
     '''<summary>QHY read-out mode.</summary>
     <FITSKeyword("QHY_MODE")>
-    <ComponentModel.Description("")>
+    <ComponentModel.Description("QHY read-out mode")>
     [QHY_MODE]
 
     '''<summary>The value field gives the Right Ascension of the observation.  It may be expressed either as a floating point number in units of decimal degrees, or as a character string in 'HH:MM:SS.sss' format where the decimal point and number of fractional digits are optional.</summary>
@@ -254,17 +318,17 @@ Public Enum eFITSKeywords
 
     '''<summary>The value field shall contain a character string identifying the telescope used to acquire the data associated with the header.</summary>
     <FITSKeyword("TELESCOP")>
-    <ComponentModel.Description("")>
+    <ComponentModel.Description("Telescope used to acquire data.")>
     [TELESCOP]
 
     ''<summary>Focal length of the telescope [m].</summary>
     <FITSKeyword("TELFOC")>
-    <ComponentModel.Description("")>
+    <ComponentModel.Description("Focal length of the telescope [m]")>
     [TELFOC]
 
     '''<summary>Plate scale of the telescope [arcsec/mm].</summary>
     <FITSKeyword("TELSCALE")>
-    <ComponentModel.Description("")>
+    <ComponentModel.Description("Plate scale of the telescope [arcsec/mm]")>
     [TELSCALE]
 
     '''<summary>The value field shall contain a character string that gives the time at which the observation ended, format 'hh:mm:ss.sss'.</summary>
@@ -307,33 +371,12 @@ Public Structure sFITSKeywords
     '''<summary>The value field shall contain a floating point number giving the geographic latitude from which the observation was made in units of degrees.</summary>
     Public Const [LATITUDE] As String = "LATITUDE"
 
-
-    '=============================================================================
-    'Found in FITS and need additional comments
-
-    '''<summary>Projection type for axis 1. Always set to use the SIN (orthographic) projection; For definition, see Calabretta & Greisen, 2002.</summary>
-    Public Const [CTYPE1] As String = "CTYPE1"
-    '''<summary>Projection type for axis 2. Always set to use the SIN (orthographic) projection; For definition, see Calabretta & Greisen, 2002.</summary>
-    Public Const [CTYPE2] As String = "CTYPE2"
-
-    '''<summary>The value field shall contain a floating point number giving the Partial derivative Of the coordinate specified by the CTYPEn keywords with respect to the pixel index, evaluated at the reference point CRPIXn, in units Of the coordinate specified by  the CTYPEn keyword.  These units must follow the prescriptions of section 5.3 of the FITS Standard.</summary>
-    '''<remarks>Axis 1 pixel scale at CRPIX1,CRPIX2. See PXSCAL1 For arcsec equivalent.</remarks>
-    Public Const [CDELT1] As String = "CDELT1"
-    '''<summary>The value field shall contain a floating point number giving the Partial derivative Of the coordinate specified by the CTYPEn keywords with respect to the pixel index, evaluated at the reference point CRPIXn, in units Of the coordinate specified by  the CTYPEn keyword.  These units must follow the prescriptions of section 5.3 of the FITS Standard.</summary>
-    '''<remarks>Axis 1 pixel scale at CRPIX1,CRPIX2. See PXSCAL1 For arcsec equivalent.</remarks>
-    Public Const [CDELT2] As String = "CDELT2"
-
     '''<summary>This keyword is used to indicate a rotation from a standard coordinate system described by the CTYPEn To a different coordinate system in which the values in the array are actually expressed. Rules For such rotations are Not further specified in the Standard; the rotation should be explained In comments. The value field shall contain a floating point number giving the rotation angle In degrees between axis n And the direction implied by the coordinate system defined by CTYPEn.</summary>
     '''<remarks>UNITS: degrees</remarks>
     Public Const [CROTA1] As String = "CROTA1"
     '''<summary>This keyword is used to indicate a rotation from a standard coordinate system described by the CTYPEn To a different coordinate system in which the values in the array are actually expressed. Rules For such rotations are Not further specified in the Standard; the rotation should be explained In comments. The value field shall contain a floating point number giving the rotation angle In degrees between axis n And the direction implied by the coordinate system defined by CTYPEn.</summary>
     '''<remarks>UNITS: degrees</remarks>
     Public Const [CROTA2] As String = "CROTA2"
-
-    '''<summary>The value field shall contain a floating point number, giving the value Of the coordinate specified by the CTYPEn keyword at the reference point CRPIXn. Units must follow the prescriptions Of section 5.3 of the FITS Standard.</summary>
-    Public Const [CRVAL1] As String = "CRVAL1"
-    '''<summary>The value field shall contain a floating point number, giving the value Of the coordinate specified by the CTYPEn keyword at the reference point CRPIXn. Units must follow the prescriptions Of section 5.3 of the FITS Standard.</summary>
-    Public Const [CRVAL2] As String = "CRVAL2"
 
 
     '''<summary>Used to color encoding.</summary>
