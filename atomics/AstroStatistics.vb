@@ -124,6 +124,7 @@ Namespace AstroNET
             '''<summary>Report of all statistics properties of the structure.</summary>
             '''<param name="DispHeader">TRUE to display the header, FALSE else.</param>
             Public Function StatisticsReport() As Collections.Generic.List(Of String)
+                Dim NotPresent As String = New String("-"c, ReportValueLength)
                 Dim RetVal As New Collections.Generic.List(Of String)
                 Dim HistXDist_keys As Collections.Generic.List(Of Long) = HistXDist.KeyList
                 RetVal.Add("Total pixel       : " & Samples.ValRegIndep.PadLeft(ReportValueLength))
@@ -136,10 +137,15 @@ Namespace AstroNET
                 RetVal.Add("Mean value        : " & Format(Mean, "0.000").ToString.Trim.PadLeft(ReportValueLength))
                 RetVal.Add("Standard dev.     : " & Format(StdDev, "0.000").ToString.Trim.PadLeft(ReportValueLength))
                 RetVal.Add("Variance          : " & Format(Variance, "0.000").ToString.Trim.PadLeft(ReportValueLength))
-                RetVal.Add("ADU step size min : " & Format(HistXDist_keys(0), "####0").ToString.Trim.PadLeft(ReportValueLength))
-                RetVal.Add("ADU different step: " & Format(HistXDist_keys.Count, "####0").ToString.Trim.PadLeft(ReportValueLength))
+                If HistXDist_keys.Count = 0 Then
+                    RetVal.Add("ADU step size min : " & NotPresent.PadLeft(ReportValueLength))
+                    RetVal.Add("ADU different step: " & NotPresent.PadLeft(ReportValueLength))
+                Else
+                    RetVal.Add("ADU step size min : " & Format(HistXDist_keys(0), "####0").ToString.Trim.PadLeft(ReportValueLength))
+                    RetVal.Add("ADU different step: " & Format(HistXDist_keys.Count, "####0").ToString.Trim.PadLeft(ReportValueLength))
+                End If
                 For Each Pct As Integer In New Integer() {1, 5, 10, 25, 50, 75, 90, 95, 99}
-                    If Percentile.ContainsKey(Pct) Then RetVal.Add(("Percentil - " & Pct.ToString.Trim.PadLeft(2) & " %: ").PadRight(ReportHeaderLength) & Format(Percentile(Pct)).ToString.Trim.PadLeft(ReportValueLength))
+                    If Percentile.ContainsKey(Pct) Then RetVal.Add(("Percentil - " & Pct.ToString.Trim.PadLeft(2) & " %  : ").PadRight(ReportHeaderLength) & Format(Percentile(Pct)).ToString.Trim.PadLeft(ReportValueLength))
                 Next Pct
                 Return RetVal
             End Function
@@ -159,7 +165,7 @@ Namespace AstroNET
         End Function
 
         '''<summary>Combine 2 SingleChannelStatistics elements (e.g. to calculate the aggregated statistic for multi-frame capture).</summary>
-        Public Shared Function CombineStatistics(ByVal StatA As sStatistics, ByVal StatB As sStatistics) As sStatistics
+        Public Shared Function CombineStatistics(ByVal StatA As sStatistics, ByVal CombinedStatistics As sStatistics) As sStatistics
             Dim RetVal As New sStatistics
             '1.) Combine to 2 histograms
             ReDim RetVal.BayerHistograms(StatA.BayerHistograms.GetUpperBound(0), StatA.BayerHistograms.GetUpperBound(1))
@@ -171,9 +177,9 @@ Namespace AstroNET
                         RetVal.BayerHistograms(BayIdx1, BayIdx2).Add(PixelValue, StatA.BayerHistograms(BayIdx1, BayIdx2)(PixelValue))
                     Next PixelValue
                     'Combine with StatB data
-                    If IsNothing(StatB.BayerHistograms) = False Then
-                        For Each PixelValue As UInt16 In StatB.BayerHistograms(BayIdx1, BayIdx2).Keys
-                            Dim HistoCount As UInteger = StatB.BayerHistograms(BayIdx1, BayIdx2)(PixelValue)
+                    If IsNothing(CombinedStatistics.BayerHistograms) = False Then
+                        For Each PixelValue As UInt16 In CombinedStatistics.BayerHistograms(BayIdx1, BayIdx2).Keys
+                            Dim HistoCount As UInteger = CombinedStatistics.BayerHistograms(BayIdx1, BayIdx2)(PixelValue)
                             If RetVal.BayerHistograms(BayIdx1, BayIdx2).ContainsKey(PixelValue) = False Then
                                 RetVal.BayerHistograms(BayIdx1, BayIdx2).Add(PixelValue, HistoCount)
                             Else
