@@ -59,6 +59,7 @@ Public Class ImageProcessing
     End Sub
 
     '''<summary>Make the histogram a straight line.</summary>
+    '''<remarks>This is a very strange function but can auto-strech details in the image.</remarks>
     Public Shared Sub MakeHistoStraight(ByRef Data(,) As UInt16)
         Dim ToSort As New List(Of sCoordIntensity)
         For Idx1 As Integer = 0 To Data.GetUpperBound(0)
@@ -123,24 +124,5 @@ Public Class ImageProcessing
         Next Entry
 
     End Sub
-
-    '''<summary>Sort the passed dictionary according to T1 (key).</summary>
-    Public Shared Function SortDictionary(Of T1, T2)(ByRef Hist As Dictionary(Of T1, T2)) As Dictionary(Of T1, T2)
-
-        'Generate a list
-        Dim KeyList As New List(Of T1)
-        For Each Entry As T1 In Hist.Keys
-            KeyList.Add(Entry)
-        Next Entry
-        'Sort keys
-        KeyList.Sort()
-        'Re-generate dictionary
-        Dim RetVal As New Dictionary(Of T1, T2)
-        For Each Entry As T1 In KeyList
-            RetVal.Add(Entry, Hist(Entry))
-        Next Entry
-        Return RetVal
-
-    End Function
 
 End Class

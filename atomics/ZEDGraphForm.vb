@@ -35,7 +35,7 @@ Public Class cZEDGraphForm
     End Function
 
     '''<summary>Plot data.</summary>
-    Public Function PlotData(ByVal Data() As Long) As ZedGraph.ZedGraphControl
+    Public Function PlotData(ByVal PlotName As String, ByVal Data() As Long) As ZedGraph.ZedGraphControl
         Init()
         Dim XAxis As New List(Of Double)
         Dim YAxis As New List(Of Double)
@@ -43,18 +43,18 @@ Public Class cZEDGraphForm
             XAxis.Add(Idx)
             YAxis.Add(Data(Idx))
         Next Idx
-        ZEDGraphUtil.PlotXvsY(zgcMain, "Data", XAxis.ToArray, YAxis.ToArray, New ZEDGraphUtil.sGraphStyle(Drawing.Color.Red), XAxis(0), XAxis(XAxis.Count - 1))
+        ZEDGraphUtil.PlotXvsY(zgcMain, PlotName, XAxis.ToArray, YAxis.ToArray, New ZEDGraphUtil.sGraphStyle(Drawing.Color.Red), XAxis(0), XAxis(XAxis.Count - 1))
         Return GetGraphControl()
     End Function
 
     '''<summary>Plot data.</summary>
-    Public Function PlotData(ByVal Data() As Double) As ZedGraph.ZedGraphControl
+    Public Function PlotData(ByVal PlotName As String, ByVal Data() As Double) As ZedGraph.ZedGraphControl
         Init()
         Dim XAxis As New List(Of Double)
         For Idx As Integer = 0 To Data.GetUpperBound(0)
             XAxis.Add(Idx)
         Next Idx
-        ZEDGraphUtil.PlotXvsY(zgcMain, "Data", XAxis.ToArray, Data, New ZEDGraphUtil.sGraphStyle(Drawing.Color.Red), XAxis(0), XAxis(XAxis.Count - 1))
+        ZEDGraphUtil.PlotXvsY(zgcMain, PlotName, XAxis.ToArray, Data, New ZEDGraphUtil.sGraphStyle(Drawing.Color.Red), XAxis(0), XAxis(XAxis.Count - 1))
         Return GetGraphControl()
     End Function
 
@@ -84,14 +84,21 @@ Public Class cZEDGraphForm
     End Function
 
     '''<summary>Plot data.</summary>
-    Public Function PlotData(ByVal X() As UInt32, ByVal Y() As UInt32) As ZedGraph.ZedGraphControl
+    Public Function PlotData(ByVal PlotName As String, ByVal X() As UInt32, ByVal Y() As UInt32) As ZedGraph.ZedGraphControl
         Init()
-        ZEDGraphUtil.PlotXvsY(zgcMain, "Data", X, Y, New ZEDGraphUtil.sGraphStyle(Drawing.Color.Red, ZEDGraphUtil.sGraphStyle.eCurveMode.Dots))
+        ZEDGraphUtil.PlotXvsY(zgcMain, PlotName, X, Y, New ZEDGraphUtil.sGraphStyle(Drawing.Color.Red, ZEDGraphUtil.sGraphStyle.eCurveMode.Dots))
         Return GetGraphControl()
     End Function
 
     '''<summary>Plot data.</summary>
-    Public Function PlotData(ByRef Data As Dictionary(Of Integer, UInt32)) As ZedGraph.ZedGraphControl
+    Public Function PlotData(ByVal PlotName As String, ByVal X() As Double, ByVal Y() As Double) As ZedGraph.ZedGraphControl
+        Init()
+        ZEDGraphUtil.PlotXvsY(zgcMain, PlotName, X, Y, New ZEDGraphUtil.sGraphStyle(Drawing.Color.Red, ZEDGraphUtil.sGraphStyle.eCurveMode.Dots), Double.NaN, Double.NaN)
+        Return GetGraphControl()
+    End Function
+
+    '''<summary>Plot data.</summary>
+    Public Function PlotData(ByVal PlotName As String, ByRef Data As Dictionary(Of Integer, UInt32)) As ZedGraph.ZedGraphControl
         Init()
         Dim XAxis As New List(Of Double)
         Dim YAxis As New List(Of Double)
@@ -99,12 +106,12 @@ Public Class cZEDGraphForm
             XAxis.Add(Entry)
             YAxis.Add(Data(Entry))
         Next Entry
-        ZEDGraphUtil.PlotXvsY(zgcMain, "Data", XAxis.ToArray, YAxis.ToArray, New ZEDGraphUtil.sGraphStyle(Drawing.Color.Red, ZEDGraphUtil.sGraphStyle.eCurveMode.Dots), XAxis(0), XAxis(XAxis.Count - 1))
+        ZEDGraphUtil.PlotXvsY(zgcMain, PlotName, XAxis.ToArray, YAxis.ToArray, New ZEDGraphUtil.sGraphStyle(Drawing.Color.Red, ZEDGraphUtil.sGraphStyle.eCurveMode.Dots), XAxis(0), XAxis(XAxis.Count - 1))
         Return GetGraphControl()
     End Function
 
     '''<summary>Plot data.</summary>
-    Public Function PlotData(ByRef Data As Dictionary(Of Double, Double)) As ZedGraph.ZedGraphControl
+    Public Function PlotData(ByVal PlotName As String, ByRef Data As Dictionary(Of Double, Double)) As ZedGraph.ZedGraphControl
         Init()
         Dim XAxis As New List(Of Double)
         Dim YAxis As New List(Of Double)
@@ -112,7 +119,7 @@ Public Class cZEDGraphForm
             XAxis.Add(Entry)
             YAxis.Add(Data(Entry))
         Next Entry
-        ZEDGraphUtil.PlotXvsY(zgcMain, "Data", XAxis.ToArray, YAxis.ToArray, New ZEDGraphUtil.sGraphStyle(Drawing.Color.Red, ZEDGraphUtil.sGraphStyle.eCurveMode.Dots), XAxis(0), XAxis(XAxis.Count - 1))
+        ZEDGraphUtil.PlotXvsY(zgcMain, PlotName, XAxis.ToArray, YAxis.ToArray, New ZEDGraphUtil.sGraphStyle(Drawing.Color.Red, ZEDGraphUtil.sGraphStyle.eCurveMode.Dots), XAxis(0), XAxis(XAxis.Count - 1))
         Return GetGraphControl()
     End Function
 

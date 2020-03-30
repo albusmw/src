@@ -493,7 +493,7 @@ Namespace AstroNET
         End Function
 
         ''' <summary>Correct the vignette.</summary>
-        Public Shared Sub CorrectVignette(ByRef FITSSumImage(,) As UInt32, ByRef VignetteCorrection As Collections.Generic.Dictionary(Of Double, Double))
+        Public Shared Sub CorrectVignette(ByRef FITSSumImage(,) As UInt16, ByRef VignetteCorrection As Collections.Generic.Dictionary(Of Double, Double))
 
             'Calculate the maximum distance possible from the center in X, Y and R direction
             Dim MaxDistX As Double = Double.NaN
@@ -512,10 +512,10 @@ Namespace AstroNET
                     Dim DistanceDicKey As Double = (DistanceBinIdx / Steps) * MaxDistance
 
                     Dim Correction As Double = 1 / VignetteCorrection(DistanceDicKey)
-                    FITSSumImage(DeltaX, DeltaY) = CUInt(FITSSumImage(DeltaX, DeltaY) * Correction)                                                             'right down
-                    FITSSumImage(DeltaX, DeltaY - GroupDeltaY) = CUInt(FITSSumImage(DeltaX, DeltaY - GroupDeltaY) * Correction)                                 'right up
-                    FITSSumImage(DeltaX - GroupDeltaX, DeltaY) = CUInt(FITSSumImage(DeltaX - GroupDeltaX, DeltaY) * Correction)                                 'left down
-                    FITSSumImage(DeltaX - GroupDeltaX, DeltaY - GroupDeltaY) = CUInt(FITSSumImage(DeltaX - GroupDeltaX, DeltaY - GroupDeltaY) * Correction)     'left up
+                    FITSSumImage(DeltaX, DeltaY) = CType(FITSSumImage(DeltaX, DeltaY) * Correction, UInt16)                                                             'right down
+                    FITSSumImage(DeltaX, DeltaY - GroupDeltaY) = CType(FITSSumImage(DeltaX, DeltaY - GroupDeltaY) * Correction, UInt16)                                 'right up
+                    FITSSumImage(DeltaX - GroupDeltaX, DeltaY) = CType(FITSSumImage(DeltaX - GroupDeltaX, DeltaY) * Correction, UInt16)                                 'left down
+                    FITSSumImage(DeltaX - GroupDeltaX, DeltaY - GroupDeltaY) = CType(FITSSumImage(DeltaX - GroupDeltaX, DeltaY - GroupDeltaY) * Correction, UInt16)     'left up
                     GroupDeltaY += 2 : DistY += 1
                 Next DeltaY
                 GroupDeltaX += 2 : DistX += 1
