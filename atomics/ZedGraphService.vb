@@ -361,7 +361,7 @@ Public Class cZEDGraphService
     '''<param name="X">Vector of X axis values.</param>
     '''<param name="Y">Vector of Y axis values.</param>
     '''<param name="Style">Style to use (line, point, line and points, color, ...).</param>
-    Public Sub PlotXvsY(ByRef CurveName As String, ByRef Elements As Collections.Generic.Dictionary(Of Int64, UInteger), ByVal YNorm As Double, ByVal Style As sGraphStyle)
+    Public Sub PlotXvsY(ByRef CurveName As String, ByRef Elements As Collections.Generic.Dictionary(Of Int64, UInt64), ByVal YNorm As Double, ByVal Style As sGraphStyle)
         Dim X(Elements.Count - 1) As Double
         Dim Y(Elements.Count - 1) As Double
         Dim Ptr As Integer = 0
