@@ -108,6 +108,16 @@ Module VectorExtension
     End Function
 
     <Extension()>
+    Public Function ToDouble(ByVal Argument As UInt64()) As Double()
+        Dim RetVal(Argument.Length - 1) As Double
+        Threading.Tasks.Parallel.For(0, RetVal.GetUpperBound(0) + 1, Sub(Idx As Integer)
+                                                                         RetVal(Idx) = Argument(Idx)
+                                                                     End Sub)
+
+        Return RetVal
+    End Function
+
+    <Extension()>
     Public Function ToDouble(ByVal Argument As Collections.Generic.List(Of UInteger)) As Double()
         Dim RetVal(Argument.Count - 1) As Double
         Threading.Tasks.Parallel.For(0, RetVal.GetUpperBound(0) + 1, Sub(Idx As Integer)
