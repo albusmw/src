@@ -201,7 +201,7 @@ Namespace AstroNET
                             End If
                         Next PixelValue
                     End If
-                    RetVal.BayerHistograms(BayIdx1, BayIdx2) = cGenerics.SortDictionary(RetVal.BayerHistograms(BayIdx1, BayIdx2))
+                    RetVal.BayerHistograms(BayIdx1, BayIdx2) = RetVal.BayerHistograms(BayIdx1, BayIdx2).SortDictionary
                 Next BayIdx2
             Next BayIdx1
             CalculateAllFromBayerStatistics(RetVal)
@@ -305,7 +305,7 @@ Namespace AstroNET
                 End If
                 LastHistX = HistoX
             Next HistoX
-            Return cGenerics.SortDictionary(RetVal)
+            Return RetVal.SortDictionary
         End Function
 
         '''<summary>Get the histogram for all quanization level differences found.</summary>
@@ -324,7 +324,7 @@ Namespace AstroNET
                 End If
                 LastHistX = HistoX
             Next HistoX
-            Return cGenerics.SortDictionary(RetVal)
+            Return RetVal.SortDictionary
         End Function
 
         '''<summary>Combine all bayer statistics to a monochromatic statistic of all pixel of the image.</summary>
@@ -343,7 +343,7 @@ Namespace AstroNET
                     End If
                 Next Idx2
             Next Idx1
-            Return cGenerics.SortDictionary(RetVal)
+            Return RetVal.SortDictionary
         End Function
 
         '''<summary>Calculate basic bayer statistics on the passed data matrix.</summary>

@@ -70,15 +70,15 @@ Public Class cStatMultiThread_UInt16
         Next Idx
 
         'Count one bayer part
-        Dim XOffsets As New List(Of Integer)
+        Dim XOffsets As New Collections.Generic.List(Of Integer)
         For IdxX As Integer = StateObj.XOffset To ImageData.GetUpperBound(0) - 1 + StateObj.XOffset Step 2
             XOffsets.Add(IdxX)
         Next IdxX
-        Parallel.ForEach(XOffsets, Sub(IdxX)
-                                       For IdxY As Integer = StateObj.YOffset To ImageData.GetUpperBound(1) - 1 + StateObj.YOffset Step 2
-                                           HistCount(ImageData(IdxX, IdxY)) += OneUInt64
-                                       Next IdxY
-                                   End Sub)
+        Threading.Tasks.Parallel.ForEach(XOffsets, Sub(IdxX)
+                                                       For IdxY As Integer = StateObj.YOffset To ImageData.GetUpperBound(1) - 1 + StateObj.YOffset Step 2
+                                                           HistCount(ImageData(IdxX, IdxY)) += OneUInt64
+                                                       Next IdxY
+                                                   End Sub)
 
         'Form return value
         StateObj.HistDataBayer = New Collections.Generic.Dictionary(Of Int64, UInt64)
@@ -249,7 +249,7 @@ Public Class cStatMultiThread_Int32
         Next IdxX
 
         'Sort dictionary and return "done"
-        StateObj.HistDataBayer = cGenerics.SortDictionary(StateObj.HistDataBayer)
+        StateObj.HistDataBayer = StateObj.HistDataBayer.SortDictionary
         StateObj.Done = True
 
     End Sub

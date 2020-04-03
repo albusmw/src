@@ -209,6 +209,134 @@ Public Class cStatistics
     '================================================================================
 
     '''<summary>Calculate statistics on the given area.</summary>
+    Public Sub Calculate(ByRef Data(,) As UInt16)
+        Calculate(Data, 0, Data.GetUpperBound(0), 0, Data.GetUpperBound(1))
+    End Sub
+
+    '''<summary>Calculate statistics on the given area.</summary>
+    Public Sub Calculate(ByRef Data(,) As UInt16, ByVal X_left As Integer, ByVal X_right As Integer, ByVal Y_top As Integer, ByVal Y_bottom As Integer)
+
+        Dim Pixels As Integer = (X_right - X_left + 1) * (Y_bottom - Y_top + 1)
+
+        'Set area that was calculated
+        MyWidth = X_right - X_left + 1
+        MyHeight = Y_bottom - Y_top + 1
+        Pixels = MyWidth * MyHeight
+
+        'Set center
+        MyCenter = New System.Drawing.PointF(CSng(X_left + (MyWidth / 2)), CSng(Y_top + (MyHeight / 2)))
+
+        'Reset
+        MyMaximum = Double.MinValue
+        MyMinimum = Double.MaxValue
+        MyMean = 0
+        Dim MeanPow2 As Double = 0
+
+        'Build the histogramm
+        Histogram = New Dictionary(Of Double, Integer)
+        For Idx1 As Integer = X_left To X_right
+            For Idx2 As Integer = Y_top To Y_bottom
+                Dim Value As Double = Data(Idx1, Idx2)
+                If Histogram.ContainsKey(Value) Then Histogram(Value) += 1 Else Histogram.Add(Value, 1)
+                MyMean += Value
+                MeanPow2 += Value * Value
+                If Value > MyMaximum Then MyMaximum = Value
+                If Value < MyMinimum Then MyMinimum = Value
+            Next Idx2
+        Next Idx1
+        Histogram = SortDictionary(Histogram)
+
+        MyMean /= Pixels
+        MeanPow2 /= Pixels
+        MyStdDev = Math.Sqrt(MeanPow2 - (MyMean * MyMean))
+
+        'Get percentiles
+        Dim CountedPixel As Integer = 0
+        MyPct25 = Double.NaN
+        MyMedian = Double.NaN
+        MyPct75 = Double.NaN
+        MyHistoPeakCount = 0
+        MyHistoPeakPos = Double.NaN
+        For Each Entry As Double In Histogram.Keys
+            CountedPixel += Histogram(Entry)
+            If Histogram(Entry) > MyHistoPeakCount Then
+                MyHistoPeakCount = Histogram(Entry)
+                MyHistoPeakPos = Entry
+            End If
+            If CountedPixel >= Pixels * 0.25 And Double.IsNaN(MyPct25) = True Then MyPct25 = Entry
+            If CountedPixel >= Pixels * 0.5 And Double.IsNaN(MyMedian) = True Then MyMedian = Entry
+            If CountedPixel >= Pixels * 0.75 And Double.IsNaN(MyPct75) = True Then MyPct75 = Entry
+        Next Entry
+
+    End Sub
+
+    '================================================================================
+
+    '''<summary>Calculate statistics on the given area.</summary>
+    Public Sub Calculate(ByRef Data(,) As Integer)
+        Calculate(Data, 0, Data.GetUpperBound(0), 0, Data.GetUpperBound(1))
+    End Sub
+
+    '''<summary>Calculate statistics on the given area.</summary>
+    Public Sub Calculate(ByRef Data(,) As Integer, ByVal X_left As Integer, ByVal X_right As Integer, ByVal Y_top As Integer, ByVal Y_bottom As Integer)
+
+        Dim Pixels As Integer = (X_right - X_left + 1) * (Y_bottom - Y_top + 1)
+
+        'Set area that was calculated
+        MyWidth = X_right - X_left + 1
+        MyHeight = Y_bottom - Y_top + 1
+        Pixels = MyWidth * MyHeight
+
+        'Set center
+        MyCenter = New System.Drawing.PointF(CSng(X_left + (MyWidth / 2)), CSng(Y_top + (MyHeight / 2)))
+
+        'Reset
+        MyMaximum = Double.MinValue
+        MyMinimum = Double.MaxValue
+        MyMean = 0
+        Dim MeanPow2 As Double = 0
+
+        'Build the histogramm
+        Histogram = New Dictionary(Of Double, Integer)
+        For Idx1 As Integer = X_left To X_right
+            For Idx2 As Integer = Y_top To Y_bottom
+                Dim Value As Double = Data(Idx1, Idx2)
+                If Histogram.ContainsKey(Value) Then Histogram(Value) += 1 Else Histogram.Add(Value, 1)
+                MyMean += Value
+                MeanPow2 += Value * Value
+                If Value > MyMaximum Then MyMaximum = Value
+                If Value < MyMinimum Then MyMinimum = Value
+            Next Idx2
+        Next Idx1
+        Histogram = SortDictionary(Histogram)
+
+        MyMean /= Pixels
+        MeanPow2 /= Pixels
+        MyStdDev = Math.Sqrt(MeanPow2 - (MyMean * MyMean))
+
+        'Get percentiles
+        Dim CountedPixel As Integer = 0
+        MyPct25 = Double.NaN
+        MyMedian = Double.NaN
+        MyPct75 = Double.NaN
+        MyHistoPeakCount = 0
+        MyHistoPeakPos = Double.NaN
+        For Each Entry As Double In Histogram.Keys
+            CountedPixel += Histogram(Entry)
+            If Histogram(Entry) > MyHistoPeakCount Then
+                MyHistoPeakCount = Histogram(Entry)
+                MyHistoPeakPos = Entry
+            End If
+            If CountedPixel >= Pixels * 0.25 And Double.IsNaN(MyPct25) = True Then MyPct25 = Entry
+            If CountedPixel >= Pixels * 0.5 And Double.IsNaN(MyMedian) = True Then MyMedian = Entry
+            If CountedPixel >= Pixels * 0.75 And Double.IsNaN(MyPct75) = True Then MyPct75 = Entry
+        Next Entry
+
+    End Sub
+
+    '================================================================================
+
+    '''<summary>Calculate statistics on the given area.</summary>
     Public Sub Calculate(ByRef Data(,) As UInt32)
         Calculate(Data, 0, Data.GetUpperBound(0), 0, Data.GetUpperBound(1))
     End Sub
