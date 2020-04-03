@@ -53,7 +53,7 @@ Public Class BayerFunctions
             Next Idx2
         Next Idx1
 
-        Return cGenerics.SortDictionary(AllValues)
+        Return AllValues.SortDictionary
 
     End Function
 
@@ -167,7 +167,7 @@ Public Class BayerFunctions
             For Idx2 As Integer = 0 To 1
                 Norm(Idx1, Idx2) = ReferenceValue / ImageStatistics.BayerStatistics(Idx1, Idx2).Mean
                 RetVal.Add("Norm[" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "]           : " & Norm(Idx1, Idx2).ValRegIndep)
-                RetVal.Add("Max [" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "] after norm: " & CType(Math.Round(ImageStatistics.BayerStatistics(Idx1, Idx2).Max * Norm(Idx1, Idx2)), UInt32).ValRegIndep)
+                RetVal.Add("Max [" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "] after norm: " & CType(Math.Round(ImageStatistics.BayerStatistics(Idx1, Idx2).Max.Value * Norm(Idx1, Idx2)), UInt32).ValRegIndep)
             Next Idx2
         Next Idx1
 

@@ -159,4 +159,24 @@ Module VectorExtension
         Return New Collections.Generic.List(Of T2)(Dict.Values)
     End Function
 
+    '''<summary>Get a list of all values in the dictionary passed.</summary>
+    <Extension()>
+    Public Function SortDictionary(Of T1, T2)(ByRef Hist As Collections.Generic.Dictionary(Of T1, T2)) As Collections.Generic.Dictionary(Of T1, T2)
+
+        'Generate a list
+        Dim KeyList As New Collections.Generic.List(Of T1)
+        For Each Entry As T1 In Hist.Keys
+            KeyList.Add(Entry)
+        Next Entry
+        'Sort keys
+        KeyList.Sort()
+        'Re-generate dictionary
+        Dim RetVal As New Collections.Generic.Dictionary(Of T1, T2)
+        For Each Entry As T1 In KeyList
+            RetVal.Add(Entry, Hist(Entry))
+        Next Entry
+        Return RetVal
+
+    End Function
+
 End Module

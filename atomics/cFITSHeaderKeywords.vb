@@ -59,7 +59,6 @@ End Class
 '''<see cref="http://eso-python.github.io/ESOPythonTutorials/FITS-images.html"/>
 Public Enum eFITSKeywords
 
-
     '''<summary>The value field shall contain a character string identifying who compiled the information In the data associated With the header. This keyword Is appropriate When the data originate In a published paper Or are compiled from many sources.</summary>
     <FITSKeyword("AUTHOR")>
     <ComponentModel.Description("")>
@@ -223,6 +222,11 @@ Public Enum eFITSKeywords
     <FITSKeyword("NAXIS2")>
     <ComponentModel.Description("")>
     [NAXIS2]
+
+    '''<summary>Primary HDU - Length of data axis 3 or number of color channels in image.</summary>
+    <FITSKeyword("NAXIS3")>
+    <ComponentModel.Description("")>
+    [NAXIS3]
 
     '''<summary>The value field shall contain a character string giving a name for the object observed.</summary>
     <FITSKeyword("OBJECT")>

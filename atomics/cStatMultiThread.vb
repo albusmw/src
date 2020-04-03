@@ -2,6 +2,7 @@ Option Explicit On
 Option Strict On
 
 '''<summary>Class to calculate 2D matrix statistics multi-threaded.</summary>
+'''<remarks>Calculation is done by buidling a vector with all possible entries (only 2^16 length).</remarks>
 Public Class cStatMultiThread_UInt16
 
     Private Const OneUInt64 As UInt64 = CType(1, UInt64)
@@ -69,11 +70,15 @@ Public Class cStatMultiThread_UInt16
         Next Idx
 
         'Count one bayer part
+        Dim XOffsets As New List(Of Integer)
         For IdxX As Integer = StateObj.XOffset To ImageData.GetUpperBound(0) - 1 + StateObj.XOffset Step 2
-            For IdxY As Integer = StateObj.YOffset To ImageData.GetUpperBound(1) - 1 + StateObj.YOffset Step 2
-                HistCount(ImageData(IdxX, IdxY)) += OneUInt64
-            Next IdxY
+            XOffsets.Add(IdxX)
         Next IdxX
+        Parallel.ForEach(XOffsets, Sub(IdxX)
+                                       For IdxY As Integer = StateObj.YOffset To ImageData.GetUpperBound(1) - 1 + StateObj.YOffset Step 2
+                                           HistCount(ImageData(IdxX, IdxY)) += OneUInt64
+                                       Next IdxY
+                                   End Sub)
 
         'Form return value
         StateObj.HistDataBayer = New Collections.Generic.Dictionary(Of Int64, UInt64)
@@ -89,6 +94,7 @@ Public Class cStatMultiThread_UInt16
 End Class
 
 '''<summary>Class to calculate 2D matrix statistics multi-threaded.</summary>
+'''<remarks>Calculation as for UInt16 is not possible as a vector with all entries would be 2^32 entries long.</remarks>
 Public Class cStatMultiThread_UInt32
 
     Private Const OneUInt64 As UInt64 = CType(1, UInt64)

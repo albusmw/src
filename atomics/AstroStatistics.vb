@@ -23,6 +23,14 @@ Namespace AstroNET
 
         Private Const UInt64_1 As UInt64 = CType(1, UInt64)
 
+        Public ReadOnly Property DataProcessorUsed() As String
+            Get
+                If DataProcessor_UInt16.ImageData.LongLength > 0 Then Return GetType(UInt16).Name
+                If DataProcessor_UInt32.ImageData.LongLength > 0 Then Return GetType(UInt32).Name
+                If DataProcessor_Int32.ImageData.LongLength > 0 Then Return GetType(Int32).Name
+                Return Nothing
+            End Get
+        End Property
 
         '''<summary>Constructor that creates an Intel IPP reference.</summary>
         '''<param name="IPPPath">Path to ipps.dll and ippvm.dll - if not set IPP will not be used.</param>
@@ -92,8 +100,10 @@ Namespace AstroNET
             Public MeanPow2 As Double
             '''<summary>Standard deviation (calculated as in FitsWork).</summary>
             Public StdDev As Double
-            '''<summary>Number of different values in the data.</summary>
-            Public DifferentValueCount As Integer
+            '''<summary>Number of different ADU values in the data.</summary>
+            Public DifferentADUValues As Integer
+            '''<summary>Number of different ADU values in 25-75 pct range.</summary>
+            Public ADUValues2575 As Integer
             '''<summary>Distance between the histogram X axis points.</summary>
             Public HistXDist As Collections.Generic.Dictionary(Of Long, UInt64)
             '''<summary>Percentile.</summary>
@@ -115,7 +125,7 @@ Namespace AstroNET
                 RetVal.Mean = 0
                 RetVal.MeanPow2 = 0
                 RetVal.StdDev = Double.NaN
-                RetVal.DifferentValueCount = 0
+                RetVal.DifferentADUValues = 0
                 RetVal.HistXDist = New Collections.Generic.Dictionary(Of Long, UInt64)
                 RetVal.Median = Int64.MinValue
                 RetVal.Percentile = New Collections.Generic.Dictionary(Of Integer, Int64)
@@ -130,7 +140,8 @@ Namespace AstroNET
                 Dim HistXDist_keys As Collections.Generic.List(Of Long) = HistXDist.KeyList
                 RetVal.Add("Total pixel       : " & Samples.ValRegIndep.PadLeft(ReportValueLength))
                 RetVal.Add("Total pixel       : " & ((Samples / 1000000).ValRegIndep("0.0") & "M").PadLeft(ReportValueLength))
-                RetVal.Add("Different values  : " & DifferentValueCount.ValRegIndep.PadLeft(ReportValueLength))
+                RetVal.Add("ADU values count  : " & DifferentADUValues.ValRegIndep.PadLeft(ReportValueLength))
+                RetVal.Add("  in 25-75 pct    : " & ADUValues2575.ValRegIndep.PadLeft(ReportValueLength))
                 RetVal.Add("Min value         : " & (Min.Key.ValRegIndep & " (" & Min.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
                 RetVal.Add("Modus value       : " & (Modus.Key.ValRegIndep & " (" & Modus.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
                 RetVal.Add("Max value         : " & (Max.Key.ValRegIndep & " (" & Max.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
@@ -138,6 +149,7 @@ Namespace AstroNET
                 RetVal.Add("Mean value        : " & Format(Mean, "0.000").ToString.Trim.PadLeft(ReportValueLength))
                 RetVal.Add("Standard dev.     : " & Format(StdDev, "0.000").ToString.Trim.PadLeft(ReportValueLength))
                 RetVal.Add("Variance          : " & Format(Variance, "0.000").ToString.Trim.PadLeft(ReportValueLength))
+                'Data on histogram of ADU stepping
                 If HistXDist_keys.Count = 0 Then
                     RetVal.Add("ADU step size min : " & NotPresent.PadLeft(ReportValueLength))
                     RetVal.Add("ADU different step: " & NotPresent.PadLeft(ReportValueLength))
@@ -145,6 +157,7 @@ Namespace AstroNET
                     RetVal.Add("ADU step size min : " & Format(HistXDist_keys(0), "####0").ToString.Trim.PadLeft(ReportValueLength))
                     RetVal.Add("ADU different step: " & Format(HistXDist_keys.Count, "####0").ToString.Trim.PadLeft(ReportValueLength))
                 End If
+                'Percentile report
                 For Each Pct As Integer In New Integer() {1, 5, 10, 25, 50, 75, 90, 95, 99}
                     If Percentile.ContainsKey(Pct) Then RetVal.Add(("Percentil - " & Pct.ToString.Trim.PadLeft(2) & " %  : ").PadRight(ReportHeaderLength) & Format(Percentile(Pct)).ToString.Trim.PadLeft(ReportValueLength))
                 Next Pct
@@ -215,8 +228,8 @@ Namespace AstroNET
         Private Shared Function CalcStatisticFromHistogram(ByRef Histogram As Collections.Generic.Dictionary(Of Int64, UInt64)) As sSingleChannelStatistics
 
             Dim RetVal As sSingleChannelStatistics = sSingleChannelStatistics.InitForShort()
-            Dim AllPixelValues As Collections.Generic.List(Of Int64) = Histogram.KeyList
-            AllPixelValues.Sort()
+            Dim AllADUValues As Collections.Generic.List(Of Int64) = Histogram.KeyList
+            AllADUValues.Sort()
 
             'Count number of samples
             For Each PixelValue As Int64 In Histogram.Keys
@@ -224,15 +237,15 @@ Namespace AstroNET
             Next PixelValue
 
             'Store number of different sample values
-            RetVal.DifferentValueCount = Histogram.Count
+            RetVal.DifferentADUValues = Histogram.Count
 
             'Init statistics calculation
             Dim SumSampleCount As UInt64 = 0
             Dim MeanSum As Double = 0
             Dim MeanPow2Sum As System.Double = 0
-            RetVal.Min = New Collections.Generic.KeyValuePair(Of Int64, UInt64)(AllPixelValues(0), Histogram(AllPixelValues(0)))
-            RetVal.Max = New Collections.Generic.KeyValuePair(Of Int64, UInt64)(AllPixelValues(AllPixelValues.Count - 1), Histogram(AllPixelValues(AllPixelValues.Count - 1)))
-            RetVal.Modus = New Collections.Generic.KeyValuePair(Of Int64, UInt64)(AllPixelValues(0), Histogram(AllPixelValues(0)))
+            RetVal.Min = New Collections.Generic.KeyValuePair(Of Int64, UInt64)(AllADUValues(0), Histogram(AllADUValues(0)))
+            RetVal.Max = New Collections.Generic.KeyValuePair(Of Int64, UInt64)(AllADUValues(AllADUValues.Count - 1), Histogram(AllADUValues(AllADUValues.Count - 1)))
+            RetVal.Modus = New Collections.Generic.KeyValuePair(Of Int64, UInt64)(AllADUValues(0), Histogram(AllADUValues(0)))
             RetVal.HistXDist = New Collections.Generic.Dictionary(Of Long, UInt64)
 
             'Init percentile - percentiles are writen in each bin as an incremental processing fails in fast-changing histograms
@@ -241,19 +254,21 @@ Namespace AstroNET
                 RetVal.Percentile.Add(Pct, PCTInvalid)
             Next Pct
 
-            'Move over the histogram for percentile
-            For Each HistoX As Int64 In AllPixelValues
-                Dim HistoY As UInt64 = Histogram(HistoX)
-                SumSampleCount += HistoY
-                Dim WeightCount As Double = (CType(HistoX, Double) * CType(HistoY, Double))
-                Dim WeightPow2 As Double = (CType(HistoX, Double) * CType(HistoX, Double)) * CType(HistoY, Double)
+            'Move over the histogram for percentile and values in 25-75pct range
+            RetVal.ADUValues2575 = 0
+            For Each ADUValue As Int64 In AllADUValues
+                Dim ValueCount As UInt64 = Histogram(ADUValue)
+                SumSampleCount += ValueCount
+                Dim WeightCount As Double = (CType(ADUValue, Double) * CType(ValueCount, Double))
+                Dim WeightPow2 As Double = (CType(ADUValue, Double) * CType(ADUValue, Double)) * CType(ValueCount, Double)
                 MeanSum += WeightCount
                 MeanPow2Sum += WeightPow2
-                If HistoY > RetVal.Modus.Value Then RetVal.Modus = New Collections.Generic.KeyValuePair(Of Int64, UInt64)(HistoX, Histogram(HistoX))
-                If SumSampleCount >= RetVal.Samples / 2 And RetVal.Median = Int64.MinValue Then RetVal.Median = HistoX
+                If ValueCount > RetVal.Modus.Value Then RetVal.Modus = New Collections.Generic.KeyValuePair(Of Int64, UInt64)(ADUValue, Histogram(ADUValue))
+                If SumSampleCount >= RetVal.Samples / 2 And RetVal.Median = Int64.MinValue Then RetVal.Median = ADUValue
                 Dim PctIdx As Integer = CInt(100 * (SumSampleCount / RetVal.Samples))
-                If RetVal.Percentile(PctIdx) = PCTInvalid Then RetVal.Percentile(PctIdx) = HistoX
-            Next HistoX
+                If RetVal.Percentile(PctIdx) = PCTInvalid Then RetVal.Percentile(PctIdx) = ADUValue
+                If PctIdx >= 25 And PctIdx <= 75 Then RetVal.ADUValues2575 += 1
+            Next ADUValue
             RetVal.HistXDist = GetQuantizationHisto(Histogram)
 
             'Set percentiles in bin which to not have a valid entry
@@ -389,146 +404,6 @@ Namespace AstroNET
             Return RetVal
 
         End Function
-
-        ''' <summary>Calculate the intensity over the distance from the center of the image.</summary>
-        ''' <param name="FITSSumImage">Image to run calculation on.</param>
-        ''' <param name="Steps">Number of X axis steps to group - 0 for full resolution, -1 for integer resolution.</param>
-        ''' <returns>Dictionary of center distance vs mean value.</returns>
-        ''' <remarks>We start in the middle, move down and right and always take 4 pixel symmetrical to the middle.</remarks>
-        Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt16, ByVal Steps As Integer) As Collections.Generic.Dictionary(Of Double, Double)
-            Dim UInt4 As UInt32 = 4
-            Dim BinSum(Steps) As UInt64
-            Dim BinCount(Steps) As UInt32
-
-            'Clear
-            For Idx As Integer = 0 To Steps - 1
-                BinSum(Idx) = 0 : BinCount(Idx) = 0
-            Next Idx
-
-            'Calculate the maximum distance possible from the center in X, Y and R direction
-            Dim MaxDistX As Double = Double.NaN
-            Dim MaxDistY As Double = Double.NaN
-            Dim MaxDistance As Double = Double.NaN
-            GetDistances(FITSSumImage, MaxDistX, MaxDistY, MaxDistance)
-
-            'Move over the complete image and sum
-            Dim GroupDeltaX As Integer = 1 : Dim DistXIdx As Integer = 1
-            Dim DistX As Double = (DistXIdx - 0.5) * (DistXIdx - 0.5)
-            For CursorX As Integer = (FITSSumImage.GetUpperBound(0) \ 2) + 1 To FITSSumImage.GetUpperBound(0)
-                Dim GroupDeltaY As Integer = 1 : Dim DistYIdx As Integer = 1
-                Dim DistY As Double = (DistYIdx - 0.5) * (DistYIdx - 0.5)
-                For CursorY As Integer = (FITSSumImage.GetUpperBound(1) \ 2) + 1 To FITSSumImage.GetUpperBound(1)
-                    Dim CenterDistance As Double = (Math.Sqrt(DistX + DistY))                       'Distance from center in pixel
-                    Dim DistanceBinIdx As Integer = CInt(Steps * (CenterDistance / MaxDistance))    'Index of the bin to add
-                    Dim SampleSum As UInt32 = 0
-                    SampleSum += FITSSumImage(CursorX, CursorY)                                     'right down
-                    SampleSum += FITSSumImage(CursorX, CursorY - GroupDeltaY)                       'right up
-                    SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY)                       'left down
-                    SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY - GroupDeltaY)         'left up
-                    BinSum(DistanceBinIdx) += SampleSum
-                    BinCount(DistanceBinIdx) += UInt4
-                    GroupDeltaY += 2 : DistYIdx += 1 : DistY = (DistYIdx - 0.5) * (DistYIdx - 0.5)
-                Next CursorY
-                GroupDeltaX += 2 : DistXIdx += 1 : DistX = (DistXIdx - 0.5) * (DistXIdx - 0.5)
-            Next CursorX
-
-            'Calculate the final output
-            Dim RetVal As New Collections.Generic.Dictionary(Of Double, Double)
-            For EntryIdx As Integer = 0 To BinSum.GetUpperBound(0)
-                RetVal.Add((EntryIdx / Steps) * MaxDistance, BinSum(EntryIdx) / BinCount(EntryIdx))
-            Next EntryIdx
-            Return RetVal
-
-        End Function
-
-        ''' <summary>Calculate the intensity over the distance from the center of the image.</summary>
-        ''' <param name="FITSSumImage">Image to run calculation on.</param>
-        ''' <param name="Steps">Number of X axis steps to group - 0 for full resolution, -1 for integer resolution.</param>
-        ''' <returns>Dictionary of center distance vs mean value.</returns>
-        ''' <remarks>We start in the middle, move down and right and always take 4 pixel symmetrical to the middle.</remarks>
-        Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt32, ByVal Steps As Integer) As Collections.Generic.Dictionary(Of Double, Double)
-
-            Dim UInt4 As UInt32 = 4
-            Dim BinSum(Steps) As UInt64
-            Dim BinCount(Steps) As UInt32
-
-            'Clear
-            For Idx As Integer = 0 To Steps - 1
-                BinSum(Idx) = 0 : BinCount(Idx) = 0
-            Next Idx
-
-            'Calculate the maximum distance possible from the center in X, Y and R direction
-            Dim MaxDistX As Double = Double.NaN
-            Dim MaxDistY As Double = Double.NaN
-            Dim MaxDistance As Double = Double.NaN
-            GetDistances(FITSSumImage, MaxDistX, MaxDistY, MaxDistance)
-
-            'Move over the complete image and sum
-            Dim GroupDeltaX As Integer = 1 : Dim DistXIdx As Integer = 1
-            Dim DistX As Double = (DistXIdx - 0.5) * (DistXIdx - 0.5)
-            For CursorX As Integer = (FITSSumImage.GetUpperBound(0) \ 2) + 1 To FITSSumImage.GetUpperBound(0)
-                Dim GroupDeltaY As Integer = 1 : Dim DistYIdx As Integer = 1
-                Dim DistY As Double = (DistYIdx - 0.5) * (DistYIdx - 0.5)
-                For CursorY As Integer = (FITSSumImage.GetUpperBound(1) \ 2) + 1 To FITSSumImage.GetUpperBound(1)
-                    Dim CenterDistance As Double = (Math.Sqrt(DistX + DistY))                       'Distance from center in pixel
-                    Dim DistanceBinIdx As Integer = CInt(Steps * (CenterDistance / MaxDistance))    'Index of the bin to add
-                    Dim SampleSum As UInt32 = 0
-                    SampleSum += FITSSumImage(CursorX, CursorY)                                     'right down
-                    SampleSum += FITSSumImage(CursorX, CursorY - GroupDeltaY)                       'right up
-                    SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY)                       'left down
-                    SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY - GroupDeltaY)         'left up
-                    BinSum(DistanceBinIdx) += SampleSum
-                    BinCount(DistanceBinIdx) += UInt4
-                    GroupDeltaY += 2 : DistYIdx += 1 : DistY = (DistYIdx - 0.5) * (DistYIdx - 0.5)
-                Next CursorY
-                GroupDeltaX += 2 : DistXIdx += 1 : DistX = (DistXIdx - 0.5) * (DistXIdx - 0.5)
-            Next CursorX
-
-            'Calculate the final output
-            Dim RetVal As New Collections.Generic.Dictionary(Of Double, Double)
-            For EntryIdx As Integer = 0 To BinSum.GetUpperBound(0)
-                RetVal.Add((EntryIdx / Steps) * MaxDistance, BinSum(EntryIdx) / BinCount(EntryIdx))
-            Next EntryIdx
-            Return RetVal
-
-        End Function
-
-        ''' <summary>Correct the vignette.</summary>
-        Public Shared Sub CorrectVignette(ByRef FITSSumImage(,) As UInt16, ByRef VignetteCorrection As Collections.Generic.Dictionary(Of Double, Double))
-
-            'Calculate the maximum distance possible from the center in X, Y and R direction
-            Dim MaxDistX As Double = Double.NaN
-            Dim MaxDistY As Double = Double.NaN
-            Dim MaxDistance As Double = Double.NaN
-            GetDistances(FITSSumImage, MaxDistX, MaxDistY, MaxDistance)
-            Dim Steps As Integer = VignetteCorrection.Count - 1
-
-            Dim GroupDeltaX As Integer = 1 : Dim DistX As Integer = 1
-            For DeltaX As Integer = (FITSSumImage.GetUpperBound(0) \ 2) + 1 To FITSSumImage.GetUpperBound(0)
-                Dim GroupDeltaY As Integer = 1 : Dim DistY As Integer = 1
-                For DeltaY As Integer = (FITSSumImage.GetUpperBound(1) \ 2) + 1 To FITSSumImage.GetUpperBound(1)
-
-                    Dim CenterDistance As Double = Math.Sqrt(((DistX - 0.5) * (DistX - 0.5)) + ((DistY - 0.5) * (DistY - 0.5)))                                 'Distance from center in pixel
-                    Dim DistanceBinIdx As Integer = CInt(Steps * (CenterDistance / MaxDistance))                                                                'Index of the bin to use for correction
-                    Dim DistanceDicKey As Double = (DistanceBinIdx / Steps) * MaxDistance
-
-                    Dim Correction As Double = 1 / VignetteCorrection(DistanceDicKey)
-                    FITSSumImage(DeltaX, DeltaY) = CType(FITSSumImage(DeltaX, DeltaY) * Correction, UInt16)                                                             'right down
-                    FITSSumImage(DeltaX, DeltaY - GroupDeltaY) = CType(FITSSumImage(DeltaX, DeltaY - GroupDeltaY) * Correction, UInt16)                                 'right up
-                    FITSSumImage(DeltaX - GroupDeltaX, DeltaY) = CType(FITSSumImage(DeltaX - GroupDeltaX, DeltaY) * Correction, UInt16)                                 'left down
-                    FITSSumImage(DeltaX - GroupDeltaX, DeltaY - GroupDeltaY) = CType(FITSSumImage(DeltaX - GroupDeltaX, DeltaY - GroupDeltaY) * Correction, UInt16)     'left up
-                    GroupDeltaY += 2 : DistY += 1
-                Next DeltaY
-                GroupDeltaX += 2 : DistX += 1
-            Next DeltaX
-        End Sub
-
-        Private Shared Sub GetDistances(Of T)(ByRef FITSImage(,) As T, ByRef MaxDistX As Double, ByRef MaxDistY As Double, ByRef MaxDistance As Double)
-            'Calculate the maximum distance possible from the center in X, Y and R direction
-            MaxDistX = ((FITSImage.GetUpperBound(0) \ 2) + 0.5)
-            MaxDistY = ((FITSImage.GetUpperBound(1) \ 2) + 0.5)
-            MaxDistance = Math.Sqrt((MaxDistX * MaxDistX) + (MaxDistY * MaxDistY))
-        End Sub
 
     End Class
 
