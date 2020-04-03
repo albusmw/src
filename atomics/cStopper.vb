@@ -61,8 +61,8 @@ Public Class cStopper
     '================================================================================
 
     '''<summary>Get the timing log.</summary>
-    Public Function GetLog() As String()
-        Return TimeLog.ToArray
+    Public Function GetLog() As Collections.Generic.List(Of String)
+        Return TimeLog
     End Function
 
 End Class
