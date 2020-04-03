@@ -114,14 +114,14 @@ Public Enum eFITSKeywords
     '''<remarks>For center, set to 0.5*(NAXIS1+1)</remarks>
     '''<example>2048.000000</example>
     <FITSKeyword("CRPIX1")>
-    <ComponentModel.Description("Axis 1 reference pixel at CRVAL1,CRVAL2")>
+    <FITSComment("Axis 1 reference pixel at CRVAL1,CRVAL2")>
     [CRPIX1]
 
     '''<summary>The value field shall contain a floating point number, identifying the location Of a reference point along axis n, In units Of the axis index.  This value Is based upon a counter that runs from 1 To NAXISn with an increment of 1 per pixel.  The reference point value need Not be that for the center of a pixel nor lie within the actual data array.  Use comments To indicate the location Of the index point relative to the pixel..</summary>
     '''<remarks>For center, set to 0.5*(NAXIS2+1)</remarks>
     '''<example>2048.000000</example>
     <FITSKeyword("CRPIX2")>
-    <ComponentModel.Description("Axis 2 reference pixel at CRVAL1,CRVAL2")>
+    <FITSComment("Axis 2 reference pixel at CRVAL1,CRVAL2")>
     [CRPIX2]
 
     '''<summary>The value field shall contain a floating point number, giving the value Of the coordinate specified by the CTYPEn keyword at the reference point CRPIXn. Units must follow the prescriptions Of section 5.3 of the FITS Standard.</summary>
@@ -139,13 +139,13 @@ Public Enum eFITSKeywords
     '''<summary>Projection type for axis 1. Always set to use the SIN (orthographic) projection; For definition, see Calabretta & Greisen, 2002</summary>
     '''<example>'RA---SIN'</example>
     <FITSKeyword("CTYPE1")>
-    <ComponentModel.Description("Projection type for axis 1.")>
+    <FITSComment("Projection type for axis 1.")>
     [CTYPE1]
 
     '''<summary>Projection type for axis 1. Always set to use the SIN (orthographic) projection; For definition, see Calabretta & Greisen, 2002</summary>
     '''<example>'DEC--SIN'</example>
     <FITSKeyword("CTYPE2")>
-    <ComponentModel.Description("Projection type for axis 2.")>
+    <FITSComment("Projection type for axis 2.")>
     [CTYPE2]
 
     '''<summary>The value field shall contain a character string that gives the date on which the observation ended, format 'yyyy-mm-dd', or 'yyyy-mm-ddThh:mm:ss.sss'.</summary>
@@ -170,18 +170,18 @@ Public Enum eFITSKeywords
 
     '''<summary>The value field shall contain a floating point number giving the exposure time of the observation in units of seconds.</summary>
     <FITSKeyword("EXPTIME")>
-    <ComponentModel.Description("Exposure time in seconds")>
+    <FITSComment("Exposure time in seconds")>
     [EXPTIME]
 
     '''<summary>Equinox of the World Coordinate System (WCS).</summary>
     '''<example>2000.0</example>
     <FITSKeyword("EQUINOX")>
-    <ComponentModel.Description("")>
+    <FITSComment("Equinox of the World Coordinate System (WCS)")>
     [EQUINOX]
 
     '''<summary>Focus value (from logbook). Used when a single value is given in the logs.</summary>
     <FITSKeyword("FOCUS")>
-    <ComponentModel.Description("Exposure time in seconds")>
+    <FITSComment("Exposure time in seconds")>
     [FOCUS]
 
     '''<summary>Field of view [°] along axis 1.</summary>
