@@ -137,8 +137,8 @@ Public Class Everything
     '''<summary>Run a Everything search as in the Everything GUI.</summary>
     '''<param name="SearchQuery">e.g. "C:\GIT" IPP*.dll"</param>
     '''<returns></returns>
-    Public Shared Function GetSearchResult(ByVal SearchQuery As String) As Collections.Generic.List(Of String)
-        Dim RetVal As New Collections.Generic.List(Of String)
+    Public Shared Function GetSearchResult(ByVal SearchQuery As String) As List(Of String)
+        Dim RetVal As New List(Of String)
         Everything.Everything_SetSearchW(SearchQuery)
         Everything.Everything_QueryW(True)
         'Get all found files

@@ -47,20 +47,20 @@ Namespace AstroNET
         '''<summary>Total statistics - available as per-channel bayer statistics and as combined statistics.</summary>
         Public Structure sStatistics
             '''<summary>Full-resolution histogram data - bayer data.</summary>
-            Public BayerHistograms(,) As Collections.Generic.Dictionary(Of Int64, UInt64)
+            Public BayerHistograms(,) As Dictionary(Of Int64, UInt64)
             '''<summary>Full-resolution histogram data - mono data, sorted.</summary>
-            Public MonochromHistogram As Collections.Generic.Dictionary(Of Int64, UInt64)
+            Public MonochromHistogram As Dictionary(Of Int64, UInt64)
             '''<summary>Statistics for each channel.</summary>
             Public BayerStatistics(,) As sSingleChannelStatistics
             '''<summary>Statistics for each channel.</summary>
             Public MonoStatistics As sSingleChannelStatistics
             '''<summary>Report of all statistics properties of the structure.</summary>
-            Public Function StatisticsReport() As Collections.Generic.List(Of String)
+            Public Function StatisticsReport() As List(Of String)
                 Return StatisticsReport(String.Empty)
             End Function
             '''<summary>Report of all statistics properties of the structure.</summary>
-            Public Function StatisticsReport(ByVal Indent As String) As Collections.Generic.List(Of String)
-                Dim RetVal As New Collections.Generic.List(Of String)
+            Public Function StatisticsReport(ByVal Indent As String) As List(Of String)
+                Dim RetVal As New List(Of String)
                 RetVal.Add(Indent & "Property".PadRight(sSingleChannelStatistics.ReportHeaderLength) & ": " & "Mono".PadRight(sSingleChannelStatistics.ReportValueLength) & "|")
                 For Each Entry As String In MonoStatistics.StatisticsReport
                     RetVal.Add(Indent & "  " & Entry & "|")
@@ -89,9 +89,9 @@ Namespace AstroNET
             '''<summary>Number of total samples (pixels) in the data set.</summary>
             Public Samples As UInt64
             '''<summary>Maximum value occured (value and number of pixel that have this value).</summary>
-            Public Max As Collections.Generic.KeyValuePair(Of Int64, UInt64)
+            Public Max As KeyValuePair(Of Int64, UInt64)
             '''<summary>Minimum value occured (value and number of pixel that have this value).</summary>
-            Public Min As Collections.Generic.KeyValuePair(Of Int64, UInt64)
+            Public Min As KeyValuePair(Of Int64, UInt64)
             '''<summary>Value where half of the samples are below and half are above.</summary>
             Public Median As Int64
             '''<summary>Arithmetic mean value.</summary>
@@ -105,11 +105,11 @@ Namespace AstroNET
             '''<summary>Number of different ADU values in 25-75 pct range.</summary>
             Public ADUValues2575 As Integer
             '''<summary>Distance between the histogram X axis points.</summary>
-            Public HistXDist As Collections.Generic.Dictionary(Of Long, UInt64)
+            Public HistXDist As Dictionary(Of Long, UInt64)
             '''<summary>Percentile.</summary>
-            Public Percentile As Collections.Generic.Dictionary(Of Integer, Int64)
+            Public Percentile As Dictionary(Of Integer, Int64)
             '''<summary>Pixel value that is present the most often.</summary>
-            Public Modus As Collections.Generic.KeyValuePair(Of Int64, UInt64)
+            Public Modus As KeyValuePair(Of Int64, UInt64)
             '''<summary>Standard deviation (calculated as in FitsWork).</summary>
             Public ReadOnly Property Variance As Double
                 Get
@@ -126,18 +126,18 @@ Namespace AstroNET
                 RetVal.MeanPow2 = 0
                 RetVal.StdDev = Double.NaN
                 RetVal.DifferentADUValues = 0
-                RetVal.HistXDist = New Collections.Generic.Dictionary(Of Long, UInt64)
+                RetVal.HistXDist = New Dictionary(Of Long, UInt64)
                 RetVal.Median = Int64.MinValue
-                RetVal.Percentile = New Collections.Generic.Dictionary(Of Integer, Int64)
+                RetVal.Percentile = New Dictionary(Of Integer, Int64)
                 RetVal.Modus = Nothing
                 Return RetVal
             End Function
             '''<summary>Report of all statistics properties of the structure.</summary>
             '''<param name="DispHeader">TRUE to display the header, FALSE else.</param>
-            Public Function StatisticsReport() As Collections.Generic.List(Of String)
+            Public Function StatisticsReport() As List(Of String)
                 Dim NotPresent As String = New String("-"c, ReportValueLength)
-                Dim RetVal As New Collections.Generic.List(Of String)
-                Dim HistXDist_keys As Collections.Generic.List(Of Long) = HistXDist.KeyList
+                Dim RetVal As New List(Of String)
+                Dim HistXDist_keys As List(Of Long) = HistXDist.KeyList
                 RetVal.Add("Total pixel       : " & Samples.ValRegIndep.PadLeft(ReportValueLength))
                 RetVal.Add("Total pixel       : " & ((Samples / 1000000).ValRegIndep("0.0") & "M").PadLeft(ReportValueLength))
                 RetVal.Add("ADU values count  : " & DifferentADUValues.ValRegIndep.PadLeft(ReportValueLength))
@@ -185,7 +185,7 @@ Namespace AstroNET
             ReDim RetVal.BayerHistograms(StatA.BayerHistograms.GetUpperBound(0), StatA.BayerHistograms.GetUpperBound(1))
             For BayIdx1 As Integer = 0 To StatA.BayerHistograms.GetUpperBound(0)
                 For BayIdx2 As Integer = 0 To StatA.BayerHistograms.GetUpperBound(1)
-                    RetVal.BayerHistograms(BayIdx1, BayIdx2) = New Collections.Generic.Dictionary(Of Int64, UInt64)
+                    RetVal.BayerHistograms(BayIdx1, BayIdx2) = New Dictionary(Of Int64, UInt64)
                     'Init return bayer histogram with StatA data
                     For Each PixelValue As UInt16 In StatA.BayerHistograms(BayIdx1, BayIdx2).Keys
                         RetVal.BayerHistograms(BayIdx1, BayIdx2).Add(PixelValue, StatA.BayerHistograms(BayIdx1, BayIdx2)(PixelValue))
@@ -225,10 +225,10 @@ Namespace AstroNET
 
         '''<summary>Calculate the statistic data from the passed histogram data.</summary>
         '''<param name="Histogram">Calculated histogram data.</param>
-        Private Shared Function CalcStatisticFromHistogram(ByRef Histogram As Collections.Generic.Dictionary(Of Int64, UInt64)) As sSingleChannelStatistics
+        Private Shared Function CalcStatisticFromHistogram(ByRef Histogram As Dictionary(Of Int64, UInt64)) As sSingleChannelStatistics
 
             Dim RetVal As sSingleChannelStatistics = sSingleChannelStatistics.InitForShort()
-            Dim AllADUValues As Collections.Generic.List(Of Int64) = Histogram.KeyList
+            Dim AllADUValues As List(Of Int64) = Histogram.KeyList
             AllADUValues.Sort()
 
             'Count number of samples
@@ -243,10 +243,10 @@ Namespace AstroNET
             Dim SumSampleCount As UInt64 = 0
             Dim MeanSum As Double = 0
             Dim MeanPow2Sum As System.Double = 0
-            RetVal.Min = New Collections.Generic.KeyValuePair(Of Int64, UInt64)(AllADUValues(0), Histogram(AllADUValues(0)))
-            RetVal.Max = New Collections.Generic.KeyValuePair(Of Int64, UInt64)(AllADUValues(AllADUValues.Count - 1), Histogram(AllADUValues(AllADUValues.Count - 1)))
-            RetVal.Modus = New Collections.Generic.KeyValuePair(Of Int64, UInt64)(AllADUValues(0), Histogram(AllADUValues(0)))
-            RetVal.HistXDist = New Collections.Generic.Dictionary(Of Long, UInt64)
+            RetVal.Min = New KeyValuePair(Of Int64, UInt64)(AllADUValues(0), Histogram(AllADUValues(0)))
+            RetVal.Max = New KeyValuePair(Of Int64, UInt64)(AllADUValues(AllADUValues.Count - 1), Histogram(AllADUValues(AllADUValues.Count - 1)))
+            RetVal.Modus = New KeyValuePair(Of Int64, UInt64)(AllADUValues(0), Histogram(AllADUValues(0)))
+            RetVal.HistXDist = New Dictionary(Of Long, UInt64)
 
             'Init percentile - percentiles are writen in each bin as an incremental processing fails in fast-changing histograms
             Dim PCTInvalid As Long = Long.MinValue
@@ -263,7 +263,7 @@ Namespace AstroNET
                 Dim WeightPow2 As Double = (CType(ADUValue, Double) * CType(ADUValue, Double)) * CType(ValueCount, Double)
                 MeanSum += WeightCount
                 MeanPow2Sum += WeightPow2
-                If ValueCount > RetVal.Modus.Value Then RetVal.Modus = New Collections.Generic.KeyValuePair(Of Int64, UInt64)(ADUValue, Histogram(ADUValue))
+                If ValueCount > RetVal.Modus.Value Then RetVal.Modus = New KeyValuePair(Of Int64, UInt64)(ADUValue, Histogram(ADUValue))
                 If SumSampleCount >= RetVal.Samples / 2 And RetVal.Median = Int64.MinValue Then RetVal.Median = ADUValue
                 Dim PctIdx As Integer = CInt(100 * (SumSampleCount / RetVal.Samples))
                 If RetVal.Percentile(PctIdx) = PCTInvalid Then RetVal.Percentile(PctIdx) = ADUValue
@@ -291,8 +291,8 @@ Namespace AstroNET
 
         '''<summary>Get the histogram for all quanization level differences found.</summary>
         '''<param name="Histo">Histogram data with ADU value and number of pixel with this ADU value.</param>
-        Public Shared Function GetQuantizationHisto(ByRef Histo As Collections.Generic.Dictionary(Of Long, UInt64)) As Collections.Generic.Dictionary(Of Long, UInt64)
-            Dim RetVal As New Collections.Generic.Dictionary(Of Long, UInt64)
+        Public Shared Function GetQuantizationHisto(ByRef Histo As Dictionary(Of Long, UInt64)) As Dictionary(Of Long, UInt64)
+            Dim RetVal As New Dictionary(Of Long, UInt64)
             Dim LastHistX As Int64 = Int64.MaxValue
             For Each HistoX As Int64 In Histo.KeyList
                 If LastHistX <> Int64.MaxValue Then
@@ -310,8 +310,8 @@ Namespace AstroNET
 
         '''<summary>Get the histogram for all quanization level differences found.</summary>
         '''<param name="Histo">Histogram data with ADU value and number of pixel with this ADU value.</param>
-        Public Shared Function GetQuantizationHisto(ByRef Histo As Collections.Generic.Dictionary(Of Single, UInt32)) As Collections.Generic.Dictionary(Of Single, UInt32)
-            Dim RetVal As New Collections.Generic.Dictionary(Of Single, UInt32)
+        Public Shared Function GetQuantizationHisto(ByRef Histo As Dictionary(Of Single, UInt32)) As Dictionary(Of Single, UInt32)
+            Dim RetVal As New Dictionary(Of Single, UInt32)
             Dim LastHistX As Single = Single.NaN
             For Each HistoX As Single In Histo.KeyList
                 If Single.IsNaN(LastHistX) = False Then
@@ -328,8 +328,8 @@ Namespace AstroNET
         End Function
 
         '''<summary>Combine all bayer statistics to a monochromatic statistic of all pixel of the image.</summary>
-        Public Shared Function CombineBayerToMonoStatistics(Of T)(ByRef BayerHistData(,) As Collections.Generic.Dictionary(Of T, UInt64)) As Collections.Generic.Dictionary(Of T, UInt64)
-            Dim RetVal As New Collections.Generic.Dictionary(Of T, UInt64)
+        Public Shared Function CombineBayerToMonoStatistics(Of T)(ByRef BayerHistData(,) As Dictionary(Of T, UInt64)) As Dictionary(Of T, UInt64)
+            Dim RetVal As New Dictionary(Of T, UInt64)
             For Idx1 As Integer = 0 To BayerHistData.GetUpperBound(0)
                 For Idx2 As Integer = 0 To BayerHistData.GetUpperBound(1)
                     If IsNothing(BayerHistData(Idx1, Idx2)) = False Then
@@ -351,10 +351,10 @@ Namespace AstroNET
         '''<param name="XEntries">Number of different X entries - 1 for B/W, 2 for normal RGGB, other values are exotic.</param>
         '''<param name="YEntries">Number of different Y entries - 1 for B/W, 2 for normal RGGB, other values are exotic.</param>
         '''<returns>A sorted dictionary which contains all found values of type T in the Data matrix and its count.</returns>
-        Public Function BayerStatistics() As Collections.Generic.Dictionary(Of Int64, UInt64)(,)
+        Public Function BayerStatistics() As Dictionary(Of Int64, UInt64)(,)
 
             'Count all values
-            Dim RetVal(1, 1) As Collections.Generic.Dictionary(Of Int64, UInt64)
+            Dim RetVal(1, 1) As Dictionary(Of Int64, UInt64)
 
             'Data are UInt16
             If IsNothing(DataProcessor_UInt16) = False Then

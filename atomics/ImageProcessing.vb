@@ -134,7 +134,7 @@ Public Class ImageProcessing
     ''' <param name="FITSSumImage">Image to run calculation on.</param>
     ''' <returns>Dictionary of center distance vs mean value.</returns>
     ''' <remarks>We start in the middle, move down and right and always take 4 pixel symmetrical to the middle.</remarks>
-    Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt16) As Collections.Generic.Dictionary(Of Double, Double)
+    Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt16) As Dictionary(Of Double, Double)
 
         Dim UInt4 As UInt32 = 4
         Dim BinSum As New Dictionary(Of Double, UInt64)
@@ -172,7 +172,7 @@ Public Class ImageProcessing
         Next CursorX
 
         'Calculate the final output
-        Dim RetVal As New Collections.Generic.Dictionary(Of Double, Double)
+        Dim RetVal As New Dictionary(Of Double, Double)
         For Each Distance As Double In BinSum.Keys
             RetVal.Add(Distance * MaxDistance, BinSum(Distance) / BinCount(Distance))
         Next Distance
@@ -185,7 +185,7 @@ Public Class ImageProcessing
     ''' <param name="Steps">Number of X axis steps to group - 0 for full resolution, -1 for integer resolution.</param>
     ''' <returns>Dictionary of center distance vs mean value.</returns>
     ''' <remarks>We start in the middle, move down and right and always take 4 pixel symmetrical to the middle.</remarks>
-    Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt16, ByVal Steps As Integer) As Collections.Generic.Dictionary(Of Double, Double)
+    Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt16, ByVal Steps As Integer) As Dictionary(Of Double, Double)
 
         Dim UInt4 As UInt32 = 4
         Dim BinSum(Steps) As UInt64
@@ -224,7 +224,7 @@ Public Class ImageProcessing
         Next CursorX
 
         'Calculate the final output
-        Dim RetVal As New Collections.Generic.Dictionary(Of Double, Double)
+        Dim RetVal As New Dictionary(Of Double, Double)
         For EntryIdx As Integer = 0 To BinSum.GetUpperBound(0)
             RetVal.Add((EntryIdx / Steps) * MaxDistance, BinSum(EntryIdx) / BinCount(EntryIdx))
         Next EntryIdx
@@ -236,7 +236,7 @@ Public Class ImageProcessing
     ''' <param name="FITSSumImage">Image to run calculation on.</param>
     ''' <returns>Dictionary of center distance vs mean value.</returns>
     ''' <remarks>We start in the middle, move down and right and always take 4 pixel symmetrical to the middle.</remarks>
-    Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt32) As Collections.Generic.Dictionary(Of Double, Double)
+    Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt32) As Dictionary(Of Double, Double)
 
         Dim UInt4 As UInt32 = 4
         Dim BinSum As New Dictionary(Of Double, UInt64)
@@ -274,7 +274,7 @@ Public Class ImageProcessing
         Next CursorX
 
         'Calculate the final output
-        Dim RetVal As New Collections.Generic.Dictionary(Of Double, Double)
+        Dim RetVal As New Dictionary(Of Double, Double)
         For Each Distance As Double In BinSum.Keys
             RetVal.Add(Distance * MaxDistance, BinSum(Distance) / BinCount(Distance))
         Next Distance
@@ -287,7 +287,7 @@ Public Class ImageProcessing
     ''' <param name="Steps">Number of X axis steps to group - 0 for full resolution, -1 for integer resolution.</param>
     ''' <returns>Dictionary of center distance vs mean value.</returns>
     ''' <remarks>We start in the middle, move down and right and always take 4 pixel symmetrical to the middle.</remarks>
-    Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt32, ByVal Steps As Integer) As Collections.Generic.Dictionary(Of Double, Double)
+    Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt32, ByVal Steps As Integer) As Dictionary(Of Double, Double)
 
         Dim UInt4 As UInt32 = 4
         Dim BinSum(Steps) As UInt64
@@ -326,7 +326,7 @@ Public Class ImageProcessing
         Next CursorX
 
         'Calculate the final output
-        Dim RetVal As New Collections.Generic.Dictionary(Of Double, Double)
+        Dim RetVal As New Dictionary(Of Double, Double)
         For EntryIdx As Integer = 0 To BinSum.GetUpperBound(0)
             RetVal.Add((EntryIdx / Steps) * MaxDistance, BinSum(EntryIdx) / BinCount(EntryIdx))
         Next EntryIdx
@@ -335,7 +335,7 @@ Public Class ImageProcessing
     End Function
 
     ''' <summary>Correct the vignette.</summary>
-    Public Shared Sub CorrectVignette(ByRef FITSSumImage(,) As UInt16, ByRef VignetteCorrection As Collections.Generic.Dictionary(Of Double, Double))
+    Public Shared Sub CorrectVignette(ByRef FITSSumImage(,) As UInt16, ByRef VignetteCorrection As Dictionary(Of Double, Double))
 
         'Calculate the maximum distance possible from the center in X, Y and R direction
         Dim MaxDistX As Double = Double.NaN
@@ -365,7 +365,7 @@ Public Class ImageProcessing
     End Sub
 
     ''' <summary>Correct the vignette.</summary>
-    Public Shared Sub CorrectVignette(ByRef FITSSumImage(,) As UInt32, ByRef VignetteCorrection As Collections.Generic.Dictionary(Of Double, Double))
+    Public Shared Sub CorrectVignette(ByRef FITSSumImage(,) As UInt32, ByRef VignetteCorrection As Dictionary(Of Double, Double))
 
         'Calculate the maximum distance possible from the center in X, Y and R direction
         Dim MaxDistX As Double = Double.NaN

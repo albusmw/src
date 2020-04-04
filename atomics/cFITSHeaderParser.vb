@@ -162,8 +162,8 @@ Public Class cFITSHeaderParser
 
     '''<summary>Get a keyword-value dictionary.</summary>
     '''<remarks>If an entry is found again, the latest present entry in the list will be returned.</remarks>
-    Public Function GetListAsDictionary() As Dictionary(Of String, Object)
-        Dim RetVal As New Dictionary(Of String, Object)
+    Public Function GetCardsAsDictionary() As Dictionary(Of String, String)
+        Dim RetVal As New Dictionary(Of String, String)
         For Each Entry As cFITSHeaderParser.sHeaderElement In AllCards
             Dim KeyTrim As String = Entry.Keyword.Trim
             If RetVal.ContainsKey(KeyTrim) = False Then
@@ -177,8 +177,8 @@ Public Class cFITSHeaderParser
 
     '''<summary>Get a keyword-value dictionary.</summary>
     '''<remarks>If an entry is found again, the latest present entry in the list will be returned.</remarks>
-    Public Shared Function GetListAsDictionary(ByRef CardsToProcess As List(Of cFITSHeaderParser.sHeaderElement)) As Dictionary(Of String, Object)
-        Dim RetVal As New Dictionary(Of String, Object)
+    Public Shared Function GetLCardsAsDictionary(ByRef CardsToProcess As List(Of cFITSHeaderParser.sHeaderElement)) As Dictionary(Of String, String)
+        Dim RetVal As New Dictionary(Of String, String)
         For Each Card As cFITSHeaderParser.sHeaderElement In CardsToProcess
             If RetVal.ContainsKey(Card.Keyword) = False Then
                 RetVal.Add(Card.Keyword, Card.Value)          'entry is new -> add
@@ -186,6 +186,17 @@ Public Class cFITSHeaderParser
                 RetVal(Card.Keyword) = Card.Value             'entry already exists -> update
             End If
         Next Card
+        Return RetVal
+    End Function
+
+    '''<summary>Get all cards as list.</summary>
+    '''<remarks>If an entry is found again, the latest present entry in the list will be returned.</remarks>
+    Public Function GetCardsAsList() As List(Of String())
+        Dim RetVal As New List(Of String())
+        For Each Entry As cFITSHeaderParser.sHeaderElement In AllCards
+            Dim KeyTrim As String = Entry.Keyword.Trim
+            RetVal.Add(New String() {KeyTrim, Entry.Value})
+        Next Entry
         Return RetVal
     End Function
 
