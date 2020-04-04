@@ -150,6 +150,7 @@ Module VectorExtension
     '''<summary>Get a list of all keys in the dictionary passed.</summary>
     <Extension()>
     Public Function KeyList(Of T1, T2)(ByRef Dict As Dictionary(Of T1, T2)) As List(Of T1)
+        If IsNothing(Dict) = True Then Return Nothing
         Return New List(Of T1)(Dict.Keys)
     End Function
 
