@@ -1,0 +1,46 @@
+8
+
+dir
+2
+svn://zbn-data/thirdparty/LibTiff.NET/tags/3.8.2.0
+svn://zbn-data/thirdparty/LibTiff.NET
+
+
+
+2008-07-15T08:07:48.879367Z
+2
+umar
+has-props
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+cb27e950-7c47-2944-9c14-42a4b2e9573c
+
+LibTIFF.NET.sln
+file
+
+
+
+
+2008-07-15T08:03:08.059565Z
+1a562b3cb3727b5a30600bc8fa68aa30
+2008-07-15T08:00:14.416434Z
+1
+umar
+
+LibTIFF.NET.test
+dir
+
+LibTIFF.NET
+dir
+
