@@ -86,6 +86,10 @@ Namespace AstroNET
             Public Shared ReadOnly Property ReportHeaderLength As Integer = 20
             '''<summary>Number of characters in the value of the report.</summary>
             Public Shared ReadOnly Property ReportValueLength As Integer = 16
+            '''<summary>Width [pixel] of the last image.</summary>
+            Public Width As UInt32
+            '''<summary>Height [pixel] of the last image.</summary>
+            Public Height As UInt32
             '''<summary>Number of total samples (pixels) in the data set.</summary>
             Public Samples As UInt64
             '''<summary>Maximum value occured (value and number of pixel that have this value).</summary>
@@ -119,6 +123,8 @@ Namespace AstroNET
             '''<summary>Init all inner variables.</summary>
             Public Shared Function InitForShort() As sSingleChannelStatistics
                 Dim RetVal As New sSingleChannelStatistics
+                RetVal.Width = 0
+                RetVal.Height = 0
                 RetVal.Samples = 0
                 RetVal.Max = Nothing
                 RetVal.Min = Nothing
@@ -138,8 +144,11 @@ Namespace AstroNET
                 Dim NotPresent As String = New String("-"c, ReportValueLength)
                 Dim RetVal As New List(Of String)
                 Dim HistXDist_keys As List(Of Long) = HistXDist.KeyList
+                Dim TotalPixel As String = ((Samples / 1000000).ValRegIndep("0.0") & "M")
+                If Samples < 1000000 Then TotalPixel = ((Samples / 1000).ValRegIndep("0.0") & "k")
+                RetVal.Add("Dimensions        : " & (Width.ValRegIndep & "x" & Height.ValRegIndep).PadLeft(ReportValueLength))
                 RetVal.Add("Total pixel       : " & Samples.ValRegIndep.PadLeft(ReportValueLength))
-                RetVal.Add("Total pixel       : " & ((Samples / 1000000).ValRegIndep("0.0") & "M").PadLeft(ReportValueLength))
+                RetVal.Add("Total pixel       : " & TotalPixel.PadLeft(ReportValueLength))
                 RetVal.Add("ADU values count  : " & DifferentADUValues.ValRegIndep.PadLeft(ReportValueLength))
                 RetVal.Add("  in 25-75 pct    : " & ADUValues2575.ValRegIndep.PadLeft(ReportValueLength))
                 RetVal.Add("Min value         : " & (Min.Key.ValRegIndep & " (" & Min.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
