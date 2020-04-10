@@ -6,8 +6,8 @@ Public Class Everything
     Const DLLName As String = "Everything64.dll"
 
     <Runtime.InteropServices.DllImport(DLLName, CharSet:=Runtime.InteropServices.CharSet.Unicode)>
-    Public Shared Function Everything_SetSearchW(lpSearchString As String) As Integer
-    End Function
+    Public Shared Sub Everything_SetSearchW(lpSearchString As String)
+    End Sub
 
     <Runtime.InteropServices.DllImport(DLLName)>
     Public Shared Sub Everything_SetMatchPath(bEnable As Boolean)
@@ -139,12 +139,14 @@ Public Class Everything
     '''<returns></returns>
     Public Shared Function GetSearchResult(ByVal SearchQuery As String) As List(Of String)
         Dim RetVal As New List(Of String)
-        Everything.Everything_SetSearchW(SearchQuery)
-        Everything.Everything_QueryW(True)
+        Dim Errors As New List(Of Integer)
+        Everything.Everything_SetSearchW(SearchQuery) : Errors.Add(Everything.Everything_GetLastError)
+        Everything.Everything_QueryW(True) : Errors.Add(Everything.Everything_GetLastError)
+        Dim NumberOfFiles As Integer = Everything.Everything_GetNumResults() : Errors.Add(Everything.Everything_GetLastError)
         'Get all found files
         Dim bufsize As Integer = 260
         Dim buf As New System.Text.StringBuilder(bufsize)
-        For Idx As Integer = 0 To Everything.Everything_GetNumResults() - 1
+        For Idx As Integer = 0 To NumberOfFiles - 1
             Everything.Everything_GetResultFullPathNameW(Idx, buf, bufsize)
             RetVal.Add(buf.ToString)
         Next Idx

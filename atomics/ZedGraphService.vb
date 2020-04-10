@@ -362,10 +362,29 @@ Public Class cZEDGraphService
     '''<param name="Y">Vector of Y axis values.</param>
     '''<param name="Style">Style to use (line, point, line and points, color, ...).</param>
     Public Sub PlotXvsY(ByRef CurveName As String, ByRef Elements As Dictionary(Of Int64, UInt64), ByVal YNorm As Double, ByVal Style As sGraphStyle)
+        If IsNothing(Elements) = False Then
+            Dim X(Elements.Count - 1) As Double
+            Dim Y(Elements.Count - 1) As Double
+            Dim Ptr As Integer = 0
+            For Each Element As Int64 In Elements.Keys
+                X(Ptr) = Element
+                Y(Ptr) = Elements(Element) / YNorm
+                Ptr += 1
+            Next Element
+            PlotXvsY(CurveName, X, Y, Style, False)
+        End If
+    End Sub
+
+    '''<summary>Plot X vs Y data. This is the root plot routine.</summary>
+    '''<param name="CurveName">Name of the curve. If the name already exists, only the data will be updated, but no new curve is build.</param>
+    '''<param name="X">Vector of X axis values.</param>
+    '''<param name="Y">Vector of Y axis values.</param>
+    '''<param name="Style">Style to use (line, point, line and points, color, ...).</param>
+    Public Sub PlotXvsY(ByRef CurveName As String, ByRef Elements As Dictionary(Of Single, UInt64), ByVal YNorm As Double, ByVal Style As sGraphStyle)
         Dim X(Elements.Count - 1) As Double
         Dim Y(Elements.Count - 1) As Double
         Dim Ptr As Integer = 0
-        For Each Element As Int64 In Elements.Keys
+        For Each Element As Single In Elements.Keys
             X(Ptr) = Element
             Y(Ptr) = Elements(Element) / YNorm
             Ptr += 1

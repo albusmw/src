@@ -48,7 +48,7 @@ Public Class cFITSHeaderParser
         Public NAXIS As Integer = -1
         Public Width As Integer = -1
         Public Height As Integer = -1
-        Public ColorValues As Integer = 0
+        Public NAXIS3 As Integer = 0
         Public BytesPerSample As Integer = -1
         Public DataStartIdx As Integer = -1
     End Class
@@ -91,6 +91,12 @@ Public Class cFITSHeaderParser
         End Get
     End Property
 
+    Public ReadOnly Property NAXIS3() As Integer
+        Get
+            Return MyProps.NAXIS3
+        End Get
+    End Property
+
     Public ReadOnly Property BytesPerSample() As Integer
         Get
             Return Math.Abs(MyProps.BitPix) \ 8
@@ -102,7 +108,7 @@ Public Class cFITSHeaderParser
         'Move through all elements and get known elements and convert them
         For Each Card As sHeaderElement In CardsToAdd
             'Check and update found element is exists
-            Dim FoundIdx As Integer = ElementIdx(Card.Keyword)
+            Dim FoundIdx As Integer = IdxOfKeyword(Card.Keyword)
             If FoundIdx = -1 Then
                 AllCards.Add(Card)
             Else
@@ -113,7 +119,7 @@ Public Class cFITSHeaderParser
                 Case "NAXIS" : MyProps.NAXIS = CInt(Card.Value)
                 Case "NAXIS1" : MyProps.Width = CInt(Card.Value)
                 Case "NAXIS2" : MyProps.Height = CInt(Card.Value)
-                Case "NAXIS3" : MyProps.ColorValues = CInt(Card.Value)
+                Case "NAXIS3" : MyProps.NAXIS3 = CInt(Card.Value)
                 Case "BZERO" : MyProps.BZERO = Val(Card.Value.Replace(",", "."))
                 Case "BSCALE" : MyProps.BSCALE = Val(Card.Value.Replace(",", "."))
             End Select
@@ -123,7 +129,7 @@ Public Class cFITSHeaderParser
     '''<summary>Add the card to the already existing list of cards.</summary>
     Public Sub Add(ByVal CardToAdd As cFITSHeaderParser.sHeaderElement)
         'Check and update found element is exists
-        Dim FoundIdx As Integer = ElementIdx(CardToAdd.Keyword)
+        Dim FoundIdx As Integer = IdxOfKeyword(CardToAdd.Keyword)
         If FoundIdx = -1 Then
             AllCards.Add(CardToAdd)
         Else
@@ -134,7 +140,7 @@ Public Class cFITSHeaderParser
             Case "BITPIX" : MyProps.BitPix = CInt(ElementValue(Keyword))
             Case "NAXIS1" : MyProps.Width = CInt(ElementValue(Keyword))
             Case "NAXIS2" : MyProps.Height = CInt(ElementValue(Keyword))
-            Case "NAXIS3" : MyProps.ColorValues = CInt(ElementValue(Keyword))
+            Case "NAXIS3" : MyProps.NAXIS3 = CInt(ElementValue(Keyword))
             Case "BZERO" : MyProps.BZERO = Val(ElementValue(Keyword).Replace(",", "."))
             Case "BSCALE" : MyProps.BSCALE = Val(ElementValue(Keyword).Replace(",", "."))
         End Select
@@ -152,7 +158,7 @@ Public Class cFITSHeaderParser
 
     '''<summary>Check if an element with the given keyword already exists in the list of elements.</summary>
     '''<returns>Index of the found element or -1 if element is not found.</returns>
-    Private Function ElementIdx(ByVal Keyword As String) As Integer
+    Private Function IdxOfKeyword(ByVal Keyword As String) As Integer
         Keyword = Keyword.Trim.ToUpper
         For Idx As Integer = 0 To AllCards.Count - 1
             If AllCards(Idx).Keyword.Trim.ToUpper = Keyword Then Return Idx

@@ -1,8 +1,138 @@
 Option Explicit On
 Option Strict On
 
+'''<summary>Load and store special file formats.</summary>
 Public Class ImageFileFormatSpecific
 
+    Public Shared Sub SaveTIFF_Format16bppGrayScale(ByVal FileName As String, ByRef Data(,) As UInt16)
+
+        'https://bitmiracle.github.io/libtiff.net/help/articles/KB/grayscale-color.html
+
+        Using output As BitMiracle.LibTiff.Classic.Tiff = BitMiracle.LibTiff.Classic.Tiff.Open(FileName, "w")
+
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.IMAGEWIDTH, Data.GetUpperBound(0) + 1)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.IMAGELENGTH, Data.GetUpperBound(1) + 1)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.SAMPLESPERPIXEL, 1)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.BITSPERSAMPLE, 16)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.ORIENTATION, BitMiracle.LibTiff.Classic.Orientation.TOPLEFT)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.ROWSPERSTRIP, Data.GetUpperBound(1) + 1)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.XRESOLUTION, 88.0)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.YRESOLUTION, 88.0)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.RESOLUTIONUNIT, BitMiracle.LibTiff.Classic.ResUnit.INCH)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.PLANARCONFIG, BitMiracle.LibTiff.Classic.PlanarConfig.CONTIG)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.PHOTOMETRIC, BitMiracle.LibTiff.Classic.Photometric.MINISBLACK)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.COMPRESSION, BitMiracle.LibTiff.Classic.Compression.NONE)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.FILLORDER, BitMiracle.LibTiff.Classic.FillOrder.MSB2LSB)
+
+            Dim BitWidth As Integer = 2
+            For i As Integer = 0 To Data.GetUpperBound(1)
+                Dim Buffer((BitWidth * (Data.GetUpperBound(0) + 1)) - 1) As Byte
+                Dim BufferPtr As Integer = 0
+                For j As Integer = 0 To Data.GetUpperBound(0)
+                    Dim Pattern() As Byte = BitConverter.GetBytes(Data(j, i))
+                    Buffer(BufferPtr) = Pattern(0)
+                    Buffer(BufferPtr + 1) = Pattern(1)
+                    BufferPtr += 2
+                Next j
+                output.WriteScanline(Buffer, i)
+            Next i
+
+            output.WriteDirectory()
+
+        End Using
+
+    End Sub
+
+    Public Shared Sub SaveTIFF_Format48bppColor(ByVal FileName As String, ByRef Data As List(Of UInt16(,)))
+
+        'https://bitmiracle.github.io/libtiff.net/help/articles/KB/grayscale-color.html
+
+        Using output As BitMiracle.LibTiff.Classic.Tiff = BitMiracle.LibTiff.Classic.Tiff.Open(FileName, "w")
+
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.IMAGEWIDTH, Data(0).GetUpperBound(0) + 1)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.IMAGELENGTH, Data(0).GetUpperBound(1) + 1)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.SAMPLESPERPIXEL, 3)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.BITSPERSAMPLE, 16)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.ORIENTATION, BitMiracle.LibTiff.Classic.Orientation.TOPLEFT)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.ROWSPERSTRIP, Data(0).GetUpperBound(1) + 1)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.XRESOLUTION, 88.0)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.YRESOLUTION, 88.0)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.RESOLUTIONUNIT, BitMiracle.LibTiff.Classic.ResUnit.INCH)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.PLANARCONFIG, BitMiracle.LibTiff.Classic.PlanarConfig.CONTIG)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.PHOTOMETRIC, BitMiracle.LibTiff.Classic.Photometric.RGB)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.COMPRESSION, BitMiracle.LibTiff.Classic.Compression.NONE)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.FILLORDER, BitMiracle.LibTiff.Classic.FillOrder.MSB2LSB)
+
+            Dim BitWidth As Integer = 6
+            For i As Integer = 0 To Data(0).GetUpperBound(1)
+                Dim Buffer((BitWidth * (Data(0).GetUpperBound(0) + 1)) - 1) As Byte
+                Dim BufferPtr As Integer = 0
+                For j As Integer = 0 To Data(0).GetUpperBound(0)
+                    Dim PatternR() As Byte = BitConverter.GetBytes(Data(0)(j, i))
+                    Buffer(BufferPtr) = PatternR(0)
+                    Buffer(BufferPtr + 1) = PatternR(1)
+                    BufferPtr += 2
+                    Dim PatternG() As Byte = BitConverter.GetBytes(Data(1)(j, i))
+                    Buffer(BufferPtr) = PatternG(0)
+                    Buffer(BufferPtr + 1) = PatternG(1)
+                    BufferPtr += 2
+                    Dim PatternB() As Byte = BitConverter.GetBytes(Data(2)(j, i))
+                    Buffer(BufferPtr) = PatternB(0)
+                    Buffer(BufferPtr + 1) = PatternB(1)
+                    BufferPtr += 2
+                Next j
+                output.WriteScanline(Buffer, i)
+            Next i
+
+            output.WriteDirectory()
+
+        End Using
+
+    End Sub
+
+    '''<summary>Generate a test image with 16Bit per color channel.</summary>
+    '''<param name="FileName">File to generate.</param>
+    Public Shared Sub SavePNG_Format48bppRGB(ByVal FileName As String, ByRef Data As List(Of UInt16(,)))
+
+        Dim b16bpp As New Bitmap(Data(0).GetUpperBound(0) + 1, Data(0).GetUpperBound(1) + 1, System.Drawing.Imaging.PixelFormat.Format48bppRgb)
+        Dim BytePerPixel As Integer = 6
+
+        Dim rect As New Rectangle(0, 0, b16bpp.Width, b16bpp.Height)
+
+        Dim bitmapData As System.Drawing.Imaging.BitmapData = b16bpp.LockBits(rect, Imaging.ImageLockMode.WriteOnly, b16bpp.PixelFormat)
+
+        'Calculate the number of bytes required And allocate them.
+        Dim bitmapBytes((b16bpp.Width * b16bpp.Height * BytePerPixel) - 1) As Byte
+
+        'Fill the bitmap bytes with random data.
+        For x As Integer = 0 To b16bpp.Width - 1
+            For y As Integer = 0 To b16bpp.Height - 1
+                Dim PixelIdx As Integer = (y * b16bpp.Width * BytePerPixel) + (x * BytePerPixel)
+                Dim BitPatternR As Byte() = BitConverter.GetBytes(Data(0)(x, y))
+                Dim BitPatternG As Byte() = BitConverter.GetBytes(Data(1)(x, y))
+                Dim BitPatternB As Byte() = BitConverter.GetBytes(Data(2)(x, y))
+                bitmapBytes(PixelIdx + 0) = BitPatternR(0)
+                bitmapBytes(PixelIdx + 1) = BitPatternR(1)
+                bitmapBytes(PixelIdx + 2) = BitPatternG(0)
+                bitmapBytes(PixelIdx + 3) = BitPatternG(1)
+                bitmapBytes(PixelIdx + 4) = BitPatternB(0)
+                bitmapBytes(PixelIdx + 5) = BitPatternB(1)
+            Next y
+        Next x
+
+        'Copy the randomized bits to the bitmap pointer.
+        Dim Pointer As IntPtr = bitmapData.Scan0
+        Runtime.InteropServices.Marshal.Copy(bitmapBytes, 0, Pointer, bitmapBytes.Length)
+
+        'Unlock the bitmap, we're all done.
+        b16bpp.UnlockBits(bitmapData)
+
+        b16bpp.Save(FileName, Imaging.ImageFormat.Png)
+
+    End Sub
+
+    '''<summary>Generate a test image with 16Bit per color channel.</summary>
+    '''<param name="FileName">File to generate.</param>
     Public Shared Sub Test48BPP(ByVal FileName As String)
 
         Dim b16bpp As New Bitmap(5000, 5000, System.Drawing.Imaging.PixelFormat.Format48bppRgb)
@@ -30,44 +160,6 @@ Public Class ImageFileFormatSpecific
                 bitmapBytes(PixelIdx + 3) = BitPatternG(1)
                 bitmapBytes(PixelIdx + 4) = BitPatternB(0)
                 bitmapBytes(PixelIdx + 5) = BitPatternB(1)
-                RunIdx += 1
-            Next y
-        Next x
-
-        'Copy the randomized bits to the bitmap pointer.
-        Dim Pointer As IntPtr = bitmapData.Scan0
-        Runtime.InteropServices.Marshal.Copy(bitmapBytes, 0, Pointer, bitmapBytes.Length)
-
-        'Unlock the bitmap, we're all done.
-        b16bpp.UnlockBits(bitmapData)
-
-        b16bpp.Save(FileName, Imaging.ImageFormat.Png)
-
-    End Sub
-
-    Public Shared Sub Test16BPP(ByVal FileName As String)
-
-        'Will generate a GDI+ error ...
-
-        Dim b16bpp As New Bitmap(5000, 5000, System.Drawing.Imaging.PixelFormat.Format16bppGrayScale)
-        Dim BytePerPixel As Integer = 2
-
-        Dim rect As New Rectangle(0, 0, b16bpp.Width, b16bpp.Height)
-
-        Dim bitmapData As System.Drawing.Imaging.BitmapData = b16bpp.LockBits(rect, Imaging.ImageLockMode.WriteOnly, b16bpp.PixelFormat)
-
-        'Calculate the number of bytes required And allocate them.
-        Dim bitmapBytes((b16bpp.Width * b16bpp.Height * BytePerPixel) - 1) As Byte
-
-        'Fill the bitmap bytes with random data.
-        Dim Rnd As New Random
-        Dim RunIdx As Long = 0
-        For x As Integer = 0 To b16bpp.Width - 1
-            For y As Integer = 0 To b16bpp.Height - 1
-                Dim PixelIdx As Integer = (y * b16bpp.Width * BytePerPixel) + (x * BytePerPixel)
-                Dim BitPatternR As Byte() = BitConverter.GetBytes(CType(Rnd.Next(0, UInt16.MaxValue + 1), UInt16))
-                bitmapBytes(PixelIdx + 0) = BitPatternR(0)
-                bitmapBytes(PixelIdx + 1) = BitPatternR(1)
                 RunIdx += 1
             Next y
         Next x
@@ -151,3 +243,11 @@ Public Class ImageFileFormatSpecific
     End Function
 
 End Class
+
+
+
+'Dim stream As New IO.FileStream(sfdMain.FileName, IO.FileMode.Create)
+'Dim encoder As New System.Windows.Media.Imaging.TiffBitmapEncoder()
+'encoder.Compression = Windows.Media.Imaging.TiffCompressOption.Zip
+'encoder.Frames.Add(Windows.Media.Imaging.BitmapFrame.Create(New System.IO.MemoryStream(cLockBitmap.CalculateOutputBitmap(.ImageData, LastStat.MonoStatistics.Max.Key).Pixels)))
+'encoder.Save(stream)
