@@ -10,6 +10,10 @@ Public Class cStatMultiThread_UInt16
     '''<summary>The real image data.</summary>
     Public ImageData As New List(Of UInt16(,))
 
+    Public Sub New()
+        ImageData.Add({{}})
+    End Sub
+
     '''<summary>Object for each thread.</summary>
     Public Class cStateObj
         Friend NAXIS3 As Integer = -1

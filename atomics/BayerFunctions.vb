@@ -156,7 +156,7 @@ Public Class BayerFunctions
         Dim ReferenceValue As Double = Double.MinValue
         For Idx1 As Integer = 0 To 1
             For Idx2 As Integer = 0 To 1
-                If ImageStatistics.BayerStatistics(Idx1, Idx2).Mean > ReferenceValue Then ReferenceValue = ImageStatistics.BayerStatistics(Idx1, Idx2).Mean
+                If ImageStatistics.BayerStatistics_Int(Idx1, Idx2).Mean > ReferenceValue Then ReferenceValue = ImageStatistics.BayerStatistics_Int(Idx1, Idx2).Mean
             Next Idx2
         Next Idx1
         RetVal.Add("Max mean: " & ReferenceValue.ValRegIndep)
@@ -165,9 +165,9 @@ Public Class BayerFunctions
         Dim Norm(1, 1) As Double
         For Idx1 As Integer = 0 To 1
             For Idx2 As Integer = 0 To 1
-                Norm(Idx1, Idx2) = ReferenceValue / ImageStatistics.BayerStatistics(Idx1, Idx2).Mean
+                Norm(Idx1, Idx2) = ReferenceValue / ImageStatistics.BayerStatistics_Int(Idx1, Idx2).Mean
                 RetVal.Add("Norm[" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "]           : " & Norm(Idx1, Idx2).ValRegIndep)
-                RetVal.Add("Max [" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "] after norm: " & CType(Math.Round(ImageStatistics.BayerStatistics(Idx1, Idx2).Max.Value * Norm(Idx1, Idx2)), UInt32).ValRegIndep)
+                RetVal.Add("Max [" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "] after norm: " & CType(Math.Round(ImageStatistics.BayerStatistics_Int(Idx1, Idx2).Max.Value * Norm(Idx1, Idx2)), UInt32).ValRegIndep)
             Next Idx2
         Next Idx1
 

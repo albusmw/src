@@ -26,6 +26,13 @@ Namespace AstroNET
 
         Private Const UInt64_1 As UInt64 = CType(1, UInt64)
 
+        Public Sub ResetAllProcessors()
+            DataProcessor_UInt16.ImageData.Clear() : DataProcessor_UInt16.ImageData.Add({{}})
+            DataProcessor_UInt32.ImageData = {{}}
+            DataProcessor_Int32.ImageData = {{}}
+            DataProcessor_Float32.ImageData = {{}}
+        End Sub
+
         Public ReadOnly Property DataMode() As String
             Get
                 If DataProcessor_UInt16.ImageData(0).LongLength > 0 Then Return GetType(UInt16).Name

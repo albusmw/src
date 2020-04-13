@@ -113,6 +113,18 @@ Public Enum eFITSKeywords
     <FITSComment("")>
     [COLORTYP]
 
+    '''<summary>This keyword is used to indicate a rotation from a standard coordinate system described by the CTYPEn To a different coordinate system in which the values in the array are actually expressed. Rules For such rotations are Not further specified in the Standard; the rotation should be explained In comments. The value field shall contain a floating point number giving the rotation angle In degrees between axis n And the direction implied by the coordinate system defined by CTYPEn.</summary>
+    '''<remarks>UNITS: degrees</remarks>
+    <FITSKeyword("CROTA1")>
+    <FITSComment("Rotation [degree] from a standard coordinate")>
+    [CROTA1]
+
+    '''<summary>This keyword is used to indicate a rotation from a standard coordinate system described by the CTYPEn To a different coordinate system in which the values in the array are actually expressed. Rules For such rotations are Not further specified in the Standard; the rotation should be explained In comments. The value field shall contain a floating point number giving the rotation angle In degrees between axis n And the direction implied by the coordinate system defined by CTYPEn.</summary>
+    '''<remarks>UNITS: degrees</remarks>
+    <FITSKeyword("CROTA2")>
+    <FITSComment("Rotation [degree] from a standard coordinate")>
+    [CROTA2]
+
     '''<summary>The value field shall contain a floating point number, identifying the location Of a reference point along axis n, In units Of the axis index.  This value Is based upon a counter that runs from 1 To NAXISn with an increment of 1 per pixel.  The reference point value need Not be that for the center of a pixel nor lie within the actual data array.  Use comments To indicate the location Of the index point relative to the pixel..</summary>
     '''<remarks>For center, set to 0.5*(NAXIS1+1)</remarks>
     '''<example>2048.000000</example>
@@ -151,6 +163,11 @@ Public Enum eFITSKeywords
     <FITSComment("Projection type for axis 2.")>
     [CTYPE2]
 
+    '''<summary>Used to color encoding.</summary>
+    <FITSKeyword("[CTYPE3]")>
+    <FITSComment("Used to color encoding.")>
+    [CTYPE3]
+
     '''<summary>The value field shall contain a character string that gives the date on which the observation ended, format 'yyyy-mm-dd', or 'yyyy-mm-ddThh:mm:ss.sss'.</summary>
     <FITSKeyword("DATE_END")>
     <FITSComment("")>
@@ -165,6 +182,11 @@ Public Enum eFITSKeywords
     <FITSKeyword("DEC")>
     <FITSComment("")>
     [DEC]
+
+    '''<summary>Electronic gain in photoelectrons per ADU.</summary>
+    <FITSKeyword("EGAIN")>
+    <FITSComment("Electronic gain in photoelectrons per ADU")>
+    [EGAIN]
 
     '''<summary>Primary HDU.</summary>
     <FITSKeyword("END")>
@@ -186,6 +208,11 @@ Public Enum eFITSKeywords
     <FITSKeyword("FOCUS")>
     <FITSComment("Focuser position in steps")>
     [FOCUS]
+
+    '''<summary>Focuser temperature readout in degrees C, if available.</summary>
+    <FITSKeyword("FOCUSTEM")>
+    <FITSComment("Focuser temperature readout in degrees C")>
+    [FOCUSTEM]
 
     '''<summary>Field of view [°] along axis 1.</summary>
     <FITSKeyword("FOV1")>
@@ -211,6 +238,11 @@ Public Enum eFITSKeywords
     <FITSKeyword("INSTRUME")>
     <FITSComment("")>
     [INSTRUME]
+
+    '''<summary>The value field shall contain a floating point number giving the geographic latitude from which the observation was made in units of degrees.</summary>
+    <FITSKeyword("LATITUDE")>
+    <FITSComment("Geographic latitude [degree] from which the observation was made")>
+    [LATITUDE]
 
     '''<summary>Primary HDU - Number of data axes. Always = 2 for two-dimensional images.</summary>
     <FITSKeyword("NAXIS")>
@@ -384,44 +416,6 @@ Public Class cFITSKey
         End Get
     End Property
 End Class
-
-
-Public Structure sFITSKeywords
-
-
-
-    '''<summary>Focuser temperature readout in degrees C, if available.</summary>
-    Public Const [FOCUSTEM] As String = "FOCUSTEM"
-
-    '''<summary>Electronic gain in photoelectrons per ADU.</summary>
-    Public Const [EGAIN] As String = "EGAIN"
-
-    '''<summary>The value field shall contain a floating point number giving the geographic latitude from which the observation was made in units of degrees.</summary>
-    Public Const [LATITUDE] As String = "LATITUDE"
-
-    '''<summary>This keyword is used to indicate a rotation from a standard coordinate system described by the CTYPEn To a different coordinate system in which the values in the array are actually expressed. Rules For such rotations are Not further specified in the Standard; the rotation should be explained In comments. The value field shall contain a floating point number giving the rotation angle In degrees between axis n And the direction implied by the coordinate system defined by CTYPEn.</summary>
-    '''<remarks>UNITS: degrees</remarks>
-    Public Const [CROTA1] As String = "CROTA1"
-    '''<summary>This keyword is used to indicate a rotation from a standard coordinate system described by the CTYPEn To a different coordinate system in which the values in the array are actually expressed. Rules For such rotations are Not further specified in the Standard; the rotation should be explained In comments. The value field shall contain a floating point number giving the rotation angle In degrees between axis n And the direction implied by the coordinate system defined by CTYPEn.</summary>
-    '''<remarks>UNITS: degrees</remarks>
-    Public Const [CROTA2] As String = "CROTA2"
-
-
-    '''<summary>Used to color encoding.</summary>
-    Public Const [CTYPE3] As String = "CTYPE3"
-
-
-    '''<summary>Configured OFFSET value of the camera.</summary>
-    Public Shared Function GetComment(ByRef Element As Object) As String
-        Dim attributes As Object() = Element.GetType.GetField(Element.ToString).GetCustomAttributes(GetType(ComponentModel.DescriptionAttribute), False)
-        If attributes.Length > 0 Then
-            Return "Test"
-        Else
-            Return String.Empty
-        End If
-    End Function
-
-End Structure
 
 Public Class cFITSKeywords
 

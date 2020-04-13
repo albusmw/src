@@ -361,6 +361,15 @@ Public Class cZEDGraphService
     '''<param name="X">Vector of X axis values.</param>
     '''<param name="Y">Vector of Y axis values.</param>
     '''<param name="Style">Style to use (line, point, line and points, color, ...).</param>
+    Public Sub PlotXvsY(ByRef CurveName As String, ByRef Elements As Dictionary(Of Int64, UInt64), ByVal Style As sGraphStyle)
+        PlotXvsY(CurveName, Elements, 1.0, Style)
+    End Sub
+
+    '''<summary>Plot X vs Y data. This is the root plot routine.</summary>
+    '''<param name="CurveName">Name of the curve. If the name already exists, only the data will be updated, but no new curve is build.</param>
+    '''<param name="X">Vector of X axis values.</param>
+    '''<param name="Y">Vector of Y axis values.</param>
+    '''<param name="Style">Style to use (line, point, line and points, color, ...).</param>
     Public Sub PlotXvsY(ByRef CurveName As String, ByRef Elements As Dictionary(Of Int64, UInt64), ByVal YNorm As Double, ByVal Style As sGraphStyle)
         If IsNothing(Elements) = False Then
             Dim X(Elements.Count - 1) As Double

@@ -91,12 +91,12 @@ Public Class cFITSHeaderChanger
                     'Get the keyword and the value
                     Dim HeaderElement As cFITSHeaderParser.sHeaderElement
                     HeaderElement.Keyword = SingleLine.Substring(0, 8)
-                    HeaderElement.Value = SingleLine.Substring(9)
+                    HeaderElement.Value = SingleLine.Substring(9).Trim
                     HeaderElement.Comment = String.Empty
                     If HeaderElement.Value.Contains("/") Then
                         Dim SepPos As Integer = HeaderElement.Value.IndexOf("/")
-                        HeaderElement.Comment = HeaderElement.Value.Substring(SepPos + 1)
-                        HeaderElement.Value = HeaderElement.Value.Substring(0, SepPos)
+                        HeaderElement.Comment = HeaderElement.Value.Substring(SepPos + 1).Trim
+                        HeaderElement.Value = HeaderElement.Value.Substring(0, SepPos).Trim
                     End If
                     RetVal.Add(HeaderElement)
 

@@ -73,7 +73,7 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Byte, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Byte, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As Dictionary(Of eFITSKeywords, Object)) As Integer
         Return Write(FileName, ImageData, BitPix, BZeroNotUsed, BScaleNotUsed, CustomHeaderElements)
     End Function
 
@@ -81,21 +81,21 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Byte, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Byte, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As Dictionary(Of eFITSKeywords, Object)) As Integer
 
         Dim RetVal As Integer = 0
         Dim BaseOut As New System.IO.StreamWriter(FileName)
         Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
 
         'Load all header elements
-        Dim Header As New List(Of String())
-        Header.Add(FormatHeader("SIMPLE", "T"))
-        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
-        Header.Add(FormatHeader("NAXIS", "2"))
-        Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
-        Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
+        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.BZERO, BZero.ValRegIndep.Replace(",", "."))
+        Header.Add(eFITSKeywords.BSCALE, BScale.ValRegIndep.Replace(",", "."))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -143,7 +143,7 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int16, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int16, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As Dictionary(Of eFITSKeywords, Object)) As Integer
         Return Write(FileName, ImageData, BitPix, BZeroNotUsed, BScaleNotUsed, CustomHeaderElements)
     End Function
 
@@ -151,21 +151,21 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int16, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int16, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As Dictionary(Of eFITSKeywords, Object)) As Integer
 
         Dim RetVal As Integer = 0
         Dim BaseOut As New System.IO.StreamWriter(FileName)
         Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
 
         'Load all header elements
-        Dim Header As New List(Of String())
-        Header.Add(FormatHeader("SIMPLE", "T"))
-        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
-        Header.Add(FormatHeader("NAXIS", "2"))
-        Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
-        Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
+        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.BZERO, BZero.ValRegIndep.Replace(",", "."))
+        Header.Add(eFITSKeywords.BSCALE, BScale.ValRegIndep.Replace(",", "."))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -213,7 +213,7 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt16, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt16, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As Dictionary(Of eFITSKeywords, Object)) As Integer
         Return Write(FileName, ImageData, BitPix, Int16UsignedToFITS, BScaleNotUsed, CustomHeaderElements)
     End Function
 
@@ -221,7 +221,7 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt16, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt16, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As Dictionary(Of eFITSKeywords, Object)) As Integer
 
         Dim RetVal As Integer = 0
         Dim BaseOut As New System.IO.StreamWriter(FileName)
@@ -237,14 +237,14 @@ Public Class cFITSWriter
         End If
 
         'Load all header elements
-        Dim Header As New List(Of String())
-        Header.Add(FormatHeader("SIMPLE", "T"))
-        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
-        Header.Add(FormatHeader("NAXIS", "2"))
-        Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
-        Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
+        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.BZERO, BZero.ValRegIndep.Replace(",", "."))
+        Header.Add(eFITSKeywords.BSCALE, BScale.ValRegIndep.Replace(",", "."))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -318,7 +318,7 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt32, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt32, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As Dictionary(Of eFITSKeywords, Object)) As Integer
         Return Write(FileName, ImageData, BitPix, Int32UsignedToFITS, BScaleNotUsed, CustomHeaderElements)
     End Function
 
@@ -326,7 +326,7 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt32, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As UInt32, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As Dictionary(Of eFITSKeywords, Object)) As Integer
 
         Dim BitPerPixel As Integer = 4
         Dim RetVal As Integer = 0
@@ -334,14 +334,14 @@ Public Class cFITSWriter
         Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
 
         'Load all header elements
-        Dim Header As New List(Of String())
-        Header.Add(FormatHeader("SIMPLE", "T"))
-        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
-        Header.Add(FormatHeader("NAXIS", "2"))
-        Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
-        Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
+        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.BZERO, BZero.ValRegIndep.Replace(", ", "."))
+        Header.Add(eFITSKeywords.BSCALE, BScale.ValRegIndep.Replace(",", "."))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -419,7 +419,7 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int32, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int32, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As Dictionary(Of eFITSKeywords, Object)) As Integer
         Return Write(FileName, ImageData, BitPix, BZeroNotUsed, BScaleNotUsed, CustomHeaderElements)
     End Function
 
@@ -427,21 +427,21 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int32, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Int32, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As Dictionary(Of eFITSKeywords, Object)) As Integer
 
         Dim RetVal As Integer = 0
         Dim BaseOut As New System.IO.StreamWriter(FileName)
         Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
 
         'Load all header elements
-        Dim Header As New List(Of String())
-        Header.Add(FormatHeader("SIMPLE", "T"))
-        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
-        Header.Add(FormatHeader("NAXIS", "2"))
-        Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
-        Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
+        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.BZERO, BZero.ValRegIndep.Replace(",", "."))
+        Header.Add(eFITSKeywords.BSCALE, BScale.ValRegIndep.Replace(",", "."))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -519,22 +519,22 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Function WriteRGB(ByVal FileName As String, ByRef ImageDataR(,) As Int32, ByRef ImageDataG(,) As Int32, ByRef ImageDataB(,) As Int32, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function WriteRGB(ByVal FileName As String, ByRef ImageDataR(,) As Int32, ByRef ImageDataG(,) As Int32, ByRef ImageDataB(,) As Int32, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As Dictionary(Of eFITSKeywords, Object)) As Integer
 
         Dim RetVal As Integer = 0
         Dim BaseOut As New System.IO.StreamWriter(FileName)
         Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
 
         'Load all header elements
-        Dim Header As New List(Of String())
-        Header.Add(FormatHeader("SIMPLE", "T"))
-        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
-        Header.Add(FormatHeader("NAXIS", "3"))
-        Header.Add(FormatHeader("NAXIS1", ImageDataR.GetUpperBound(0) + 1))
-        Header.Add(FormatHeader("NAXIS2", ImageDataR.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("NAXIS3", "3"))
-        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
+        Header.Add(eFITSKeywords.NAXIS, "3")
+        Header.Add(eFITSKeywords.NAXIS1, ImageDataR.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageDataR.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.NAXIS3, "3")
+        Header.Add(eFITSKeywords.BZERO, BZero.ValRegIndep.Replace(", ", "."))
+        Header.Add(eFITSKeywords.BSCALE, BScale.ValRegIndep.Replace(",", "."))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -630,20 +630,20 @@ Public Class cFITSWriter
         Write(FileName, ImageData, BitPix, BZeroNotUsed, BScaleNotUsed, Nothing)
     End Sub
 
-    Public Shared Sub Write(ByVal FileName As String, ByRef ImageData(,) As Single, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String()))
+    Public Shared Sub Write(ByVal FileName As String, ByRef ImageData(,) As Single, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As Dictionary(Of eFITSKeywords, Object))
 
         Dim BaseOut As New System.IO.StreamWriter(FileName)
         Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
 
         'Load all header elements
-        Dim Header As New List(Of String())
-        Header.Add(FormatHeader("SIMPLE", "T"))
-        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
-        Header.Add(FormatHeader("NAXIS", "2"))
-        Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
-        Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
+        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.BZERO, BZero.ValRegIndep.Replace(", ", "."))
+        Header.Add(eFITSKeywords.BSCALE, BScale.ValRegIndep.Replace(",", "."))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -680,21 +680,21 @@ Public Class cFITSWriter
     '''<param name="FileName">File to generate.</param>
     '''<param name="ImageData">Data to write.</param>
     '''<param name="BitPix">Bit per pixel.</param>
-    Public Shared Sub Write(ByVal FileName As String, ByRef ImageDataR(,) As Single, ByRef ImageDataG(,) As Single, ByRef ImageDataB(,) As Single, ByVal BZero As Single, ByVal BScale As Single, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As List(Of String()))
+    Public Shared Sub Write(ByVal FileName As String, ByRef ImageDataR(,) As Single, ByRef ImageDataG(,) As Single, ByRef ImageDataB(,) As Single, ByVal BZero As Single, ByVal BScale As Single, ByVal BitPix As eBitPix, ByVal CustomHeaderElements As Dictionary(Of eFITSKeywords, Object))
 
         Dim BaseOut As New System.IO.StreamWriter(FileName)
         Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
 
         'Load all header elements
-        Dim Header As New List(Of String())
-        Header.Add(FormatHeader("SIMPLE", "T"))
-        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
-        Header.Add(FormatHeader("NAXIS", "3"))
-        Header.Add(FormatHeader("NAXIS1", ImageDataR.GetUpperBound(0) + 1))
-        Header.Add(FormatHeader("NAXIS2", ImageDataR.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("NAXIS3", "3"))
-        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
+        Header.Add(eFITSKeywords.NAXIS, "3")
+        Header.Add(eFITSKeywords.NAXIS1, ImageDataR.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageDataR.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.NAXIS3, "3")
+        Header.Add(eFITSKeywords.BZERO, BZero.ValRegIndep.Replace(",", "."))
+        Header.Add(eFITSKeywords.BSCALE, BScale.ValRegIndep.Replace(",", "."))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -778,21 +778,21 @@ Public Class cFITSWriter
     ''' <param name="BScale">BScale of the formular RealValue = BZero + (BScale * StoredValue).</param>
     ''' <param name="CustomHeaderElements">Custom FITS elements to store.</param>
     ''' <returns>Number of values that could NOT be stored.</returns>
-    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Double, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As List(Of String())) As Integer
+    Public Shared Function Write(ByVal FileName As String, ByRef ImageData(,) As Double, ByVal BitPix As eBitPix, ByVal BZero As Double, ByVal BScale As Double, ByVal CustomHeaderElements As Dictionary(Of eFITSKeywords, Object)) As Integer
 
         Dim RetVal As Integer = 0
         Dim BaseOut As New System.IO.StreamWriter(FileName)
         Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
 
         'Load all header elements
-        Dim Header As New List(Of String())
-        Header.Add(FormatHeader("SIMPLE", "T"))
-        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
-        Header.Add(FormatHeader("NAXIS", "2"))
-        Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
-        Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", BZero.ValRegIndep.Replace(",", ".")))
-        Header.Add(FormatHeader("BSCALE", BScale.ValRegIndep.Replace(",", ".")))
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
+        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.BZERO, BZero.ValRegIndep.Replace(", ", "."))
+        Header.Add(eFITSKeywords.BSCALE, BScale.ValRegIndep.Replace(",", "."))
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Calculate scaler
@@ -943,44 +943,33 @@ Public Class cFITSWriter
 
     '''<summary>Add a custom header to the passed header element.</summary>
     '''<remarks>Elements that are already in the Header list and are also in the CustomHeaderElements list are NOT added!</remarks>
-    Private Shared Sub AddCustomHeaders(ByRef Header As List(Of String()), ByRef CustomHeaderElements As List(Of String()))
+    Private Shared Sub AddCustomHeaders(ByRef Header As Dictionary(Of eFITSKeywords, Object), ByRef CustomHeaderElements As Dictionary(Of eFITSKeywords, Object))
         If IsNothing(CustomHeaderElements) = True Then Exit Sub
-        For Each CustomElement As String() In CustomHeaderElements                                    'move over all custom header elements to add
-            If IsNothing(CustomElement) = False Then
-                Dim ElementPresent As Boolean = False
-                For Each ElementToSearch As String() In Header
-                    If ElementToSearch(0).Trim = CustomElement(0).Trim Then
-                        ElementPresent = True : Exit For
-                    End If
-                Next ElementToSearch
-                If ElementPresent = False Then                                                          'do not add elements that are already present
-                    Select Case CustomElement.Length
-                        Case 2
-                            Header.Add(FormatHeader(CustomElement(0), CustomElement(1)))
-                        Case 3
-                            Header.Add(FormatHeader(CustomElement(0), CustomElement(1), CustomElement(2)))
-                    End Select
-                End If
+        For Each Keyword As eFITSKeywords In CustomHeaderElements.KeyList
+            If Header.ContainsKey(Keyword) = True Then
+                Header(Keyword) = CustomHeaderElements(Keyword)
+            Else
+                Header.Add(Keyword, CustomHeaderElements(Keyword))
             End If
-        Next CustomElement
+        Next Keyword
     End Sub
 
     '''<summary>Ensure that the header length is conform with the FITS specification.</summary>
-    Private Shared Function CreateFITSHeader(ByRef Header As List(Of String())) As String
-        Dim FITSHeaderToAdd As New List(Of String)
+    Private Shared Function CreateFITSHeader(ByRef Header As Dictionary(Of eFITSKeywords, Object)) As String
+        Dim HeaderStringContent As New List(Of String)
         Dim ElementLength As New List(Of Integer)
-        For Each Entry As String() In Header
-            Dim FITSCard As String = HeaderCardAsLine(Entry)
-            FITSHeaderToAdd.Add(FITSCard)
-            ElementLength.Add(FITSCard.Length)
+        For Each Entry As KeyValuePair(Of eFITSKeywords, Object) In Header
+            Dim FITSCardString As String = CardAsString(Entry)
+            HeaderStringContent.Add(FITSCardString)
+            ElementLength.Add(FITSCardString.Length)
         Next Entry
-        FITSHeaderToAdd.Add("END".PadRight(HeaderElementLength))
+        HeaderStringContent.Add("END".PadRight(HeaderElementLength))
         If Header.Count Mod HeaderElements <> 0 Then
             Do
-                FITSHeaderToAdd.Add(New String(" "c, HeaderElementLength))
-            Loop Until FITSHeaderToAdd.Count Mod HeaderElements = 0
+                HeaderStringContent.Add(New String(" "c, HeaderElementLength))
+            Loop Until HeaderStringContent.Count Mod HeaderElements = 0
         End If
-        Return Join(FITSHeaderToAdd.ToArray, String.Empty)
+        Return Join(HeaderStringContent.ToArray, String.Empty)
     End Function
 
     '''<summary>Format the header according to the FITS standards.</summary>
@@ -1003,12 +992,21 @@ Public Class cFITSWriter
         End If
     End Function
 
-    Private Shared Function HeaderCardAsLine(ByVal Card As String()) As String
-        If Card.Length = 2 Then
-            Return (Card(0).Trim.PadRight(KeywordLength) & "= " & Card(1).Trim.PadLeft(ValueLength)).PadRight(HeaderElementLength)
-        Else
-            Return (Card(0).Trim.PadRight(KeywordLength) & "= " & Card(1).Trim.PadLeft(ValueLength) & " /" & Card(2).Trim).PadRight(HeaderElementLength)
-        End If
+    '''<summary>Get the card content as string.</summary>
+    Private Shared Function CardAsString(ByVal Card As KeyValuePair(Of eFITSKeywords, Object)) As String
+        Dim ValAsString As String = String.Empty
+        Dim TypeName As String = Card.Value.GetType.Name
+        Select Case TypeName
+            Case "String"
+                ValAsString = cFITSKeywords.GetString(CStr(Card.Value))
+            Case "Double"
+                ValAsString = cFITSKeywords.GetDouble(CDbl(Card.Value))
+            Case "Int32"
+                ValAsString = CStr(Card.Value).Trim
+            Case Else
+                ValAsString = CStr(Card.Value)
+        End Select
+        Return (FITSKeyword.GetKeyword(Card.Key).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength) & " /" & FITSComment.GetComment(Card.Key).Trim).PadRight(HeaderElementLength)
     End Function
 
     '################################################################################################
@@ -1036,14 +1034,14 @@ Public Class cFITSWriter
         Next Idx1
 
         'Load all header elements
-        Dim Header As New List(Of String())
-        Header.Add(FormatHeader("SIMPLE", "T"))
-        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
-        Header.Add(FormatHeader("NAXIS", "2"))
-        Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
-        Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", "0"))
-        Header.Add(FormatHeader("BSCALE", "1"))
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
+        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.BZERO, "0")
+        Header.Add(eFITSKeywords.BSCALE, "1")
 
         'Write header
         BaseOut.Write(CreateFITSHeader(Header))
@@ -1083,14 +1081,14 @@ Public Class cFITSWriter
         Next Idx1
 
         'Load all header elements
-        Dim Header As New List(Of String())
-        Header.Add(FormatHeader("SIMPLE", "T"))
-        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
-        Header.Add(FormatHeader("NAXIS", "2"))
-        Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
-        Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", "0"))
-        Header.Add(FormatHeader("BSCALE", "1"))
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
+        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.BZERO, "0")
+        Header.Add(eFITSKeywords.BSCALE, "1")
 
         'Write header
         BaseOut.Write(CreateFITSHeader(Header))
@@ -1130,14 +1128,14 @@ Public Class cFITSWriter
         Next Idx1
 
         'Load all header elements
-        Dim Header As New List(Of String())
-        Header.Add(FormatHeader("SIMPLE", "T"))
-        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
-        Header.Add(FormatHeader("NAXIS", "2"))
-        Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
-        Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", "0"))
-        Header.Add(FormatHeader("BSCALE", "1"))
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
+        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.BZERO, "0")
+        Header.Add(eFITSKeywords.BSCALE, "1")
 
         'Write header
         BaseOut.Write(CreateFITSHeader(Header))
@@ -1177,14 +1175,14 @@ Public Class cFITSWriter
         Next Idx1
 
         'Load all header elements
-        Dim Header As New List(Of String())
-        Header.Add(FormatHeader("SIMPLE", "T"))
-        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
-        Header.Add(FormatHeader("NAXIS", "2"))
-        Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
-        Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", "0"))
-        Header.Add(FormatHeader("BSCALE", "1"))
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
+        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.BZERO, "0")
+        Header.Add(eFITSKeywords.BSCALE, "1")
 
         'Write header
         BaseOut.Write(CreateFITSHeader(Header))
@@ -1224,14 +1222,14 @@ Public Class cFITSWriter
         Next Idx1
 
         'Load all header elements
-        Dim Header As New List(Of String())
-        Header.Add(FormatHeader("SIMPLE", "T"))
-        Header.Add(FormatHeader("BITPIX", CStr(CInt(BitPix)).Trim))
-        Header.Add(FormatHeader("NAXIS", "2"))
-        Header.Add(FormatHeader("NAXIS1", ImageData.GetUpperBound(0) + 1))
-        Header.Add(FormatHeader("NAXIS2", ImageData.GetUpperBound(1) + 1))
-        Header.Add(FormatHeader("BZERO", "0"))
-        Header.Add(FormatHeader("BSCALE", "1"))
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
+        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.BZERO, "0")
+        Header.Add(eFITSKeywords.BSCALE, "1")
 
         'Write header
         BaseOut.Write(CreateFITSHeader(Header))

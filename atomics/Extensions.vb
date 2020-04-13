@@ -147,6 +147,10 @@ Module VectorExtension
         Return RetVal
     End Function
 
+End Module
+
+Module DirectoryExtension
+
     '''<summary>Get a list of all keys in the dictionary passed.</summary>
     <Extension()>
     Public Function KeyList(Of T1, T2)(ByRef Dict As Dictionary(Of T1, T2)) As List(Of T1)

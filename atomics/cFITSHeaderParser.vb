@@ -197,13 +197,21 @@ Public Class cFITSHeaderParser
 
     '''<summary>Get all cards as list.</summary>
     '''<remarks>If an entry is found again, the latest present entry in the list will be returned.</remarks>
-    Public Function GetCardsAsList() As List(Of String())
-        Dim RetVal As New List(Of String())
+    Public Function GetCardsAsList() As Dictionary(Of eFITSKeywords, Object)
+        Dim RetVal As New Dictionary(Of eFITSKeywords, Object)
         For Each Entry As cFITSHeaderParser.sHeaderElement In AllCards
-            Dim KeyTrim As String = Entry.Keyword.Trim
-            RetVal.Add(New String() {KeyTrim, Entry.Value})
+            Dim Keyword As eFITSKeywords = GetKeywordEnum(Entry.Keyword)
+            RetVal.Add(Keyword, Entry.Value)
         Next Entry
         Return RetVal
+    End Function
+
+    '''<summary>Try to translate the string in the enum.</summary>
+    Public Function GetKeywordEnum(ByVal Keyword As String) As eFITSKeywords
+        For Each EnumKey As eFITSKeywords In [Enum].GetValues(GetType(eFITSKeywords))
+            If EnumKey.ToString.ToUpper = Keyword.ToUpper.Trim Then Return EnumKey
+        Next EnumKey
+        Return Nothing
     End Function
 
 End Class
