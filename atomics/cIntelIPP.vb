@@ -131,12 +131,15 @@ Partial Public Class cIntelIPP
             Pinned.Add(Runtime.InteropServices.GCHandle.Alloc(ArrayToPin, Runtime.InteropServices.GCHandleType.Pinned))
             Return System.Runtime.InteropServices.Marshal.UnsafeAddrOfPinnedArrayElement(ArrayToPin, Offset)
         End Function
+        Public Sub ForceUnpinAll()
+            For Each PinnedObject As Runtime.InteropServices.GCHandle In Pinned
+                PinnedObject.Free()
+            Next PinnedObject
+        End Sub
         Protected Overridable Sub Dispose(disposing As Boolean)
             If Not Disposed Then
                 If disposing Then
-                    For Each PinnedObject As Runtime.InteropServices.GCHandle In Pinned
-                        PinnedObject.Free()
-                    Next PinnedObject
+                    ForceUnpinAll()
                 End If
             End If
             Disposed = True

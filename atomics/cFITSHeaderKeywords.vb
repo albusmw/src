@@ -175,7 +175,7 @@ Public Enum eFITSKeywords
 
     '''<summary>The value field shall contain a character string that gives the date on which the observation started, format 'yyyy-mm-dd', or 'yyyy-mm-ddThh:mm:ss.sss'.</summary>
     <FITSKeyword("DATE_OBS")>
-    <FITSComment("YYYY-MM-DDThh:mm:ss observation start, UT")>
+    <FITSComment("observation start, UT")>
     [DATE_OBS]
 
     '''<summary>The value field gives the declination of the observation. It may be expressed either as a floating point number in units of decimal degrees, or as a character string in 'dd:mm:ss.sss' format where the decimal point and number of fractional digits are optional.</summary>
@@ -185,7 +185,7 @@ Public Enum eFITSKeywords
 
     '''<summary>Electronic gain in photoelectrons per ADU.</summary>
     <FITSKeyword("EGAIN")>
-    <FITSComment("Electronic gain in photoelectrons per ADU")>
+    <FITSComment("Electronic gain - photoelectrons per ADU")>
     [EGAIN]
 
     '''<summary>Primary HDU.</summary>
@@ -241,7 +241,7 @@ Public Enum eFITSKeywords
 
     '''<summary>The value field shall contain a floating point number giving the geographic latitude from which the observation was made in units of degrees.</summary>
     <FITSKeyword("LATITUDE")>
-    <FITSComment("Geographic latitude [degree] from which the observation was made")>
+    <FITSComment("Geographic latitude from which the observation was made - degree")>
     [LATITUDE]
 
     '''<summary>Primary HDU - Number of data axes. Always = 2 for two-dimensional images.</summary>
@@ -296,21 +296,21 @@ Public Enum eFITSKeywords
 
     '''<summary>Pixel size [um] along axis 1.</summary>
     <FITSKeyword("PIXSIZE1")>
-    <FITSComment("Pixel size [um] along axis 1 (after binning)")>
+    <FITSComment("Pixel size along axis 1 after binning - um")>
     [PIXSIZE1]
 
     '''<summary>Pixel size [um] along axis 2.</summary>
     <FITSKeyword("PIXSIZE2")>
-    <FITSComment("Pixel size [um] along axis 2 (after binning)")>
+    <FITSComment("Pixel size along axis 2 after binning - um")>
     [PIXSIZE2]
 
     ''<summary>Plate size [cm] along axis 1.</summary>
-    <FITSKeyword("PLATESZ1]")>
+    <FITSKeyword("PLATESZ1")>
     <FITSComment("Plate size [cm] along axis 1")>
     [PLATESZ1]
 
     ''<summary>Plate size [cm] along axis 2.</summary>
-    <FITSKeyword("PLATESZ2]")>
+    <FITSKeyword("PLATESZ2")>
     <FITSComment("Plate size [cm] along axis 2")>
     [PLATESZ2]
 
@@ -322,13 +322,13 @@ Public Enum eFITSKeywords
     '''<summary>Pixel scale at CRPIX1,CRPIX2 for axis1.</summary>
     '''<example>1.375 arcsec/pix</example>
     <FITSKeyword("PXSCAL1")>
-    <FITSComment("Pixel scale at CRPIX1,CRPIX2 for axis1.")>
+    <FITSComment("Pixel scale at CRPIX1,CRPIX2 for axis1")>
     [PXSCAL1]
 
     '''<summary>Pixel scale at CRPIX1,CRPIX2 for axis2.</summary>
     '''<example>1.375 arcsec/pix</example>
     <FITSKeyword("PXSCAL21")>
-    <FITSComment("Pixel scale at CRPIX1,CRPIX2 for axis1.")>
+    <FITSComment("Pixel scale at CRPIX1,CRPIX2 for axis2")>
     [PXSCAL2]
 
     '''<summary>QHY read-out mode.</summary>
@@ -358,17 +358,17 @@ Public Enum eFITSKeywords
 
     '''<summary>The value field shall contain a character string identifying the telescope used to acquire the data associated with the header.</summary>
     <FITSKeyword("TELESCOP")>
-    <FITSComment("Telescope used to acquire this image")>
+    <FITSComment("Telescope used")>
     [TELESCOP]
 
     ''<summary>Focal length of the telescope [m].</summary>
     <FITSKeyword("TELFOC")>
-    <FITSComment("Focal length of the telescope [m]")>
+    <FITSComment("Focal length of the telescope - m")>
     [TELFOC]
 
     '''<summary>Plate scale of the telescope [arcsec/mm].</summary>
     <FITSKeyword("TELSCALE")>
-    <FITSComment("Plate scale of the telescope [arcsec/mm]")>
+    <FITSComment("Plate scale of the telescope - arcsec/mm")>
     [TELSCALE]
 
     '''<summary>The value field shall contain a character string that gives the time at which the observation ended, format 'hh:mm:ss.sss'.</summary>

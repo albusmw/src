@@ -90,12 +90,12 @@ Public Class cFITSWriter
         'Load all header elements
         Dim Header As New Dictionary(Of eFITSKeywords, Object)
         Header.Add(eFITSKeywords.SIMPLE, "T")
-        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
-        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
+        Header.Add(eFITSKeywords.NAXIS, 2)
         Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
         Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
-        Header.Add(eFITSKeywords.BZERO, BZero.ValRegIndep.Replace(",", "."))
-        Header.Add(eFITSKeywords.BSCALE, BScale.ValRegIndep.Replace(",", "."))
+        Header.Add(eFITSKeywords.BZERO, BZero)
+        Header.Add(eFITSKeywords.BSCALE, BScale)
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -160,12 +160,12 @@ Public Class cFITSWriter
         'Load all header elements
         Dim Header As New Dictionary(Of eFITSKeywords, Object)
         Header.Add(eFITSKeywords.SIMPLE, "T")
-        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
-        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
+        Header.Add(eFITSKeywords.NAXIS, 2)
         Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
         Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
-        Header.Add(eFITSKeywords.BZERO, BZero.ValRegIndep.Replace(",", "."))
-        Header.Add(eFITSKeywords.BSCALE, BScale.ValRegIndep.Replace(",", "."))
+        Header.Add(eFITSKeywords.BZERO, BZero)
+        Header.Add(eFITSKeywords.BSCALE, BScale)
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -239,12 +239,12 @@ Public Class cFITSWriter
         'Load all header elements
         Dim Header As New Dictionary(Of eFITSKeywords, Object)
         Header.Add(eFITSKeywords.SIMPLE, "T")
-        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
-        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
+        Header.Add(eFITSKeywords.NAXIS, 2)
         Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
         Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
-        Header.Add(eFITSKeywords.BZERO, BZero.ValRegIndep.Replace(",", "."))
-        Header.Add(eFITSKeywords.BSCALE, BScale.ValRegIndep.Replace(",", "."))
+        Header.Add(eFITSKeywords.BZERO, BZero)
+        Header.Add(eFITSKeywords.BSCALE, BScale)
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -336,12 +336,12 @@ Public Class cFITSWriter
         'Load all header elements
         Dim Header As New Dictionary(Of eFITSKeywords, Object)
         Header.Add(eFITSKeywords.SIMPLE, "T")
-        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
-        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
+        Header.Add(eFITSKeywords.NAXIS, 2)
         Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
         Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
-        Header.Add(eFITSKeywords.BZERO, BZero.ValRegIndep.Replace(", ", "."))
-        Header.Add(eFITSKeywords.BSCALE, BScale.ValRegIndep.Replace(",", "."))
+        Header.Add(eFITSKeywords.BZERO, BZero)
+        Header.Add(eFITSKeywords.BSCALE, BScale)
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -436,12 +436,12 @@ Public Class cFITSWriter
         'Load all header elements
         Dim Header As New Dictionary(Of eFITSKeywords, Object)
         Header.Add(eFITSKeywords.SIMPLE, "T")
-        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
-        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
+        Header.Add(eFITSKeywords.NAXIS, 2)
         Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
         Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
-        Header.Add(eFITSKeywords.BZERO, BZero.ValRegIndep.Replace(",", "."))
-        Header.Add(eFITSKeywords.BSCALE, BScale.ValRegIndep.Replace(",", "."))
+        Header.Add(eFITSKeywords.BZERO, BZero)
+        Header.Add(eFITSKeywords.BSCALE, BScale)
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -528,13 +528,13 @@ Public Class cFITSWriter
         'Load all header elements
         Dim Header As New Dictionary(Of eFITSKeywords, Object)
         Header.Add(eFITSKeywords.SIMPLE, "T")
-        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
         Header.Add(eFITSKeywords.NAXIS, "3")
         Header.Add(eFITSKeywords.NAXIS1, ImageDataR.GetUpperBound(0) + 1)
         Header.Add(eFITSKeywords.NAXIS2, ImageDataR.GetUpperBound(1) + 1)
         Header.Add(eFITSKeywords.NAXIS3, "3")
-        Header.Add(eFITSKeywords.BZERO, BZero.ValRegIndep.Replace(", ", "."))
-        Header.Add(eFITSKeywords.BSCALE, BScale.ValRegIndep.Replace(",", "."))
+        Header.Add(eFITSKeywords.BZERO, BZero)
+        Header.Add(eFITSKeywords.BSCALE, BScale)
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -638,12 +638,12 @@ Public Class cFITSWriter
         'Load all header elements
         Dim Header As New Dictionary(Of eFITSKeywords, Object)
         Header.Add(eFITSKeywords.SIMPLE, "T")
-        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
-        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
+        Header.Add(eFITSKeywords.NAXIS, 2)
         Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
         Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
-        Header.Add(eFITSKeywords.BZERO, BZero.ValRegIndep.Replace(", ", "."))
-        Header.Add(eFITSKeywords.BSCALE, BScale.ValRegIndep.Replace(",", "."))
+        Header.Add(eFITSKeywords.BZERO, BZero)
+        Header.Add(eFITSKeywords.BSCALE, BScale)
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -688,13 +688,13 @@ Public Class cFITSWriter
         'Load all header elements
         Dim Header As New Dictionary(Of eFITSKeywords, Object)
         Header.Add(eFITSKeywords.SIMPLE, "T")
-        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
         Header.Add(eFITSKeywords.NAXIS, "3")
         Header.Add(eFITSKeywords.NAXIS1, ImageDataR.GetUpperBound(0) + 1)
         Header.Add(eFITSKeywords.NAXIS2, ImageDataR.GetUpperBound(1) + 1)
         Header.Add(eFITSKeywords.NAXIS3, "3")
-        Header.Add(eFITSKeywords.BZERO, BZero.ValRegIndep.Replace(",", "."))
-        Header.Add(eFITSKeywords.BSCALE, BScale.ValRegIndep.Replace(",", "."))
+        Header.Add(eFITSKeywords.BZERO, BZero)
+        Header.Add(eFITSKeywords.BSCALE, BScale)
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Write header
@@ -787,12 +787,12 @@ Public Class cFITSWriter
         'Load all header elements
         Dim Header As New Dictionary(Of eFITSKeywords, Object)
         Header.Add(eFITSKeywords.SIMPLE, "T")
-        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
-        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
+        Header.Add(eFITSKeywords.NAXIS, 2)
         Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
         Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
-        Header.Add(eFITSKeywords.BZERO, BZero.ValRegIndep.Replace(", ", "."))
-        Header.Add(eFITSKeywords.BSCALE, BScale.ValRegIndep.Replace(",", "."))
+        Header.Add(eFITSKeywords.BZERO, BZero)
+        Header.Add(eFITSKeywords.BSCALE, BScale)
         AddCustomHeaders(Header, CustomHeaderElements)
 
         'Calculate scaler
@@ -994,19 +994,28 @@ Public Class cFITSWriter
 
     '''<summary>Get the card content as string.</summary>
     Private Shared Function CardAsString(ByVal Card As KeyValuePair(Of eFITSKeywords, Object)) As String
-        Dim ValAsString As String = String.Empty
         Dim TypeName As String = Card.Value.GetType.Name
-        Select Case TypeName
-            Case "String"
-                ValAsString = cFITSKeywords.GetString(CStr(Card.Value))
-            Case "Double"
-                ValAsString = cFITSKeywords.GetDouble(CDbl(Card.Value))
-            Case "Int32"
-                ValAsString = CStr(Card.Value).Trim
-            Case Else
-                ValAsString = CStr(Card.Value)
-        End Select
-        Return (FITSKeyword.GetKeyword(Card.Key).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength) & " /" & FITSComment.GetComment(Card.Key).Trim).PadRight(HeaderElementLength)
+        Dim ValAsString As String = String.Empty
+        Dim Comment As String = FITSComment.GetComment(Card.Key).Trim : Comment = String.Empty
+        If Card.Key = eFITSKeywords.SIMPLE Then
+            ValAsString = "T"
+        Else
+            Select Case TypeName
+                Case "String"
+                    ValAsString = cFITSKeywords.GetString(CStr(Card.Value))
+                Case "Double"
+                    ValAsString = cFITSKeywords.GetDouble(CDbl(Card.Value))
+                Case "Int32"
+                    ValAsString = CStr(Card.Value).Trim
+                Case Else
+                    ValAsString = CStr(Card.Value)
+            End Select
+        End If
+        If Comment.Length > 0 Then
+            Return (FITSKeyword.GetKeyword(Card.Key).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength) & " /" & Comment).PadRight(HeaderElementLength)
+        Else
+            Return (FITSKeyword.GetKeyword(Card.Key).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength)).PadRight(HeaderElementLength)
+        End If
     End Function
 
     '################################################################################################
@@ -1036,12 +1045,12 @@ Public Class cFITSWriter
         'Load all header elements
         Dim Header As New Dictionary(Of eFITSKeywords, Object)
         Header.Add(eFITSKeywords.SIMPLE, "T")
-        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
-        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
+        Header.Add(eFITSKeywords.NAXIS, 2)
         Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
         Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
-        Header.Add(eFITSKeywords.BZERO, "0")
-        Header.Add(eFITSKeywords.BSCALE, "1")
+        Header.Add(eFITSKeywords.BZERO, 0)
+        Header.Add(eFITSKeywords.BSCALE, 1)
 
         'Write header
         BaseOut.Write(CreateFITSHeader(Header))
@@ -1083,12 +1092,12 @@ Public Class cFITSWriter
         'Load all header elements
         Dim Header As New Dictionary(Of eFITSKeywords, Object)
         Header.Add(eFITSKeywords.SIMPLE, "T")
-        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
-        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
+        Header.Add(eFITSKeywords.NAXIS, 2)
         Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
         Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
-        Header.Add(eFITSKeywords.BZERO, "0")
-        Header.Add(eFITSKeywords.BSCALE, "1")
+        Header.Add(eFITSKeywords.BZERO, 0)
+        Header.Add(eFITSKeywords.BSCALE, 1)
 
         'Write header
         BaseOut.Write(CreateFITSHeader(Header))
@@ -1130,12 +1139,12 @@ Public Class cFITSWriter
         'Load all header elements
         Dim Header As New Dictionary(Of eFITSKeywords, Object)
         Header.Add(eFITSKeywords.SIMPLE, "T")
-        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
-        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
+        Header.Add(eFITSKeywords.NAXIS, 2)
         Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
         Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
-        Header.Add(eFITSKeywords.BZERO, "0")
-        Header.Add(eFITSKeywords.BSCALE, "1")
+        Header.Add(eFITSKeywords.BZERO, 0)
+        Header.Add(eFITSKeywords.BSCALE, 1)
 
         'Write header
         BaseOut.Write(CreateFITSHeader(Header))
@@ -1177,12 +1186,12 @@ Public Class cFITSWriter
         'Load all header elements
         Dim Header As New Dictionary(Of eFITSKeywords, Object)
         Header.Add(eFITSKeywords.SIMPLE, "T")
-        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
-        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
+        Header.Add(eFITSKeywords.NAXIS, 2)
         Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
         Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
-        Header.Add(eFITSKeywords.BZERO, "0")
-        Header.Add(eFITSKeywords.BSCALE, "1")
+        Header.Add(eFITSKeywords.BZERO, 0)
+        Header.Add(eFITSKeywords.BSCALE, 1)
 
         'Write header
         BaseOut.Write(CreateFITSHeader(Header))
@@ -1224,12 +1233,12 @@ Public Class cFITSWriter
         'Load all header elements
         Dim Header As New Dictionary(Of eFITSKeywords, Object)
         Header.Add(eFITSKeywords.SIMPLE, "T")
-        Header.Add(eFITSKeywords.BITPIX, CStr(CInt(BitPix)).Trim)
-        Header.Add(eFITSKeywords.NAXIS, "2")
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
+        Header.Add(eFITSKeywords.NAXIS, 2)
         Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
         Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
-        Header.Add(eFITSKeywords.BZERO, "0")
-        Header.Add(eFITSKeywords.BSCALE, "1")
+        Header.Add(eFITSKeywords.BZERO, 0)
+        Header.Add(eFITSKeywords.BSCALE, 1)
 
         'Write header
         BaseOut.Write(CreateFITSHeader(Header))

@@ -50,7 +50,7 @@ Public Class cStopper
     '''<summary>Log the timing and restart the watch again.</summary>
     Public Function [Stamp](ByVal Text As String) As String
         Watch.Stop()
-        Dim Message As String = Text.PadRight(PadMessage) & " : " & Watch.ElapsedMilliseconds.ValRegIndep.PadLeft(PadTime) & " ms"
+        Dim Message As String = Text.PadRight(PadMessage) & " : " & Watch.ElapsedMilliseconds.ValRegIndep.PadLeft(PadTime) & " ms - memory: " & Format(Process.GetCurrentProcess.PrivateMemorySize64 / 1048576, "0.0") & " MByte"
         TimeLog.Add(Message)
         MessageCache = String.Empty
         Watch.Reset()

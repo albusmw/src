@@ -5,14 +5,29 @@ Option Strict On
 '''<remarks>Calculation is done by buidling a vector with all possible entries (only 2^16 length).</remarks>
 Public Class cStatMultiThread_UInt16
 
+    Public Structure sImageData
+        Public Data(,) As UInt16
+        Public ReadOnly Property Length() As Long
+            Get
+                If IsNothing(Data) = True Then Return 0 Else Return Data.LongLength
+            End Get
+        End Property
+        Public ReadOnly Property NAXIS1() As Long
+            Get
+                If IsNothing(Data) = True Then Return 0 Else Return Data.GetUpperBound(0) + 1
+            End Get
+        End Property
+        Public ReadOnly Property NAXIS2() As Long
+            Get
+                If IsNothing(Data) = True Then Return 0 Else Return Data.GetUpperBound(1) + 1
+            End Get
+        End Property
+    End Structure
+
     Private Const OneUInt64 As UInt64 = CType(1, UInt64)
 
     '''<summary>The real image data.</summary>
-    Public ImageData As New List(Of UInt16(,))
-
-    Public Sub New()
-        ImageData.Add({{}})
-    End Sub
+    Public ImageData(3) As sImageData
 
     '''<summary>Object for each thread.</summary>
     Public Class cStateObj
@@ -75,9 +90,9 @@ Public Class cStatMultiThread_UInt16
         Next Idx
 
         'Count one bayer part
-        For IdxX As Integer = StateObj.XOffset To ImageData(StateObj.NAXIS3).GetUpperBound(0) - 1 + StateObj.XOffset Step 2
-            For IdxY As Integer = StateObj.YOffset To ImageData(StateObj.NAXIS3).GetUpperBound(1) - 1 + StateObj.YOffset Step 2
-                HistCount(ImageData(StateObj.NAXIS3)(IdxX, IdxY)) += OneUInt64
+        For IdxX As Integer = StateObj.XOffset To ImageData(StateObj.NAXIS3).Data.GetUpperBound(0) - 1 + StateObj.XOffset Step 2
+            For IdxY As Integer = StateObj.YOffset To ImageData(StateObj.NAXIS3).Data.GetUpperBound(1) - 1 + StateObj.YOffset Step 2
+                HistCount(ImageData(StateObj.NAXIS3).Data(IdxX, IdxY)) += OneUInt64
             Next IdxY
         Next IdxX
 

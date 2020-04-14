@@ -27,7 +27,9 @@ Namespace AstroNET
         Private Const UInt64_1 As UInt64 = CType(1, UInt64)
 
         Public Sub ResetAllProcessors()
-            DataProcessor_UInt16.ImageData.Clear() : DataProcessor_UInt16.ImageData.Add({{}})
+            For Idx As Integer = 0 To 3
+                DataProcessor_UInt16.ImageData(Idx).Data = {}
+            Next Idx
             DataProcessor_UInt32.ImageData = {{}}
             DataProcessor_Int32.ImageData = {{}}
             DataProcessor_Float32.ImageData = {{}}
@@ -35,7 +37,7 @@ Namespace AstroNET
 
         Public ReadOnly Property DataMode() As String
             Get
-                If DataProcessor_UInt16.ImageData(0).LongLength > 0 Then Return GetType(UInt16).Name
+                If DataProcessor_UInt16.ImageData(0).Data.LongLength > 0 Then Return GetType(UInt16).Name
                 If DataProcessor_UInt32.ImageData.LongLength > 0 Then Return GetType(UInt32).Name
                 If DataProcessor_Int32.ImageData.LongLength > 0 Then Return GetType(Int32).Name
                 If DataProcessor_Float32.ImageData.LongLength > 0 Then Return GetType(Single).Name
@@ -341,7 +343,7 @@ Namespace AstroNET
                 Case Else
                     RetVal.BayerHistograms_Int = BayerStatistics_Int(0)         'Calculate a 2x2 bayer statistics (also for mono data as thread-based will speed up ...)
                     CalculateAllFromBayerStatistics(DataMode, RetVal)           'Add all other data (mono histo and statistics)
-                    If DataProcessor_UInt16.ImageData.Count > 1 Then
+                    If DataProcessor_UInt16.ImageData(1).Length > 1 Then
                         ClearBayerStatistics(RetVal)                            'Clear bayer statistics
                         SetReadColorStat(RetVal, RetVal, 0, 0)                  'Make 1st channel to red stats
                         Dim Green As New sStatistics                            'Prepare new statistics for green
