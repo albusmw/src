@@ -12,27 +12,17 @@ Public Class cFITSHeaderParser
 
     '''<summary>Elements of one single FITS header line.</summary>
     Public Structure sHeaderElement
-        Public Keyword As String
-        Public Value As String
+        Public Keyword As eFITSKeywords
+        Public Value As Object
         Public Comment As String
-        Public Sub New(ByVal NewKeyword As String, ByVal NewValue As String)
+        Public Sub New(ByVal NewKeyword As eFITSKeywords, ByVal NewValue As Object)
             Me.Keyword = NewKeyword
             Me.Value = NewValue
             Me.Comment = String.Empty
         End Sub
-        Public Sub New(ByVal NewKeyword As String, ByVal NewValue As String, ByVal NewComment As String)
+        Public Sub New(ByVal NewKeyword As eFITSKeywords, ByVal NewValue As Object, ByVal NewComment As String)
             Me.Keyword = NewKeyword
             Me.Value = NewValue
-            Me.Comment = NewComment
-        End Sub
-        Public Sub New(ByVal NewKeyword As String, ByVal NewValue As Double)
-            Me.Keyword = NewKeyword
-            Me.Value = NewValue.ValRegIndep.Replace(",", ".")
-            Me.Comment = String.Empty
-        End Sub
-        Public Sub New(ByVal NewKeyword As String, ByVal NewValue As Double, ByVal NewComment As String)
-            Me.Keyword = NewKeyword
-            Me.Value = NewValue.ValRegIndep.Replace(",", ".")
             Me.Comment = NewComment
         End Sub
         Public Shared Function Sorter(ByVal X As sHeaderElement, ByVal Y As sHeaderElement) As Integer
@@ -114,14 +104,14 @@ Public Class cFITSHeaderParser
             Else
                 If UpdateExistingElement = True Then AllCards(FoundIdx) = Card
             End If
-            Select Case Card.Keyword.Trim
-                Case "BITPIX" : MyProps.BitPix = CInt(Card.Value)
-                Case "NAXIS" : MyProps.NAXIS = CInt(Card.Value)
-                Case "NAXIS1" : MyProps.Width = CInt(Card.Value)
-                Case "NAXIS2" : MyProps.Height = CInt(Card.Value)
-                Case "NAXIS3" : MyProps.NAXIS3 = CInt(Card.Value)
-                Case "BZERO" : MyProps.BZERO = Val(Card.Value.Replace(",", "."))
-                Case "BSCALE" : MyProps.BSCALE = Val(Card.Value.Replace(",", "."))
+            Select Case Card.Keyword
+                Case eFITSKeywords.BITPIX : MyProps.BitPix = CInt(Card.Value)
+                Case eFITSKeywords.NAXIS : MyProps.NAXIS = CInt(Card.Value)
+                Case eFITSKeywords.NAXIS1 : MyProps.Width = CInt(Card.Value)
+                Case eFITSKeywords.NAXIS2 : MyProps.Height = CInt(Card.Value)
+                Case eFITSKeywords.NAXIS3 : MyProps.NAXIS3 = CInt(Card.Value)
+                Case eFITSKeywords.BZERO : MyProps.BZERO = CDbl(Card.Value)
+                Case eFITSKeywords.BSCALE : MyProps.BSCALE = CDbl(Card.Value)
             End Select
         Next Card
     End Sub
@@ -135,47 +125,45 @@ Public Class cFITSHeaderParser
         Else
             If UpdateExistingElement = True Then AllCards(FoundIdx) = CardToAdd
         End If
-        Dim Keyword As String = CardToAdd.Keyword.Trim
-        Select Case Keyword
-            Case "BITPIX" : MyProps.BitPix = CInt(ElementValue(Keyword))
-            Case "NAXIS1" : MyProps.Width = CInt(ElementValue(Keyword))
-            Case "NAXIS2" : MyProps.Height = CInt(ElementValue(Keyword))
-            Case "NAXIS3" : MyProps.NAXIS3 = CInt(ElementValue(Keyword))
-            Case "BZERO" : MyProps.BZERO = Val(ElementValue(Keyword).Replace(",", "."))
-            Case "BSCALE" : MyProps.BSCALE = Val(ElementValue(Keyword).Replace(",", "."))
+        'Set property entries again
+        Select Case CardToAdd.Keyword
+            Case eFITSKeywords.BITPIX : MyProps.BitPix = CInt(ElementValue(CardToAdd.Keyword))
+            Case eFITSKeywords.NAXIS1 : MyProps.Width = CInt(ElementValue(CardToAdd.Keyword))
+            Case eFITSKeywords.NAXIS2 : MyProps.Height = CInt(ElementValue(CardToAdd.Keyword))
+            Case eFITSKeywords.NAXIS3 : MyProps.NAXIS3 = CInt(ElementValue(CardToAdd.Keyword))
+            Case eFITSKeywords.BZERO : MyProps.BZERO = CDbl(ElementValue(CardToAdd.Keyword))
+            Case eFITSKeywords.BSCALE : MyProps.BSCALE = CDbl(ElementValue(CardToAdd.Keyword))
         End Select
     End Sub
 
     '''<summary>Return the value of the given keyword if present.</summary>
     '''<returns>Index of the found element or -1 if element is not found.</returns>
-    Public Function ElementValue(ByVal Keyword As String) As String
-        Keyword = Keyword.Trim.ToUpper
+    Public Function ElementValue(ByVal Keyword As eFITSKeywords) As Object
         For Idx As Integer = 0 To AllCards.Count - 1
-            If AllCards(Idx).Keyword.Trim.ToUpper = Keyword Then Return AllCards(Idx).Value
+            If AllCards(Idx).Keyword = Keyword Then Return AllCards(Idx).Value
         Next Idx
         Return Nothing
     End Function
 
     '''<summary>Check if an element with the given keyword already exists in the list of elements.</summary>
     '''<returns>Index of the found element or -1 if element is not found.</returns>
-    Private Function IdxOfKeyword(ByVal Keyword As String) As Integer
-        Keyword = Keyword.Trim.ToUpper
+    Private Function IdxOfKeyword(ByVal Keyword As eFITSKeywords) As Integer
         For Idx As Integer = 0 To AllCards.Count - 1
-            If AllCards(Idx).Keyword.Trim.ToUpper = Keyword Then Return Idx
+            If AllCards(Idx).Keyword = Keyword Then Return Idx
         Next Idx
         Return -1
     End Function
 
     '''<summary>Get a keyword-value dictionary.</summary>
     '''<remarks>If an entry is found again, the latest present entry in the list will be returned.</remarks>
-    Public Function GetCardsAsDictionary() As Dictionary(Of String, String)
-        Dim RetVal As New Dictionary(Of String, String)
+    Public Function GetCardsAsDictionary() As Dictionary(Of eFITSKeywords, Object)
+        Dim RetVal As New Dictionary(Of eFITSKeywords, Object)
         For Each Entry As cFITSHeaderParser.sHeaderElement In AllCards
-            Dim KeyTrim As String = Entry.Keyword.Trim
-            If RetVal.ContainsKey(KeyTrim) = False Then
-                RetVal.Add(KeyTrim, Entry.Value)          'entry is new -> add
+            Dim Keyword As eFITSKeywords = Entry.Keyword
+            If RetVal.ContainsKey(Keyword) = False Then
+                RetVal.Add(Keyword, Entry.Value)          'entry is new -> add
             Else
-                RetVal(KeyTrim) = Entry.Value             'entry already exists -> update
+                RetVal(Keyword) = Entry.Value             'entry already exists -> update
             End If
         Next Entry
         Return RetVal
@@ -183,13 +171,14 @@ Public Class cFITSHeaderParser
 
     '''<summary>Get a keyword-value dictionary.</summary>
     '''<remarks>If an entry is found again, the latest present entry in the list will be returned.</remarks>
-    Public Shared Function GetLCardsAsDictionary(ByRef CardsToProcess As List(Of cFITSHeaderParser.sHeaderElement)) As Dictionary(Of String, String)
-        Dim RetVal As New Dictionary(Of String, String)
+    Public Shared Function GetLCardsAsDictionary(ByRef CardsToProcess As List(Of cFITSHeaderParser.sHeaderElement)) As Dictionary(Of eFITSKeywords, Object)
+        Dim RetVal As New Dictionary(Of eFITSKeywords, Object)
         For Each Card As cFITSHeaderParser.sHeaderElement In CardsToProcess
-            If RetVal.ContainsKey(Card.Keyword) = False Then
-                RetVal.Add(Card.Keyword, Card.Value)          'entry is new -> add
+            Dim Keyword As eFITSKeywords = Card.Keyword
+            If RetVal.ContainsKey(Keyword) = False Then
+                RetVal.Add(Keyword, Card.Value)          'entry is new -> add
             Else
-                RetVal(Card.Keyword) = Card.Value             'entry already exists -> update
+                RetVal(Keyword) = Card.Value             'entry already exists -> update
             End If
         Next Card
         Return RetVal
@@ -200,14 +189,18 @@ Public Class cFITSHeaderParser
     Public Function GetCardsAsList() As Dictionary(Of eFITSKeywords, Object)
         Dim RetVal As New Dictionary(Of eFITSKeywords, Object)
         For Each Entry As cFITSHeaderParser.sHeaderElement In AllCards
-            Dim Keyword As eFITSKeywords = GetKeywordEnum(Entry.Keyword)
-            RetVal.Add(Keyword, Entry.Value)
+            Dim Keyword As eFITSKeywords = Entry.Keyword
+            If RetVal.ContainsKey(Keyword) = False Then
+                RetVal.Add(Keyword, Entry.Value)
+            Else
+                RetVal(Keyword) = Entry.Value
+            End If
         Next Entry
         Return RetVal
     End Function
 
     '''<summary>Try to translate the string in the enum.</summary>
-    Public Function GetKeywordEnum(ByVal Keyword As String) As eFITSKeywords
+    Public Shared Function GetKeywordEnum(ByVal Keyword As String) As eFITSKeywords
         For Each EnumKey As eFITSKeywords In [Enum].GetValues(GetType(eFITSKeywords))
             If EnumKey.ToString.ToUpper = Keyword.ToUpper.Trim Then Return EnumKey
         Next EnumKey

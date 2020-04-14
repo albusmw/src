@@ -994,22 +994,12 @@ Public Class cFITSWriter
 
     '''<summary>Get the card content as string.</summary>
     Private Shared Function CardAsString(ByVal Card As KeyValuePair(Of eFITSKeywords, Object)) As String
-        Dim TypeName As String = Card.Value.GetType.Name
         Dim ValAsString As String = String.Empty
         Dim Comment As String = FITSComment.GetComment(Card.Key).Trim : Comment = String.Empty
         If Card.Key = eFITSKeywords.SIMPLE Then
             ValAsString = "T"
         Else
-            Select Case TypeName
-                Case "String"
-                    ValAsString = cFITSKeywords.GetString(CStr(Card.Value))
-                Case "Double"
-                    ValAsString = cFITSKeywords.GetDouble(CDbl(Card.Value))
-                Case "Int32"
-                    ValAsString = CStr(Card.Value).Trim
-                Case Else
-                    ValAsString = CStr(Card.Value)
-            End Select
+            ValAsString = cFITSKeywords.AsString(Card.Value)
         End If
         If Comment.Length > 0 Then
             Return (FITSKeyword.GetKeyword(Card.Key).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength) & " /" & Comment).PadRight(HeaderElementLength)

@@ -14,9 +14,9 @@ Public Class cFITSHeaderChanger
     '''<summary>Search a specific keyword in the passed list of header elements.</summary>
     '''<param name="HeaderElements">Header elements.</param>
     '''<param name="KeyWordToSearch">Keyword to search for.</param>
-    Public Shared Function GetHeaderValue(ByRef HeaderElements As List(Of cFITSHeaderParser.sHeaderElement), ByVal KeyWordToSearch As String) As String
+    Public Shared Function GetHeaderValue(ByRef HeaderElements As List(Of cFITSHeaderParser.sHeaderElement), ByVal KeyWordToSearch As eFITSKeywords) As Object
         For Each Entry As cFITSHeaderParser.sHeaderElement In HeaderElements
-            If Entry.Keyword.Trim = KeyWordToSearch Then Return Entry.Value
+            If Entry.Keyword = KeyWordToSearch Then Return Entry.Value
         Next Entry
         Return String.Empty
     End Function
@@ -88,16 +88,38 @@ Public Class cFITSHeaderChanger
                 'Process only non-empty files
                 If SingleLine.Trim.Length > 0 Then
 
-                    'Get the keyword and the value
+                    'Get keyword, value and comment
                     Dim HeaderElement As cFITSHeaderParser.sHeaderElement
-                    HeaderElement.Keyword = SingleLine.Substring(0, 8)
-                    HeaderElement.Value = SingleLine.Substring(9).Trim
+                    HeaderElement.Keyword = cFITSHeaderParser.GetKeywordEnum(SingleLine.Substring(0, 8))
+                    Dim Value As String = SingleLine.Substring(9).Trim
+                    HeaderElement.Value = Value
                     HeaderElement.Comment = String.Empty
-                    If HeaderElement.Value.Contains("/") Then
-                        Dim SepPos As Integer = HeaderElement.Value.IndexOf("/")
-                        HeaderElement.Comment = HeaderElement.Value.Substring(SepPos + 1).Trim
-                        HeaderElement.Value = HeaderElement.Value.Substring(0, SepPos).Trim
+                    If CStr(Value).Contains("/") Then
+                        Dim SepPos As Integer = CStr(Value).IndexOf("/")
+                        HeaderElement.Comment = CStr(Value).Substring(SepPos + 1).Trim
+                        Value = CStr(Value).Substring(0, SepPos).Trim
                     End If
+                    Select Case cFITSKeywords.GetDataType(HeaderElement.Keyword).ToUpper
+                        Case "INTEGER" : HeaderElement.Value = CInt(Value)
+                        Case "DOUBLE" : HeaderElement.Value = Val(Value)
+                        Case Else
+                            'Try to auto-detect the value
+                            If Value.StartsWith("'") And Value.EndsWith("'") Then
+                                HeaderElement.Value = Value.Substring(1, Value.Length - 2)
+                            Else
+                                Dim ValueAsInt As Integer = Integer.MinValue
+                                Dim ValueAsDouble As Double = Double.NaN
+                                If Integer.TryParse(Value, ValueAsInt) = True Then
+                                    HeaderElement.Value = ValueAsInt
+                                Else
+                                    If Double.TryParse(Value, ValueAsDouble) = True Then
+                                        HeaderElement.Value = ValueAsDouble
+                                    End If
+                                End If
+                            End If
+                    End Select
+
+                    'Store final element as new header element
                     RetVal.Add(HeaderElement)
 
                 End If

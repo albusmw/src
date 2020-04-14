@@ -419,6 +419,33 @@ End Class
 
 Public Class cFITSKeywords
 
+    '''<summary>Describes which data type a certain keyword has.</summary>
+    Public Shared Function GetDataType(ByVal Keyword As eFITSKeywords) As String
+        'Set the correct data type
+        Select Case Keyword
+            Case eFITSKeywords.BITPIX, eFITSKeywords.NAXIS, eFITSKeywords.NAXIS1, eFITSKeywords.NAXIS2
+                Return "INTEGER"
+            Case eFITSKeywords.BZERO, eFITSKeywords.BSCALE
+                Return "DOUBLE"
+            Case Else
+                Return String.Empty
+        End Select
+    End Function
+
+    Public Shared Function AsString(ByVal Value As Object) As String
+        Dim TypeName As String = Value.GetType.Name
+        Select Case TypeName
+            Case "String"
+                Return cFITSKeywords.GetString(CStr(Value))
+            Case "Double"
+                Return cFITSKeywords.GetDouble(CDbl(Value))
+            Case "Int32"
+                Return CStr(Value).Trim
+            Case Else
+                Return CStr(Value)
+        End Select
+    End Function
+
     '''<summary>Formated content as a string.</summary>
     Public Shared Function GetString(ByVal Value As String) As String
         Return "'" & Value & "'"

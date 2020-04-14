@@ -43,18 +43,18 @@ Public Class ImageFileFormatSpecific
 
     End Sub
 
-    Public Shared Sub SaveTIFF_Format48bppColor(ByVal FileName As String, ByRef Data As List(Of UInt16(,)))
+    Public Shared Sub SaveTIFF_Format48bppColor(ByVal FileName As String, ByRef Data() As cStatMultiThread_UInt16.sImageData)
 
         'https://bitmiracle.github.io/libtiff.net/help/articles/KB/grayscale-color.html
 
         Using output As BitMiracle.LibTiff.Classic.Tiff = BitMiracle.LibTiff.Classic.Tiff.Open(FileName, "w")
 
-            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.IMAGEWIDTH, Data(0).GetUpperBound(0) + 1)
-            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.IMAGELENGTH, Data(0).GetUpperBound(1) + 1)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.IMAGEWIDTH, Data(0).NAXIS1)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.IMAGELENGTH, Data(0).NAXIS2)
             output.SetField(BitMiracle.LibTiff.Classic.TiffTag.SAMPLESPERPIXEL, 3)
             output.SetField(BitMiracle.LibTiff.Classic.TiffTag.BITSPERSAMPLE, 16)
             output.SetField(BitMiracle.LibTiff.Classic.TiffTag.ORIENTATION, BitMiracle.LibTiff.Classic.Orientation.TOPLEFT)
-            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.ROWSPERSTRIP, Data(0).GetUpperBound(1) + 1)
+            output.SetField(BitMiracle.LibTiff.Classic.TiffTag.ROWSPERSTRIP, Data(0).NAXIS1)
             output.SetField(BitMiracle.LibTiff.Classic.TiffTag.XRESOLUTION, 88.0)
             output.SetField(BitMiracle.LibTiff.Classic.TiffTag.YRESOLUTION, 88.0)
             output.SetField(BitMiracle.LibTiff.Classic.TiffTag.RESOLUTIONUNIT, BitMiracle.LibTiff.Classic.ResUnit.INCH)
@@ -64,19 +64,19 @@ Public Class ImageFileFormatSpecific
             output.SetField(BitMiracle.LibTiff.Classic.TiffTag.FILLORDER, BitMiracle.LibTiff.Classic.FillOrder.MSB2LSB)
 
             Dim BitWidth As Integer = 6
-            For i As Integer = 0 To Data(0).GetUpperBound(1)
-                Dim Buffer((BitWidth * (Data(0).GetUpperBound(0) + 1)) - 1) As Byte
+            For i As Integer = 0 To Data(0).Data.GetUpperBound(1)
+                Dim Buffer((BitWidth * (Data(0).Data.GetUpperBound(0) + 1)) - 1) As Byte
                 Dim BufferPtr As Integer = 0
-                For j As Integer = 0 To Data(0).GetUpperBound(0)
-                    Dim PatternR() As Byte = BitConverter.GetBytes(Data(0)(j, i))
+                For j As Integer = 0 To Data(0).Data.GetUpperBound(0)
+                    Dim PatternR() As Byte = BitConverter.GetBytes(Data(0).Data(j, i))
                     Buffer(BufferPtr) = PatternR(0)
                     Buffer(BufferPtr + 1) = PatternR(1)
                     BufferPtr += 2
-                    Dim PatternG() As Byte = BitConverter.GetBytes(Data(1)(j, i))
+                    Dim PatternG() As Byte = BitConverter.GetBytes(Data(1).Data(j, i))
                     Buffer(BufferPtr) = PatternG(0)
                     Buffer(BufferPtr + 1) = PatternG(1)
                     BufferPtr += 2
-                    Dim PatternB() As Byte = BitConverter.GetBytes(Data(2)(j, i))
+                    Dim PatternB() As Byte = BitConverter.GetBytes(Data(2).Data(j, i))
                     Buffer(BufferPtr) = PatternB(0)
                     Buffer(BufferPtr + 1) = PatternB(1)
                     BufferPtr += 2

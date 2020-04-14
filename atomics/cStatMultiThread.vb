@@ -12,12 +12,12 @@ Public Class cStatMultiThread_UInt16
                 If IsNothing(Data) = True Then Return 0 Else Return Data.LongLength
             End Get
         End Property
-        Public ReadOnly Property NAXIS1() As Long
+        Public ReadOnly Property NAXIS1() As Integer
             Get
                 If IsNothing(Data) = True Then Return 0 Else Return Data.GetUpperBound(0) + 1
             End Get
         End Property
-        Public ReadOnly Property NAXIS2() As Long
+        Public ReadOnly Property NAXIS2() As Integer
             Get
                 If IsNothing(Data) = True Then Return 0 Else Return Data.GetUpperBound(1) + 1
             End Get
