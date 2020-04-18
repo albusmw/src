@@ -53,7 +53,7 @@ Public Class cFITSWriter
     '''<summary>Length of the keyword entry.</summary>
     Public Shared Property KeywordLength As Integer = 8
     '''<summary>Length of the value entry.</summary>
-    Public Shared Property ValueLength As Integer = 18
+    Public Shared Property ValueLength As Integer = 20
     '''<summary>Number of header elements per header block.</summary>
     Public Shared ReadOnly HeaderElements As Integer = HeaderBlockSize \ HeaderElementLength
 
@@ -994,18 +994,21 @@ Public Class cFITSWriter
 
     '''<summary>Get the card content as string.</summary>
     Private Shared Function CardAsString(ByVal Card As KeyValuePair(Of eFITSKeywords, Object)) As String
+        Dim RetVal As String = String.Empty
         Dim ValAsString As String = String.Empty
-        Dim Comment As String = FITSComment.GetComment(Card.Key).Trim : Comment = String.Empty
+        Dim Comment As String = FITSComment.GetComment(Card.Key).Trim
         If Card.Key = eFITSKeywords.SIMPLE Then
             ValAsString = "T"
         Else
             ValAsString = cFITSKeywords.AsString(Card.Value)
         End If
         If Comment.Length > 0 Then
-            Return (FITSKeyword.GetKeyword(Card.Key).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength) & " /" & Comment).PadRight(HeaderElementLength)
+            RetVal = (FITSKeyword.GetKeyword(Card.Key).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength) & " / " & Comment).PadRight(HeaderElementLength)
         Else
-            Return (FITSKeyword.GetKeyword(Card.Key).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength)).PadRight(HeaderElementLength)
+            RetVal = (FITSKeyword.GetKeyword(Card.Key).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength)).PadRight(HeaderElementLength)
         End If
+        If RetVal.Length > HeaderElementLength Then RetVal = RetVal.Substring(0, HeaderElementLength)
+        Return RetVal
     End Function
 
     '################################################################################################
@@ -1097,6 +1100,123 @@ Public Class cFITSWriter
         For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
             For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
                 BytesOut.Write(GetBytes_BitPix16(ImageData(Idx2, Idx1)))
+            Next Idx2
+        Next Idx1
+
+        'Finish
+        BytesOut.Flush()
+        BaseOut.Close()
+
+    End Sub
+
+    '''<summary>Write a FITS test file with raw data containing a cross in the top-left corner.</summary>
+    '''<remarks>Does work.</remarks>
+    Public Shared Sub WriteTestFile_UInt16_Cross(ByVal FileName As String)
+
+        Dim BitPix As Integer = eBitPix.Int16
+        Dim BaseOut As New System.IO.StreamWriter(FileName)
+        Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
+
+        'Create test data
+        Dim ImageSize_W As Integer = 800
+        Dim ImageSize_H As Integer = 600
+        Dim ImageData(ImageSize_W - 1, ImageSize_H - 1) As UInt16
+        For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+            For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                ImageData(Idx2, Idx1) = 0
+            Next Idx2
+        Next Idx1
+        For Idx1 As Integer = 20 To 40
+            ImageData(Idx1, 30) = 50
+        Next Idx1
+        For Idx1 As Integer = 20 To 40
+            ImageData(30, Idx1) = 100
+        Next Idx1
+
+        'Load all header elements
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
+        Header.Add(eFITSKeywords.NAXIS, 2)
+        Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.BZERO, 32768)
+        Header.Add(eFITSKeywords.BSCALE, 1)
+
+        'Write header
+        BaseOut.Write(CreateFITSHeader(Header))
+        BaseOut.Flush()
+
+        'Write content
+        For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+            For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                BytesOut.Write(GetBytes_BitPix16(CType(ImageData(Idx2, Idx1) - 32768, Int16)))
+            Next Idx2
+        Next Idx1
+
+        'Finish
+        BytesOut.Flush()
+        BaseOut.Close()
+
+    End Sub
+
+    '''<summary>Write a FITS test file with raw data containing a cross in the top-left corner.</summary>
+    '''<remarks>Does work.</remarks>
+    Public Shared Sub WriteTestFile_UInt16_Cross_RGB(ByVal FileName As String)
+
+        Dim BitPix As Integer = eBitPix.Int16
+        Dim BaseOut As New System.IO.StreamWriter(FileName)
+        Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
+
+        'Create test data
+        Dim ImageSize_W As Integer = 800
+        Dim ImageSize_H As Integer = 600
+        Dim ImageData_R(ImageSize_W - 1, ImageSize_H - 1) As UInt16
+        Dim ImageData_G(ImageSize_W - 1, ImageSize_H - 1) As UInt16
+        Dim ImageData_B(ImageSize_W - 1, ImageSize_H - 1) As UInt16
+        For Idx1 As Integer = 0 To ImageData_R.GetUpperBound(1)
+            For Idx2 As Integer = 0 To ImageData_R.GetUpperBound(0)
+                ImageData_R(Idx2, Idx1) = 0
+                ImageData_G(Idx2, Idx1) = 0
+                ImageData_B(Idx2, Idx1) = 0
+            Next Idx2
+        Next Idx1
+        For Idx1 As Integer = 20 To 40
+            ImageData_R(Idx1, 30) = 50
+        Next Idx1
+        For Idx1 As Integer = 20 To 40
+            ImageData_B(30, Idx1) = 100
+        Next Idx1
+
+        'Load all header elements
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
+        Header.Add(eFITSKeywords.NAXIS, 3)
+        Header.Add(eFITSKeywords.NAXIS1, ImageData_R.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageData_R.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.NAXIS3, 3)
+        Header.Add(eFITSKeywords.BZERO, 32768)
+        Header.Add(eFITSKeywords.BSCALE, 1)
+
+        'Write header
+        BaseOut.Write(CreateFITSHeader(Header))
+        BaseOut.Flush()
+
+        'Write content
+        For Idx1 As Integer = 0 To ImageData_R.GetUpperBound(1)
+            For Idx2 As Integer = 0 To ImageData_R.GetUpperBound(0)
+                BytesOut.Write(GetBytes_BitPix16(CType(ImageData_R(Idx2, Idx1) - 32768, Int16)))
+            Next Idx2
+        Next Idx1
+        For Idx1 As Integer = 0 To ImageData_G.GetUpperBound(1)
+            For Idx2 As Integer = 0 To ImageData_G.GetUpperBound(0)
+                BytesOut.Write(GetBytes_BitPix16(CType(ImageData_G(Idx2, Idx1) - 32768, Int16)))
+            Next Idx2
+        Next Idx1
+        For Idx1 As Integer = 0 To ImageData_B.GetUpperBound(1)
+            For Idx2 As Integer = 0 To ImageData_B.GetUpperBound(0)
+                BytesOut.Write(GetBytes_BitPix16(CType(ImageData_B(Idx2, Idx1) - 32768, Int16)))
             Next Idx2
         Next Idx1
 

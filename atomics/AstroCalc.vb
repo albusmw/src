@@ -402,8 +402,8 @@ Namespace Ato
       Dim Deg As Integer = CInt(Math.Floor(Degree)) : Degree = (Degree - Deg) * 60
       Dim Min As Integer = CInt(Math.Floor(Degree)) : Degree = (Degree - Min) * 60
       Dim Sec As Double = Degree
-      Return CStr(IIf(Sign = -1, "-", "+")) & Deg.ToString.Trim & "° " & Min.ToString.Trim & "' " & Format(Math.Round(Sec, SecRounding), "00.00").Replace(",", ".").Trim & """"
-    End Function
+            Return CStr(IIf(Sign = -1, "-", "+")) & Deg.ToString.Trim & "° " & Min.ToString.Trim & "' " & Format(Math.Round(Sec, SecRounding), "#0.00").Replace(",", ".").Trim & """"
+        End Function
 
     Public Shared Function DateTimeForCSV(ByVal Value As DateTime) As String
       Return Format(Value, "dd.MM.yyyy HH:mm:ss")

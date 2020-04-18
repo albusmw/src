@@ -261,7 +261,7 @@ Public Enum eFITSKeywords
 
     '''<summary>Primary HDU - Length of data axis 3 or number of color channels in image.</summary>
     <FITSKeyword("NAXIS3")>
-    <FITSComment("Length of data axis 3 or number of color channels")>
+    <FITSComment("Length of axis 3 or number of color channels")>
     [NAXIS3]
 
     '''<summary>The value field shall contain a character string giving a name for the object observed.</summary>
