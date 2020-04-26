@@ -44,9 +44,10 @@ Namespace AstroCalc.NET
         End If
       End Sub
 
-      Public Function DownloadString(ByVal URL As String) As String
-        Return Downloader.DownloadString(URL)
-      End Function
+            Public Function DownloadString(ByVal URL As String) As String
+                If IsNothing(Downloader) Then InitWebClient()
+                Return Downloader.DownloadString(URL)
+            End Function
 
             Public Function DownloadFile(ByVal URL As String, ByVal FileName As String) As Boolean
                 Try

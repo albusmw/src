@@ -1,30 +1,41 @@
 ﻿Option Explicit On
 Option Strict On
 
-'''<summary>Class to parse right accension, decination, position data.</summary>
+'''<summary>Class to parse right accension, decination, position data, ....</summary>
 Public Class AstroParser
+
+    '''<summary>Result of the RegEx position parsing.</summary>
+    Public Structure sCoordParts
+        Public Value As Double
+        Public Unit As String
+        Public Sub New(ByVal NewValue As Double, ByVal NewUnit As String)
+            Value = NewValue
+            Unit = NewUnit
+        End Sub
+    End Structure
 
     '''<summary>Separator sign.</summary>
     Private Shared ReadOnly Sep As Char = CChar("|")
 
-    '''<summary>NEW parser for coordinate input (not yet finished).</summary>
-    Public Shared Function ParseCoord(ByVal Text As String) As Double
+    '''<summary>NEW parser for coordinate input (not yet finished) - split entry into number and unit parts.</summary>
+    Public Shared Function ParseCoord(ByVal Argument As String) As List(Of sCoordParts)
 
         Dim Opt As Text.RegularExpressions.RegexOptions = System.Text.RegularExpressions.RegexOptions.IgnoreCase
         Dim NumberRegEx As String = "[0-9.,]{1,}"
         Dim NonNumberRegEx As String = "[^0-9.,]{1,}"
-        Dim Argument As String = "'22.7° 15m33.6''"
         Dim RegExInp As String = System.Text.RegularExpressions.Regex.Replace(Argument, "\s", String.Empty)
         Dim AllDigits As New Text.RegularExpressions.Regex(NumberRegEx & NonNumberRegEx, Opt)
         Dim Result As Text.RegularExpressions.MatchCollection = AllDigits.Matches(RegExInp)
 
+        Dim RetVal As New List(Of sCoordParts)
         For Each Item As Text.RegularExpressions.Group In Result
             Dim NumPart As String = System.Text.RegularExpressions.Regex.Match(Item.Value, NumberRegEx).Value
             Dim NonNumPart As String = System.Text.RegularExpressions.Regex.Match(Item.Value, NonNumberRegEx).Value
+            RetVal.Add(New sCoordParts(Val(NumPart.Replace(",", ".")), NonNumPart))
             Console.WriteLine("<" & Item.Value & "> == <" & NumPart & "|" & NonNumPart & ">")
         Next Item
 
-        Return Double.NaN
+        Return RetVal
 
     End Function
 
@@ -33,22 +44,16 @@ Public Class AstroParser
     '''<returns>Value [h].</returns>
     Public Shared Function ParseRA(ByVal Text As String) As Double
         '1.) Try to generate a common notation
-        Text = Text.Trim.ToUpper.Replace(" ", Sep).Replace(",", ".")
-        Text = Text.Replace("H", Sep).Replace("'", Sep).Replace("""", Sep).Replace(":", Sep)
-        Text = Text.Replace("′", Sep).Replace("″", Sep).Replace("D", Sep).Replace("MIN", Sep)
-        Text = Text.TrimEnd(Sep)
-        '2.) Calculate return value
-        Dim Values As String() = Split(Text.TrimEnd(Sep), Sep)
-        Select Case Values.Length
-            Case 1
-                Return (Val(Values(0)))
-            Case 2
-                Return (Val(Values(0)) + (Val(Values(1)) / 60))
-            Case 3
-                Return (Val(Values(0)) + (Val(Values(1)) / 60) + (Val(Values(2)) / 3600))
-        End Select
-        '4.) Conversion failed ...
-        Return Double.NaN
+        Dim Splitted As List(Of sCoordParts) = ParseCoord(Text)
+        Dim RetVal As Double = 0
+        For Each Part As sCoordParts In Splitted
+            Select Case Part.Unit.ToUpper
+                Case "H" : RetVal += Part.Value
+                Case "M", "MIN", "'", "´" : RetVal += (Part.Value / 60.0)
+                Case "S", "SEC", "''", Chr(34), "´´", "``" : RetVal += (Part.Value / 3600.0)
+            End Select
+        Next Part
+        Return RetVal
     End Function
 
     '''<summary>Returns the degree value from the given text.</summary>

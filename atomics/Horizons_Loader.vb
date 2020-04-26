@@ -1,5 +1,6 @@
 ﻿Option Explicit On
 Option Strict On
+Imports AstroCalc.NET.Common
 
 '''<summary>The JPL HORIZONS on-line solar system data and ephemeris computation service provides access to key solar system data and flexible production of highly accurate ephemerides for solar system objects (840636 asteroids, 3598 comets, 210 planetary satellites, 8 planets, the Sun, L1, L2, select spacecraft, and system barycenters).</summary>
 '''<remarks>HORIZONS is provided by the Solar System Dynamics Group of the Jet Propulsion Laboratory.</remarks>
@@ -85,15 +86,7 @@ Class Horizons_Loader
         Next Entry
         Dim RequestURL As String = Join(Formated.ToArray, "&")
 
-        'Net.ServicePointManager.ServerCertificateValidationCallback += ValidateRemoteCertificate()     ' <- not required
-        Net.ServicePointManager.SecurityProtocol = Net.SecurityProtocolType.Tls12
-
-        'Query data from request URL
-        Dim address As New Uri(RequestURL)
-        Dim mWC As New System.Net.WebClient
-        Dim InStream As IO.Stream = mWC.OpenRead(address)
-        Dim InReader As New IO.StreamReader(InStream)
-        Dim Data As String() = InReader.ReadToEnd.Split(Chr(10))
+        Dim Data() As String = LoadData(RequestURL)
 
         'Get data
         Dim InData As Boolean = False
@@ -119,6 +112,22 @@ Class Horizons_Loader
         MsgBox("DONE!")
 
     End Sub
+
+    Private Shared Function LoadData(ByVal RequestURL As String) As String()
+
+        'Net.ServicePointManager.ServerCertificateValidationCallback += ValidateRemoteCertificate()     ' <- not required
+        Net.ServicePointManager.SecurityProtocol = Net.SecurityProtocolType.Tls
+
+        'Query data from request URL
+        Dim address As New Uri(RequestURL)
+        Dim mWC As New System.Net.WebClient
+        Dim InStream As IO.Stream = mWC.OpenRead(address)
+        Dim InReader As New IO.StreamReader(InStream)
+        Dim Data As String() = InReader.ReadToEnd.Split(Chr(10))
+
+        Return Data
+
+    End Function
 
     Private Function ValidateRemoteCertificate(sender As Object, cert As Security.Cryptography.X509Certificates.X509Certificate, chain As System.Security.Cryptography.X509Certificates.X509Chain, Err As Net.Security.SslPolicyErrors) As Boolean
         If Err = System.Net.Security.SslPolicyErrors.None Then Return True
