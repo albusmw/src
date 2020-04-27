@@ -1109,6 +1109,53 @@ Public Class cFITSWriter
 
     End Sub
 
+    '''<summary>Write a FITS test file with raw data containing data to see how row an columns are ordered.</summary>
+    '''<remarks>Does work.</remarks>
+    Public Shared Sub WriteTestFile_UInt16_XYIdent(ByVal FileName As String)
+
+        Dim BitPix As Integer = eBitPix.Int16
+        Dim BaseOut As New System.IO.StreamWriter(FileName)
+        Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
+
+        'Create test data
+        Dim ImageSize_W As Integer = 64
+        Dim ImageSize_H As Integer = 64
+        Dim ImageData(ImageSize_W - 1, ImageSize_H - 1) As UInt16
+        Dim Val As UInt16 = 0
+        For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+            For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                ImageData(Idx2, Idx1) = Val
+                Val += CType(3, UInt16)
+            Next Idx2
+        Next Idx1
+
+        'Load all header elements
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
+        Header.Add(eFITSKeywords.NAXIS, 2)
+        Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.BZERO, 32768)
+        Header.Add(eFITSKeywords.BSCALE, 1)
+
+        'Write header
+        BaseOut.Write(CreateFITSHeader(Header))
+        BaseOut.Flush()
+
+        'Write content
+        For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+            For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                BytesOut.Write(GetBytes_BitPix16(CType(ImageData(Idx2, Idx1) - 32768, Int16)))
+            Next Idx2
+        Next Idx1
+
+        'Finish
+        BytesOut.Flush()
+        BaseOut.Close()
+
+    End Sub
+
     '''<summary>Write a FITS test file with raw data containing a cross in the top-left corner.</summary>
     '''<remarks>Does work.</remarks>
     Public Shared Sub WriteTestFile_UInt16_Cross(ByVal FileName As String)
