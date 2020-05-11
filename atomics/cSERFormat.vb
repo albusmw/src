@@ -150,7 +150,7 @@ Public Class cSERFormat
 
             BinaryOUT.Write(System.Text.Encoding.ASCII.GetBytes("LUCAM-RECORDER"))                  'Header
             BinaryOUT.Write(BitConverter.GetBytes(CType(4660, Int32)))                              'LuID
-            BinaryOUT.Write(BitConverter.GetBytes(CType(8, Int32)))                                 'ColorID
+            BinaryOUT.Write(BitConverter.GetBytes(CType(0, Int32)))                                 'ColorID
             BinaryOUT.Write(BitConverter.GetBytes(CType(0, Int32)))                                 'LittleEndian
             BinaryOUT.Write(BitConverter.GetBytes(CType(Header.FrameWidth, Int32)))                 'ImageWidth
             BinaryOUT.Write(BitConverter.GetBytes(CType(Header.FrameHeight, Int32)))                'ImageHeight
