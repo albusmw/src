@@ -5,7 +5,7 @@ Option Strict On
 '''<remarks>Calculation is done by buidling a vector with all possible entries (only 2^16 length).</remarks>
 Public Class cStatMultiThread_UInt16
 
-    Public Structure sImageData
+    Public Structure sImgData_UInt16
         Public Data(,) As UInt16
         Public ReadOnly Property Length() As Long
             Get
@@ -24,10 +24,8 @@ Public Class cStatMultiThread_UInt16
         End Property
     End Structure
 
-    Private Const OneUInt64 As UInt64 = CType(1, UInt64)
-
     '''<summary>The real image data.</summary>
-    Public ImageData(3) As sImageData
+    Public ImageData(3) As sImgData_UInt16
 
     '''<summary>Object for each thread.</summary>
     Public Class cStateObj
@@ -90,6 +88,7 @@ Public Class cStatMultiThread_UInt16
         Next Idx
 
         'Count one bayer part
+        Const OneUInt64 As UInt64 = CType(1, UInt64)
         For IdxX As Integer = StateObj.XOffset To ImageData(StateObj.NAXIS3).Data.GetUpperBound(0) - 1 + StateObj.XOffset Step 2
             For IdxY As Integer = StateObj.YOffset To ImageData(StateObj.NAXIS3).Data.GetUpperBound(1) - 1 + StateObj.YOffset Step 2
                 HistCount(ImageData(StateObj.NAXIS3).Data(IdxX, IdxY)) += OneUInt64
@@ -275,10 +274,27 @@ End Class
 '''<summary>Class to calculate 2D matrix statistics multi-threaded.</summary>
 Public Class cStatMultiThread_Float32
 
-    Private Const OneUInt64 As UInt64 = CType(1, UInt64)
+    Public Structure sImgData_Float32
+        Public Data(,) As Single
+        Public ReadOnly Property Length() As Long
+            Get
+                If IsNothing(Data) = True Then Return 0 Else Return Data.LongLength
+            End Get
+        End Property
+        Public ReadOnly Property NAXIS1() As Integer
+            Get
+                If IsNothing(Data) = True Then Return 0 Else Return Data.GetUpperBound(0) + 1
+            End Get
+        End Property
+        Public ReadOnly Property NAXIS2() As Integer
+            Get
+                If IsNothing(Data) = True Then Return 0 Else Return Data.GetUpperBound(1) + 1
+            End Get
+        End Property
+    End Structure
 
     '''<summary>The real image data.</summary>
-    Public ImageData(,) As Single
+    Public ImageData(3) As sImgData_Float32
 
     '''<summary>Object for each thread.</summary>
     Public Class cStateObj
@@ -330,14 +346,17 @@ Public Class cStatMultiThread_Float32
     '''<summary>Histogramm calculation itself - the histogram of one bayer channel is calculated.</summary>
     Private Sub HistoCalc(ByVal Arguments As Object)
 
+        'TODO: Correct color processing
+
         Dim StateObj As cStateObj = CType(Arguments, cStateObj)
         StateObj.Done = False
 
         'Count one bayer part
+        Const OneUInt64 As UInt64 = CType(1, UInt64)
         StateObj.HistDataBayer = New Dictionary(Of Single, UInt64)
-        For IdxX As Integer = StateObj.XOffset To ImageData.GetUpperBound(0) - 1 + StateObj.XOffset Step 2
-            For IdxY As Integer = StateObj.YOffset To ImageData.GetUpperBound(1) - 1 + StateObj.YOffset Step 2
-                Dim PixelValue As Single = ImageData(IdxX, IdxY)
+        For IdxX As Integer = StateObj.XOffset To ImageData(0).Data.GetUpperBound(0) - 1 + StateObj.XOffset Step 2
+            For IdxY As Integer = StateObj.YOffset To ImageData(0).Data.GetUpperBound(1) - 1 + StateObj.YOffset Step 2
+                Dim PixelValue As Single = ImageData(0).Data(IdxX, IdxY)
                 If StateObj.HistDataBayer.ContainsKey(PixelValue) = False Then
                     StateObj.HistDataBayer.Add(PixelValue, OneUInt64)
                 Else

@@ -64,9 +64,10 @@ Public Class cFITSHeaderChanger
         Return ("'" & Value & "'").PadRight(20)
     End Function
 
-    Public Shared Function ReadHeader(ByVal File As String) As List(Of cFITSHeaderParser.sHeaderElement)
+    Public Shared Function ReadHeader(ByVal File As String, ByRef DataStartPos As Integer) As List(Of cFITSHeaderParser.sHeaderElement)
 
         Dim RetVal As New List(Of cFITSHeaderParser.sHeaderElement)
+        Dim BytesRead As Integer = 0
 
         If System.IO.File.Exists(File) = True Then
 
@@ -79,6 +80,7 @@ Public Class cFITSHeaderChanger
                 Dim HeaderBytes(HeaderElementLength - 1) As Byte
                 FITS_stream.Read(HeaderBytes, 0, HeaderBytes.Length)
                 Dim SingleLine As String = System.Text.ASCIIEncoding.ASCII.GetString(HeaderBytes)
+                BytesRead += HeaderElementLength
 
                 'Exit on END detected
                 If SingleLine.Trim.StartsWith("END") Then
@@ -105,9 +107,9 @@ Public Class cFITSHeaderChanger
                         Case Else
                             'Try to auto-detect the value
                             If Value.StartsWith("'") And Value.EndsWith("'") Then
-                                HeaderElement.Value = Value.Substring(1, Value.Length - 2)
+                                If Value.Length > 2 Then HeaderElement.Value = Value.Substring(1, Value.Length - 2)
                             Else
-                                Dim ValueAsInt As Integer = Integer.MinValue
+                                    Dim ValueAsInt As Integer = Integer.MinValue
                                 Dim ValueAsDouble As Double = Double.NaN
                                 If Integer.TryParse(Value, ValueAsInt) = True Then
                                     HeaderElement.Value = ValueAsInt
@@ -133,6 +135,7 @@ Public Class cFITSHeaderChanger
 
         End If
 
+        DataStartPos = CInt(Math.Ceiling(BytesRead / HeaderBlockSize) * HeaderBlockSize)
         Return RetVal
 
     End Function

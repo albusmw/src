@@ -10,18 +10,22 @@ Public Class FITSKeyword
         Me.New(String.Empty)
     End Sub
     Public Sub New(ByVal Keyword As String)
-        MyKeyword = Keyword
+        MyKeywords = New List(Of String)({Keyword})
     End Sub
-    Public ReadOnly Property Keyword() As String
+    Public Sub New(ByVal Keywords As String())
+        MyKeywords = New List(Of String)
+        MyKeywords.AddRange(Keywords)
+    End Sub
+    Public ReadOnly Property Keywords() As List(Of String)
         Get
-            Return MyKeyword
+            Return MyKeywords
         End Get
     End Property
-    Private MyKeyword As String = String.Empty
-    '''<summary>The keyword string associated with the given keyword.</summary>
-    Public Shared Function GetKeyword(ByRef Element As eFITSKeywords) As String
+    Private MyKeywords As List(Of String)
+    '''<summary>The keyword string associated with the given keyword(s).</summary>
+    Public Shared Function GetKeyword(ByRef Element As eFITSKeywords) As String()
         Dim attributes As FITSKeyword() = CType(Element.GetType.GetField(Element.ToString).GetCustomAttributes(GetType(FITSKeyword), False), FITSKeyword())
-        If attributes.Length > 0 Then Return attributes(0).Keyword Else Return String.Empty
+        If attributes.Length > 0 Then Return attributes(0).Keywords.ToArray Else Return New String() {}
     End Function
 End Class
 '================================================================================
@@ -58,6 +62,11 @@ End Class
 '''<see cref="https://diffractionlimited.com/help/maximdl/FITS_File_Header_Definitions.htm"/>
 '''<see cref="http://eso-python.github.io/ESOPythonTutorials/FITS-images.html"/>
 Public Enum eFITSKeywords
+
+    '''<summary>Enum value is unknown.</summary>
+    <FITSKeyword("[UNKNOWN")>
+    <FITSComment("")>
+    [UNKNOWN]
 
     '''<summary>The value field shall contain a character string identifying who compiled the information In the data associated With the header. This keyword Is appropriate When the data originate In a published paper Or are compiled from many sources.</summary>
     <FITSKeyword("AUTHOR")>
@@ -169,12 +178,12 @@ Public Enum eFITSKeywords
     [CTYPE3]
 
     '''<summary>The value field shall contain a character string that gives the date on which the observation ended, format 'yyyy-mm-dd', or 'yyyy-mm-ddThh:mm:ss.sss'.</summary>
-    <FITSKeyword("DATE_END")>
+    <FITSKeyword({"DATE_END", "DATE-END"})>
     <FITSComment("")>
     [DATE_END]
 
     '''<summary>The value field shall contain a character string that gives the date on which the observation started, format 'yyyy-mm-dd', or 'yyyy-mm-ddThh:mm:ss.sss'.</summary>
-    <FITSKeyword("DATE_OBS")>
+    <FITSKeyword({"DATE_OBS", "DATE-OBS"})>
     <FITSComment("observation start, UT")>
     [DATE_OBS]
 
@@ -197,6 +206,11 @@ Public Enum eFITSKeywords
     <FITSKeyword("EXPTIME")>
     <FITSComment("Exposure time in seconds")>
     [EXPTIME]
+
+    '''<summary></summary>
+    <FITSKeyword("EXTEND")>
+    <FITSComment("")>
+    [EXTEND]
 
     '''<summary>Equinox of the World Coordinate System (WCS).</summary>
     '''<example>2000.0</example>
@@ -280,7 +294,7 @@ Public Enum eFITSKeywords
     [OBSERVER]
 
     ''''<summary>The value field shall contain a character string which uniquely identifies the dataset contained In the FITS file. This Is typically a sequence number that can contain a mixture Of numerical And character values. Example '10315-01-01-30A'.</summary>
-    <FITSKeyword("OBS_ID")>
+    <FITSKeyword({"OBS_ID", "OBS-ID"})>
     <FITSComment("")>
     [OBS_ID]
 
@@ -351,6 +365,11 @@ Public Enum eFITSKeywords
     <FITSComment("")>
     [SIMPLE]
 
+    '''<summary></summary>
+    <FITSKeyword("SWCREATE")>
+    <FITSComment("")>
+    [SWCREATE]
+
     '''<summary>Clear aperture of the telescope [m].</summary>
     <FITSKeyword("TELAPER")>
     <FITSComment("")>
@@ -405,7 +424,7 @@ End Enum
 
 '''<summary>Class that provides access to the keyword string and the description of the given keyword.</summary>
 Public Class cFITSKey
-    Default Public ReadOnly Property Key(ByVal Element As eFITSKeywords) As String
+    Default Public ReadOnly Property Key(ByVal Element As eFITSKeywords) As String()
         Get
             Return FITSKeyword.GetKeyword(Element)
         End Get
@@ -425,7 +444,7 @@ Public Class cFITSKeywords
         Select Case Keyword
             Case eFITSKeywords.BITPIX, eFITSKeywords.NAXIS, eFITSKeywords.NAXIS1, eFITSKeywords.NAXIS2
                 Return "INTEGER"
-            Case eFITSKeywords.BZERO, eFITSKeywords.BSCALE
+            Case eFITSKeywords.BZERO, eFITSKeywords.BSCALE, eFITSKeywords.FOV1, eFITSKeywords.FOV2
                 Return "DOUBLE"
             Case Else
                 Return String.Empty

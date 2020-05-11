@@ -1003,9 +1003,9 @@ Public Class cFITSWriter
             ValAsString = cFITSKeywords.AsString(Card.Value)
         End If
         If Comment.Length > 0 Then
-            RetVal = (FITSKeyword.GetKeyword(Card.Key).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength) & " / " & Comment).PadRight(HeaderElementLength)
+            RetVal = (FITSKeyword.GetKeyword(Card.Key)(0).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength) & " / " & Comment).PadRight(HeaderElementLength)
         Else
-            RetVal = (FITSKeyword.GetKeyword(Card.Key).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength)).PadRight(HeaderElementLength)
+            RetVal = (FITSKeyword.GetKeyword(Card.Key)(0).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength)).PadRight(HeaderElementLength)
         End If
         If RetVal.Length > HeaderElementLength Then RetVal = RetVal.Substring(0, HeaderElementLength)
         Return RetVal

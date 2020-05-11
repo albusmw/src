@@ -200,11 +200,13 @@ Public Class cFITSHeaderParser
     End Function
 
     '''<summary>Try to translate the string in the enum.</summary>
-    Public Shared Function GetKeywordEnum(ByVal Keyword As String) As eFITSKeywords
+    Public Shared Function GetKeywordEnum(ByVal KeyWordString As String) As eFITSKeywords
         For Each EnumKey As eFITSKeywords In [Enum].GetValues(GetType(eFITSKeywords))
-            If EnumKey.ToString.ToUpper = Keyword.ToUpper.Trim Then Return EnumKey
+            For Each Keyword As String In FITSKeyword.GetKeyword(EnumKey)
+                If Keyword.ToString.ToUpper = KeyWordString.ToUpper.Trim Then Return EnumKey
+            Next Keyword
         Next EnumKey
-        Return Nothing
+            Return Nothing
     End Function
 
 End Class

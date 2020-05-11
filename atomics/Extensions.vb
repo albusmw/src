@@ -164,9 +164,21 @@ Module DirectoryExtension
         Return New List(Of T2)(Dict.Values)
     End Function
 
-    '''<summary>Get a list of all values in the dictionary passed.</summary>
+    '''<summary>Sort the dictionary passed.</summary>
     <Extension()>
     Public Function SortDictionary(Of T1, T2)(ByRef Hist As Dictionary(Of T1, T2)) As Dictionary(Of T1, T2)
+        Return SortDictionary(Hist, False)
+    End Function
+
+    '''<summary>Sort the dictionary passed and invert the order.</summary>
+    <Extension()>
+    Public Function SortDictionaryInverse(Of T1, T2)(ByRef Hist As Dictionary(Of T1, T2)) As Dictionary(Of T1, T2)
+        Return SortDictionary(Hist, True)
+    End Function
+
+    '''<summary>Sort the dictionary passed.</summary>
+    <Extension()>
+    Private Function SortDictionary(Of T1, T2)(ByRef Hist As Dictionary(Of T1, T2), ByVal Reverse As Boolean) As Dictionary(Of T1, T2)
 
         'Generate a list
         Dim KeyList As New List(Of T1)
@@ -175,6 +187,7 @@ Module DirectoryExtension
         Next Entry
         'Sort keys
         KeyList.Sort()
+        If Reverse Then KeyList.Reverse()
         'Re-generate dictionary
         Dim RetVal As New Dictionary(Of T1, T2)
         For Each Entry As T1 In KeyList
@@ -183,5 +196,7 @@ Module DirectoryExtension
         Return RetVal
 
     End Function
+
+
 
 End Module

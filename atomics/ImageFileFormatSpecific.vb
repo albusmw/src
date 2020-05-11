@@ -43,7 +43,7 @@ Public Class ImageFileFormatSpecific
 
     End Sub
 
-    Public Shared Sub SaveTIFF_Format48bppColor(ByVal FileName As String, ByRef Data() As cStatMultiThread_UInt16.sImageData)
+    Public Shared Sub SaveTIFF_Format48bppColor(ByVal FileName As String, ByRef Data() As cStatMultiThread_UInt16.sImgData_UInt16)
 
         'https://bitmiracle.github.io/libtiff.net/help/articles/KB/grayscale-color.html
 

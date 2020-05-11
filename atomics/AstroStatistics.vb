@@ -29,10 +29,11 @@ Namespace AstroNET
         Public Sub ResetAllProcessors()
             For Idx As Integer = 0 To 3
                 DataProcessor_UInt16.ImageData(Idx).Data = {}
+                DataProcessor_Float32.ImageData(Idx).Data = {}
             Next Idx
             DataProcessor_UInt32.ImageData = {{}}
             DataProcessor_Int32.ImageData = {{}}
-            DataProcessor_Float32.ImageData = {{}}
+
         End Sub
 
         Public ReadOnly Property DataMode() As String
@@ -40,7 +41,7 @@ Namespace AstroNET
                 If DataProcessor_UInt16.ImageData(0).Data.LongLength > 0 Then Return GetType(UInt16).Name
                 If DataProcessor_UInt32.ImageData.LongLength > 0 Then Return GetType(UInt32).Name
                 If DataProcessor_Int32.ImageData.LongLength > 0 Then Return GetType(Int32).Name
-                If DataProcessor_Float32.ImageData.LongLength > 0 Then Return GetType(Single).Name
+                If DataProcessor_Float32.ImageData(0).Data.LongLength > 0 Then Return GetType(Single).Name
                 Return Nothing
             End Get
         End Property
@@ -456,7 +457,7 @@ Namespace AstroNET
             RetVal.DifferentADUValues = Histogram.Count
 
             'Init statistics calculation
-            Dim SumSampleCount As UInt64 = 0
+            Dim SamplesSeen As UInt64 = 0
             Dim MeanSum As Double = 0
             Dim MeanPow2Sum As Double = 0
             RetVal.Min = New KeyValuePair(Of Int64, UInt64)(AllADUValues(0), Histogram(AllADUValues(0)))
@@ -464,28 +465,42 @@ Namespace AstroNET
             RetVal.Modus = New KeyValuePair(Of Int64, UInt64)(AllADUValues(0), Histogram(AllADUValues(0)))
             RetVal.HistXDist = New Dictionary(Of Long, UInt64)
 
-            'Init percentile - percentiles are writen in each bin as an incremental processing fails in fast-changing histograms
+            'Move over the histogram for normal statistics
+            RetVal.ADUValues2575 = 0
+            For Each ADUValue As Int64 In AllADUValues
+                Dim ValueCount As UInt64 = Histogram(ADUValue)                                                                              'number of values with thie ADU value
+                SamplesSeen += ValueCount                                                                                                   'total pixel processed up to now
+                Dim WeightCount As Double = (CType(ADUValue, Double) * CType(ValueCount, Double))                                           'ADUValue^2
+                Dim WeightPow2 As Double = (CType(ADUValue, Double) * CType(ADUValue, Double)) * CType(ValueCount, Double)                  'ADUValue^2 * count
+                MeanSum += WeightCount
+                MeanPow2Sum += WeightPow2
+                If ValueCount > RetVal.Modus.Value Then RetVal.Modus = New KeyValuePair(Of Int64, UInt64)(ADUValue, Histogram(ADUValue))    'modus (most "used" ADU value)
+                If SamplesSeen >= RetVal.Samples / 2 And RetVal.Median = Int64.MinValue Then RetVal.Median = ADUValue                       'median value (set once)
+                Dim PctIdx As Integer = CInt(Math.Round(100 * (SamplesSeen / RetVal.Samples)))                                              'percentile index (0...100)
+                If PctIdx >= 25 And PctIdx <= 75 Then RetVal.ADUValues2575 += 1                                                             'number of different ADU counts in percentile range 25..75
+            Next ADUValue
+
+            '--------------------------------------------------------------------------------------------------------------------------------------------
+            'Percentile calculation
+            '--------------------------------------------------------------------------------------------------------------------------------------------
+
+            '1.) Init percentile - percentiles are writen in each bin as an incremental processing fails in fast-changing histograms
             Dim PCTInvalid As Long = Long.MinValue
             For Pct As Integer = 0 To 100
                 RetVal.Percentile.Add(Pct, PCTInvalid)
             Next Pct
 
             'Move over the histogram for percentile and values in 25-75pct range
-            RetVal.ADUValues2575 = 0
+            Dim NextPctIdx As Integer = 1
+            SamplesSeen = 0
             For Each ADUValue As Int64 In AllADUValues
-                Dim ValueCount As UInt64 = Histogram(ADUValue)
-                SumSampleCount += ValueCount
-                Dim WeightCount As Double = (CType(ADUValue, Double) * CType(ValueCount, Double))
-                Dim WeightPow2 As Double = (CType(ADUValue, Double) * CType(ADUValue, Double)) * CType(ValueCount, Double)
-                MeanSum += WeightCount
-                MeanPow2Sum += WeightPow2
-                If ValueCount > RetVal.Modus.Value Then RetVal.Modus = New KeyValuePair(Of Int64, UInt64)(ADUValue, Histogram(ADUValue))
-                If SumSampleCount >= RetVal.Samples / 2 And RetVal.Median = Int64.MinValue Then RetVal.Median = ADUValue
-                Dim PctIdx As Integer = CInt(100 * (SumSampleCount / RetVal.Samples))
-                If RetVal.Percentile(PctIdx) = PCTInvalid Then RetVal.Percentile(PctIdx) = ADUValue
-                If PctIdx >= 25 And PctIdx <= 75 Then RetVal.ADUValues2575 += 1
+                Dim NextPctLimit As UInt64 = CType(NextPctIdx * (RetVal.Samples / 100), UInt64)                                             'calculate in every round not required but makes it easier to understand
+                SamplesSeen += Histogram(ADUValue)
+                If SamplesSeen >= NextPctLimit Then
+                    RetVal.Percentile(NextPctIdx) = ADUValue
+                    NextPctIdx += 1
+                End If
             Next ADUValue
-            RetVal.HistXDist = GetQuantizationHisto(Histogram)
 
             'Set percentiles in bin which to not have a valid entry
             Dim LastValidPct As Long = RetVal.Min.Key
@@ -496,6 +511,9 @@ Namespace AstroNET
                     LastValidPct = RetVal.Percentile(Pct)
                 End If
             Next Pct
+
+            'Calculate the quantizer histogram
+            RetVal.HistXDist = GetQuantizationHisto(Histogram)
 
             'Calculate final outputs
             RetVal.Mean = MeanSum / RetVal.Samples

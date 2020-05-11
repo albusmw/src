@@ -15,9 +15,6 @@ Public Class cFITSReader
     '''<summary>Path to ipps.dll and ippvm.dll - if not set IPP will not be used.</summary>
     Public Shared Property IPPPath As String = String.Empty
 
-    '''<summary>Index where to start reading in the FITS image data.</summary>
-    Public DataStartIdx As Integer = -1
-
     '''<summary>Instance of Intel IPP library call.</summary>
     Private IntelIPP As cIntelIPP = Nothing
 
@@ -88,20 +85,14 @@ Public Class cFITSReader
     '''<param name="PointsToRead">Vector of points to read on - pass an empty vector to read all values and generate a matrix for ImageData.</param>
     Public Sub ReadIn(ByVal FileName As String, ByVal UseBZeroScale As Boolean, ByRef ImageData(,) As Double, ByVal PointsToRead As System.Drawing.Point())
 
-        'TODO: Read-in start offset seems to be incorrect
+        'Read in header and get data start position
         Dim BaseIn As New System.IO.StreamReader(FileName)
-
-        'Read header elements
-        FITSHeaderParser = New cFITSHeaderParser(ReadHeader(BaseIn))
-
-        'Calculate data stream properties
-        Dim StartOffset As Long = BaseIn.BaseStream.Position
-        Dim StreamLength As Long = BaseIn.BaseStream.Length
-        Dim TotalByte As Long = StreamLength - StartOffset
+        Dim DataStartPos As Integer = -1
+        FITSHeaderParser = New cFITSHeaderParser(ReadHeader(BaseIn, DataStartPos))
         BaseIn.Close()
 
         'Read data content
-        ReadDataContent(FileName, ImageData, FITSHeaderParser.BitPix, UseBZeroScale, FITSHeaderParser.Width, FITSHeaderParser.Height, PointsToRead)
+        ReadDataContent(FileName, DataStartPos, ImageData, FITSHeaderParser.BitPix, UseBZeroScale, FITSHeaderParser.Width, FITSHeaderParser.Height, PointsToRead)
 
     End Sub
 
@@ -115,39 +106,31 @@ Public Class cFITSReader
     '''<remarks>Tested and works.</remarks>
     Public Function ReadInUInt8(ByVal FileName As String, ByVal UseIPP As Boolean) As UInt16(,)
 
-        'TODO: Read-in start offset seems to be incorrect
+        'Read in header and get data start position
         Dim BaseIn As New System.IO.StreamReader(FileName)
-
-        'Read header elements
-        FITSHeaderParser = New cFITSHeaderParser(ReadHeader(BaseIn))
-
-        'Calculate data stream properties
-        Dim StartOffset As Long = BaseIn.BaseStream.Position
-        Dim StreamLength As Long = BaseIn.BaseStream.Length
-        Dim TotalByte As Long = StreamLength - StartOffset
+        Dim DataStartPos As Integer = -1
+        FITSHeaderParser = New cFITSHeaderParser(ReadHeader(BaseIn, DataStartPos))
         BaseIn.Close()
 
         'Read data content
-        Return ReadDataContentUInt8(FileName, DataStartIdx, UseIPP)
+        Return ReadDataContentUInt8(FileName, DataStartPos, UseIPP)
 
     End Function
 
     '''<summary>Read FITS data from the passed file - only in case BitPix is 16.</summary>
     Private Function ReadDataContentUInt8(ByVal FileName As String, ByVal StartPosition As Integer, ByVal UseIPP As Boolean) As UInt16(,)
 
-        Dim BytePerPixel As Integer = 1
+        Dim BytePerPixel As Integer = FITSHeaderParser.BytesPerSample
 
         'Delete content and exit if format is wrong
         If FITSHeaderParser.BitPix <> 8 Then Return New UInt16(,) {}
 
         'Open reader and position to start
         Dim DataReader As New System.IO.BinaryReader(System.IO.File.OpenRead(FileName))
-        DataReader.BaseStream.Position = DataStartIdx
+        DataReader.BaseStream.Position = StartPosition
 
         'Read complete block
         Dim ImageData(FITSHeaderParser.Width - 1, FITSHeaderParser.Height - 1) As UInt16
-        DataReader.BaseStream.Position = DataStartIdx
-
         Dim Bytes((FITSHeaderParser.Width * FITSHeaderParser.Height * BytePerPixel) - 1) As Byte
         Bytes = DataReader.ReadBytes(Bytes.Length)
         Dim BytesPtr As Integer = 0
@@ -191,36 +174,37 @@ Public Class cFITSReader
 
     '''<summary>Read FITS data from the passed file.</summary>
     '''<param name="FileName">File name to load FITS data from.</param>
-    '''<param name="NewDataStartIdx">OVerrided data start index (used e.g. to process NAXIS3>1 pictures).</param>
+    '''<param name="DataStartPosToUse">OVerrided data start index (used e.g. to process NAXIS3>1 pictures).</param>
     '''<param name="UseIPP">Use the Intel IPP (if found) for processing.</param>
     '''<param name="XOffset">0-based X start offset - use -1 to ignore.</param>
     '''<param name="XWidth">Width [pixel] to read in.</param>
     '''<param name="YOffset">0-based Y start offset - use -1 to ignore.</param>
     '''<param name="YHeight">Height [pixel] to read in.</param>
     '''<remarks>Tested and works.</remarks>
-    Public Function ReadInUInt16(ByVal FileName As String, ByVal NewDataStartIdx As Integer, ByVal UseIPP As Boolean) As UInt16(,)
-        Return ReadInUInt16(FileName, NewDataStartIdx, UseIPP, -1, -1, -1, -1)
+    Public Function ReadInUInt16(ByVal FileName As String, ByVal DataStartPosToUse As Integer, ByVal UseIPP As Boolean) As UInt16(,)
+        Return ReadInUInt16(FileName, DataStartPosToUse, UseIPP, -1, -1, -1, -1)
     End Function
 
     '''<summary>Read FITS data from the passed file.</summary>
     '''<param name="FileName">File name to load FITS data from.</param>
-    '''<param name="NewDataStartIdx">OVerrided data start index (used e.g. to process NAXIS3>1 pictures).</param>
+    '''<param name="DataStartPosToUse">OVerrided data start index (used e.g. to process NAXIS3>1 pictures).</param>
     '''<param name="UseIPP">Use the Intel IPP (if found) for processing.</param>
     '''<param name="XOffset">0-based X start offset - use -1 to ignore.</param>
     '''<param name="XWidth">Width [pixel] to read in.</param>
     '''<param name="YOffset">0-based Y start offset - use -1 to ignore.</param>
     '''<param name="YHeight">Height [pixel] to read in.</param>
     '''<remarks>Tested and works.</remarks>
-    Public Function ReadInUInt16(ByVal FileName As String, ByVal NewDataStartIdx As Integer, ByVal UseIPP As Boolean, ByVal XOffset As Integer, ByVal XWidth As Integer, ByVal YOffset As Integer, ByVal YHeight As Integer) As UInt16(,)
+    Public Function ReadInUInt16(ByVal FileName As String, ByVal DataStartPosToUse As Integer, ByVal UseIPP As Boolean, ByVal XOffset As Integer, ByVal XWidth As Integer, ByVal YOffset As Integer, ByVal YHeight As Integer) As UInt16(,)
 
-        'Read header elements
+        'Read in header and get data start position
         Dim BaseIn As New System.IO.StreamReader(FileName)
-        FITSHeaderParser = New cFITSHeaderParser(ReadHeader(BaseIn))
+        Dim DataStartPos As Integer = -1
+        FITSHeaderParser = New cFITSHeaderParser(ReadHeader(BaseIn, DataStartPos))
         BaseIn.Close()
 
         'Read data content
-        If NewDataStartIdx > -1 Then DataStartIdx = NewDataStartIdx
-        Return ReadDataContentUInt16(FileName, DataStartIdx, UseIPP, XOffset, XWidth, YOffset, YHeight)
+        If DataStartPosToUse > -1 Then DataStartPos = DataStartPosToUse
+        Return ReadDataContentUInt16(FileName, DataStartPos, UseIPP, XOffset, XWidth, YOffset, YHeight)
 
     End Function
 
@@ -296,25 +280,19 @@ Public Class cFITSReader
     '''<param name="ImageData">Loaded image data processed by BZERO and BSCALE - if PointsToRead is passed, the matrix is 1xN where N is the number of entries in PointsToRead.</param>
     Public Sub ReadIn(ByVal FileName As String, ByRef ImageData(,) As Int32)
 
-        'TODO: Read-in start offset seems to be incorrect
+        'Read in header and get data start position
         Dim BaseIn As New System.IO.StreamReader(FileName)
-
-        'Read header elements
-        FITSHeaderParser = New cFITSHeaderParser(ReadHeader(BaseIn))
-
-        'Calculate data stream properties
-        Dim StartOffset As Long = BaseIn.BaseStream.Position
-        Dim StreamLength As Long = BaseIn.BaseStream.Length
-        Dim TotalByte As Long = StreamLength - StartOffset
+        Dim DataStartPos As Integer = -1
+        FITSHeaderParser = New cFITSHeaderParser(ReadHeader(BaseIn, DataStartPos))
         BaseIn.Close()
 
         'Read data content
-        ReadDataContent(FileName, DataStartIdx, ImageData, FITSHeaderParser.BitPix, FITSHeaderParser.Width, FITSHeaderParser.Height)
+        ReadDataContent(FileName, DataStartPos, ImageData, FITSHeaderParser.BitPix, FITSHeaderParser.Width, FITSHeaderParser.Height)
 
     End Sub
 
     '''<summary>Read FITS data from the passed file - only in case BitPix is 32.</summary>
-    Private Sub ReadDataContent(ByVal FileName As String, ByVal StartPosition As Integer, ByRef ImageData(,) As Int32, ByVal BitPix As Integer, ByVal Width As Integer, ByVal Height As Integer)
+    Private Sub ReadDataContent(ByVal FileName As String, ByVal DataStartPos As Integer, ByRef ImageData(,) As Int32, ByVal BitPix As Integer, ByVal Width As Integer, ByVal Height As Integer)
 
         Dim Stopper As New Stopwatch
         Stopper.Reset() : Stopper.Start()
@@ -325,7 +303,7 @@ Public Class cFITSReader
 
         'Open reader and position to start
         Dim DataReader As New System.IO.BinaryReader(System.IO.File.OpenRead(FileName))
-        DataReader.BaseStream.Position = DataStartIdx
+        DataReader.BaseStream.Position = DataStartPos
 
         'Read all data
         ReDim ImageData(Width - 1, Height - 1)
@@ -351,25 +329,19 @@ Public Class cFITSReader
     '''<param name="UseIPP">Use the Intel IPP (if found) for processing.</param>
     Public Function ReadInInt32(ByVal FileName As String, ByVal UseIPP As Boolean) As Int32(,)
 
-        'TODO: Read-in start offset seems to be incorrect
+        'Read in header and get data start position
         Dim BaseIn As New System.IO.StreamReader(FileName)
-
-        'Read header elements
-        FITSHeaderParser = New cFITSHeaderParser(ReadHeader(BaseIn))
-
-        'Calculate data stream properties
-        Dim StartOffset As Long = BaseIn.BaseStream.Position
-        Dim StreamLength As Long = BaseIn.BaseStream.Length
-        Dim TotalByte As Long = StreamLength - StartOffset
+        Dim DataStartPos As Integer = -1
+        FITSHeaderParser = New cFITSHeaderParser(ReadHeader(BaseIn, DataStartPos))
         BaseIn.Close()
 
         'Read data content
-        Return ReadDataContentInt32(FileName, DataStartIdx, UseIPP)
+        Return ReadDataContentInt32(FileName, DataStartPos, UseIPP)
 
     End Function
 
     '''<summary>Read FITS data from the passed file - only in case BitPix is 32.</summary>
-    Private Function ReadDataContentInt32(ByVal FileName As String, ByVal StartPosition As Integer, ByVal UseIPP As Boolean) As Int32(,)
+    Private Function ReadDataContentInt32(ByVal FileName As String, ByVal DataStartPos As Integer, ByVal UseIPP As Boolean) As Int32(,)
 
         Dim BytePerPixel As Integer = 4
 
@@ -378,12 +350,10 @@ Public Class cFITSReader
 
         'Open reader and position to start
         Dim DataReader As New System.IO.BinaryReader(System.IO.File.OpenRead(FileName))
-        DataReader.BaseStream.Position = DataStartIdx
+        DataReader.BaseStream.Position = DataStartPos
 
         'Read complete block
         Dim ImageData(FITSHeaderParser.Width - 1, FITSHeaderParser.Height - 1) As Int32
-        DataReader.BaseStream.Position = DataStartIdx
-
         Dim Bytes((FITSHeaderParser.Width * FITSHeaderParser.Height * BytePerPixel) - 1) As Byte
         Bytes = DataReader.ReadBytes(Bytes.Length)
         If UseIPP = False Then
@@ -410,30 +380,28 @@ Public Class cFITSReader
 
     End Function
 
+    '================================================================================================================================================================
+    ' Read Float32 data
+    '================================================================================================================================================================
+
     '''<summary>Read FITS data from the passed file.</summary>
     '''<param name="FileName">File name to load FITS data from.</param>
     '''<param name="UseIPP">Use the Intel IPP (if found) for processing.</param>
     Public Function ReadInFloat32(ByVal FileName As String, ByVal UseIPP As Boolean) As Single(,)
 
-        'TODO: Read-in start offset seems to be incorrect
+        'Read in header and get data start position
         Dim BaseIn As New System.IO.StreamReader(FileName)
-
-        'Read header elements
-        FITSHeaderParser = New cFITSHeaderParser(ReadHeader(BaseIn))
-
-        'Calculate data stream properties
-        Dim StartOffset As Long = BaseIn.BaseStream.Position
-        Dim StreamLength As Long = BaseIn.BaseStream.Length
-        Dim TotalByte As Long = StreamLength - StartOffset
+        Dim DataStartPos As Integer = -1
+        FITSHeaderParser = New cFITSHeaderParser(ReadHeader(BaseIn, DataStartPos))
         BaseIn.Close()
 
         'Read data content
-        Return ReadDataContentFloat32(FileName, DataStartIdx, UseIPP)
+        Return ReadDataContentFloat32(FileName, DataStartPos, UseIPP)
 
     End Function
 
     '''<summary>Read FITS data from the passed file - only in case BitPix is 32.</summary>
-    Private Function ReadDataContentFloat32(ByVal FileName As String, ByVal StartPosition As Integer, ByVal UseIPP As Boolean) As Single(,)
+    Private Function ReadDataContentFloat32(ByVal FileName As String, ByVal DataStartPos As Integer, ByVal UseIPP As Boolean) As Single(,)
 
         Dim BytePerPixel As Integer = 4
 
@@ -442,12 +410,10 @@ Public Class cFITSReader
 
         'Open reader and position to start
         Dim DataReader As New System.IO.BinaryReader(System.IO.File.OpenRead(FileName))
-        DataReader.BaseStream.Position = DataStartIdx
+        DataReader.BaseStream.Position = DataStartPos
 
         'Read complete block
         Dim ImageData(FITSHeaderParser.Width - 1, FITSHeaderParser.Height - 1) As Single
-        DataReader.BaseStream.Position = DataStartIdx
-
         Dim Bytes((FITSHeaderParser.Width * FITSHeaderParser.Height * BytePerPixel) - 1) As Byte
         Bytes = DataReader.ReadBytes(Bytes.Length)
         'If UseIPP = False Then
@@ -489,7 +455,7 @@ Public Class cFITSReader
     ' Read any data to an Double matrix
     '================================================================================================================================================================
 
-    Private Sub ReadDataContent(ByVal FileName As String, ByRef ImageData(,) As Double, ByVal BitPix As Integer, ByVal UseBZeroScale As Boolean, ByVal Width As Integer, ByVal Height As Integer, ByVal PointsToRead As System.Drawing.Point())
+    Private Sub ReadDataContent(ByVal FileName As String, ByVal DataStartPos As Integer, ByRef ImageData(,) As Double, ByVal BitPix As Integer, ByVal UseBZeroScale As Boolean, ByVal Width As Integer, ByVal Height As Integer, ByVal PointsToRead As System.Drawing.Point())
 
         'Performance comments:
         ' - Apply BZERO and BSCALE just then reading in - array manipulation access seems to be slow
@@ -502,7 +468,7 @@ Public Class cFITSReader
 
         'Open reader and position to start
         Dim DataReader As New System.IO.BinaryReader(System.IO.File.OpenRead(FileName))
-        DataReader.BaseStream.Position = DataStartIdx
+        DataReader.BaseStream.Position = DataStartPos
 
         'Get number of bytes per value and the converter to be used
         Dim Converter As IByteConverter = Nothing
@@ -584,19 +550,13 @@ Public Class cFITSReader
 
         'TODO: Read-in start offset seems to be incorrect
         Dim BaseIn As New System.IO.StreamReader(FileName)
-
-        'Read header elements
-        Dim HeaderEntries As List(Of cFITSHeaderParser.sHeaderElement) = ReadHeader(BaseIn)
-
-        'Calculate data stream properties
-        Dim StartOffset As Long = BaseIn.BaseStream.Position
-        Dim StreamLength As Long = BaseIn.BaseStream.Length
-        Dim TotalByte As Long = StreamLength - StartOffset
+        Dim DataStartPos As Integer = -1
+        Dim HeaderEntries As List(Of cFITSHeaderParser.sHeaderElement) = ReadHeader(BaseIn, DataStartPos)
         BaseIn.Close()
 
         'Open reader and position to start
         Dim DataReader As New System.IO.BinaryReader(System.IO.File.OpenRead(FileName))
-        DataReader.BaseStream.Position = DataStartIdx
+        DataReader.BaseStream.Position = DataStartPos
 
         'Set image and buffer add data
         Dim PtrStepping As Integer = FITSHeaderParser.BitPix \ 8
@@ -636,12 +596,12 @@ Public Class cFITSReader
     '''<param name="FileName">FITS file to modify.</param>
     '''<param name="PointToWrite">List of points to be modified.</param>
     '''<param name="FixValues">Values to use for modification.</param>
-    Public Sub FixSample(ByVal FileName As String, ByRef PointToWrite As List(Of System.Drawing.Point), ByVal FixValues As Int16())
+    Public Sub FixSample(ByVal FileName As String, ByVal DataStartPos As Integer, ByRef PointToWrite As List(Of System.Drawing.Point), ByVal FixValues As Int16())
         Dim DataWriter As New System.IO.BinaryWriter(System.IO.File.OpenWrite(FileName))
         For Idx As Integer = 0 To PointToWrite.Count - 1
             Dim BytesToWrite As Byte() = BitConverter.GetBytes(FixValues(Idx))
             Dim PixelOffsetPtr As Integer = FITSHeaderParser.BytesPerSample * ((PointToWrite(Idx).Y * FITSHeaderParser.Width) + PointToWrite(Idx).X)
-            DataWriter.Seek(DataStartIdx + PixelOffsetPtr, IO.SeekOrigin.Begin)
+            DataWriter.Seek(DataStartPos + PixelOffsetPtr, IO.SeekOrigin.Begin)
             DataWriter.Write(BytesToWrite(1)) : DataWriter.Write(BytesToWrite(0))
         Next Idx
         DataWriter.Flush()
@@ -653,7 +613,10 @@ Public Class cFITSReader
     '==================================================================================================================
 
     '''<summary>Get a list of all header elements.</summary>
-    Private Function ReadHeader(ByRef BaseIn As System.IO.StreamReader) As List(Of cFITSHeaderParser.sHeaderElement)
+    '''<param name="BaseIn">Stream to read data in from.</param>
+    '''<param name="DataStartPos">0-based index where the data start.</param>
+    '''<returns>List of header elements.</returns>
+    Private Function ReadHeader(ByRef BaseIn As System.IO.StreamReader, ByRef DataStartPos As Integer) As List(Of cFITSHeaderParser.sHeaderElement)
 
         Dim EndReached As Boolean = False
         Dim RetVal As New List(Of cFITSHeaderParser.sHeaderElement)
@@ -685,7 +648,7 @@ Public Class cFITSReader
             Loop Until EndReached = True
         Loop Until EndReached = True
 
-        DataStartIdx = BlocksRead * HeaderBlockSize
+        DataStartPos = BlocksRead * HeaderBlockSize
         Return RetVal
 
     End Function

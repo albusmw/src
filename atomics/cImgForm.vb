@@ -45,7 +45,7 @@ Public Class cImgForm
             Dim BaseOffset As Integer = YOffset
             For X As Integer = 0 To OutputImage.Width - 1
                 Dim DispVal As Integer = CInt((Data(X, Y) - MinData) * (255 / (MaxData - MinData)))
-                Dim Coloring As Drawing.Color = cColorMaps.Bone(DispVal)
+                Dim Coloring As Drawing.Color = cColorMaps.Jet(DispVal)
                 OutputImage.Pixels(BaseOffset) = Coloring.R
                 OutputImage.Pixels(BaseOffset + 1) = Coloring.G
                 OutputImage.Pixels(BaseOffset + 2) = Coloring.B
