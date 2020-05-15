@@ -529,6 +529,50 @@ Partial Public Class cIntelIPP
 #End Region
 
     '________________________________________________________________________________
+    'IPP search
+    '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+
+    Public Shared Function PossiblePaths(ByVal MyPath As String) As List(Of String)
+        Dim RetVal As New List(Of String)
+        RetVal.Add(System.IO.Path.Combine(MyPath, "ipp"))
+        RetVal.Add(System.IO.Path.Combine(MyPath, "..\ipp"))
+        RetVal.Add("C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2020.0.166\windows\redist\intel64_win\ipp")
+        RetVal.Add("C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2019.5.281\windows\redist\intel64\ipp")
+        RetVal.Add("C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2019.1.144\windows\redist\intel64_win\ipp\")
+        Return RetVal
+    End Function
+
+    '''<summary>Try to get an instance to the latest available Intel IPP DLL.</summary>
+    Public Shared Function SearchDLLToUse(ByVal Paths As String(), ByVal LoadError As String) As String
+        Dim TestInstance As cIntelIPP = Nothing
+        Try
+            For Each IPPRoot As String In Paths
+                If System.IO.Directory.Exists(IPPRoot) = True Then
+                    Try
+                        TestInstance = New cIntelIPP(IPPRoot)
+                        If TestInstance.DLLHandleValid = True Then
+                            LoadError = String.Empty
+                            Return IPPRoot
+                        End If
+                    Catch ex As Exception
+                        MsgBox("IPP <" & IPPRoot & "> not found!")
+                    End Try
+                End If
+            Next IPPRoot
+            If IsNothing(TestInstance) = True Then
+                LoadError = "IPP not initiated!"
+            Else
+                If TestInstance.DLLHandleValid = False Then
+                    LoadError = "IPP not found!"
+                End If
+            End If
+        Catch ex As Exception
+            LoadError = "Generic error on loading IPP: <" & ex.Message & ">"
+        End Try
+        Return String.Empty
+    End Function
+
+    '________________________________________________________________________________
     'Zero
     '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
 
@@ -752,6 +796,16 @@ Partial Public Class cIntelIPP
     '________________________________________________________________________________
     'MinMax
     '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+
+    Public Function MinMax(ByRef Array(,) As UInt32, ByRef Minimum As UInt32, ByRef Maximum As UInt32) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsMinMax_32u", GetType(CallSignature.IntPtr_Integer_IntPtr_IntPtr))
+        Using Pinner As New cPinHandler
+            Dim TempVal1(0) As UInt32 : Dim TempVal2(0) As UInt32
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(TempVal1), Pinner.Pin(TempVal2)), IppStatus)
+            Minimum = TempVal1(0) : Maximum = TempVal2(0)
+        End Using : Return RetVal
+    End Function
 
     Public Function MinMax(ByRef Array() As Single, ByRef Minimum As Single, ByRef Maximum As Single) As IppStatus
         Dim RetVal As IppStatus = IppStatus.NoErr

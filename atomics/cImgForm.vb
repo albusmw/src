@@ -57,4 +57,31 @@ Public Class cImgForm
         Image.Image = OutputImage.BitmapToProcess
     End Sub
 
+    '''<summary>Update the content of the focus window.</summary>
+    '''<param name="Form">Focus window.</param>
+    '''<param name="Data">Data to display.</param>
+    '''<param name="MaxData">Maximum in the data in order to normalize correct.</param>
+    Public Sub ShowData(ByRef Data(,) As UInt32, ByVal MinData As Long, ByVal MaxData As Long)
+        Dim OutputImage As New cLockBitmap(Data.GetUpperBound(0), Data.GetUpperBound(1))
+        If MaxData = 0 Then MaxData = 1
+        OutputImage.LockBits()
+        Dim Stride As Integer = OutputImage.BitmapData.Stride
+        Dim BytePerPixel As Integer = OutputImage.ColorBytesPerPixel
+        Dim YOffset As Integer = 0
+        For Y As Integer = 0 To OutputImage.Height - 1
+            Dim BaseOffset As Integer = YOffset
+            For X As Integer = 0 To OutputImage.Width - 1
+                Dim DispVal As Integer = CInt((Data(X, Y) - MinData) * (255 / (MaxData - MinData)))
+                Dim Coloring As Drawing.Color = cColorMaps.Jet(DispVal)
+                OutputImage.Pixels(BaseOffset) = Coloring.R
+                OutputImage.Pixels(BaseOffset + 1) = Coloring.G
+                OutputImage.Pixels(BaseOffset + 2) = Coloring.B
+                BaseOffset += BytePerPixel
+            Next X
+            YOffset += Stride
+        Next Y
+        OutputImage.UnlockBits()
+        Image.Image = OutputImage.BitmapToProcess
+    End Sub
+
 End Class

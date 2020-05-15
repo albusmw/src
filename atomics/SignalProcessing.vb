@@ -5,6 +5,27 @@ Option Strict On
 Public Class SignalProcessing
 
     '''<summary>Polynomial regression calculation.</summary>
+    Public Shared Sub RegressPoly(ByRef XY As Dictionary(Of Double, Double), ByVal Order As Integer, ByRef Polynom As Double())
+
+        Dim MomentMatrix As Double(,) = {}
+        Dim RightSide As Double() = {}
+
+        'We only add non-NaN points
+        Dim X As New List(Of Double)
+        Dim Y As New List(Of Double)
+        For Each Entry As Double In XY.Keys
+            If Double.IsNaN(Entry) = False And Double.IsNaN(XY(Entry)) = False Then
+                X.Add(Entry) : Y.Add(XY(Entry))
+            End If
+        Next Entry
+
+        'Run regresion
+        CalcFittingMatrix(X.ToArray, Y.ToArray, Order, MomentMatrix, RightSide)
+        Polynom = MatrixSolve(MomentMatrix, RightSide)
+
+    End Sub
+
+    '''<summary>Polynomial regression calculation.</summary>
     Public Shared Sub RegressPoly(ByRef X As Double(), ByRef Y As Double(), ByVal Order As Integer, ByRef Polynom As Double())
 
         Dim MomentMatrix As Double(,) = {}

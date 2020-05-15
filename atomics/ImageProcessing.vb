@@ -129,7 +129,6 @@ Public Class ImageProcessing
     ' VIGNETTE
     '=========================================================================================================================
 
-
     ''' <summary>Calculate the intensity over the distance from the center of the image - no fixed resolution.</summary>
     ''' <param name="FITSSumImage">Image to run calculation on.</param>
     ''' <returns>Dictionary of center distance vs mean value.</returns>
@@ -143,8 +142,7 @@ Public Class ImageProcessing
         'Calculate the maximum distance possible from the center in X, Y and R direction
         Dim MaxDistX As Double = Double.NaN
         Dim MaxDistY As Double = Double.NaN
-        Dim MaxDistance As Double = Double.NaN
-        GetDistances(FITSSumImage, MaxDistX, MaxDistY, MaxDistance)
+        Dim MaxDistance As Double = GetMaxDistances(FITSSumImage, MaxDistX, MaxDistY)
 
         'Move over the complete image and sum
         Dim GroupDeltaX As Integer = 1 : Dim DistXIdx As Integer = 1
@@ -199,8 +197,7 @@ Public Class ImageProcessing
         'Calculate the maximum distance possible from the center in X, Y and R direction
         Dim MaxDistX As Double = Double.NaN
         Dim MaxDistY As Double = Double.NaN
-        Dim MaxDistance As Double = Double.NaN
-        GetDistances(FITSSumImage, MaxDistX, MaxDistY, MaxDistance)
+        Dim MaxDistance As Double = GetMaxDistances(FITSSumImage, MaxDistX, MaxDistY)
 
         'Move over the complete image and sum
         Dim GroupDeltaX As Integer = 1 : Dim DistXIdx As Integer = 1
@@ -245,8 +242,7 @@ Public Class ImageProcessing
         'Calculate the maximum distance possible from the center in X, Y and R direction
         Dim MaxDistX As Double = Double.NaN
         Dim MaxDistY As Double = Double.NaN
-        Dim MaxDistance As Double = Double.NaN
-        GetDistances(FITSSumImage, MaxDistX, MaxDistY, MaxDistance)
+        Dim MaxDistance As Double = GetMaxDistances(FITSSumImage, MaxDistX, MaxDistY)
 
         'Move over the complete image and sum
         Dim GroupDeltaX As Integer = 1 : Dim DistXIdx As Integer = 1
@@ -301,8 +297,7 @@ Public Class ImageProcessing
         'Calculate the maximum distance possible from the center in X, Y and R direction
         Dim MaxDistX As Double = Double.NaN
         Dim MaxDistY As Double = Double.NaN
-        Dim MaxDistance As Double = Double.NaN
-        GetDistances(FITSSumImage, MaxDistX, MaxDistY, MaxDistance)
+        Dim MaxDistance As Double = GetMaxDistances(FITSSumImage, MaxDistX, MaxDistY)
 
         'Move over the complete image and sum
         Dim GroupDeltaX As Integer = 1 : Dim DistXIdx As Integer = 1
@@ -340,8 +335,7 @@ Public Class ImageProcessing
         'Calculate the maximum distance possible from the center in X, Y and R direction
         Dim MaxDistX As Double = Double.NaN
         Dim MaxDistY As Double = Double.NaN
-        Dim MaxDistance As Double = Double.NaN
-        GetDistances(FITSSumImage, MaxDistX, MaxDistY, MaxDistance)
+        Dim MaxDistance As Double = GetMaxDistances(FITSSumImage, MaxDistX, MaxDistY)
         Dim Steps As Integer = VignetteCorrection.Count - 1
 
         Dim GroupDeltaX As Integer = 1 : Dim DistX As Integer = 1
@@ -353,11 +347,14 @@ Public Class ImageProcessing
                 Dim DistanceBinIdx As Integer = CInt(Steps * (CenterDistance / MaxDistance))                                                                'Index of the bin to use for correction
                 Dim DistanceDicKey As Double = (DistanceBinIdx / Steps) * MaxDistance
 
-                Dim Correction As Double = 1 / VignetteCorrection(DistanceDicKey)
-                FITSSumImage(DeltaX, DeltaY) = CType(FITSSumImage(DeltaX, DeltaY) * Correction, UInt16)                                                             'right down
-                FITSSumImage(DeltaX, DeltaY - GroupDeltaY) = CType(FITSSumImage(DeltaX, DeltaY - GroupDeltaY) * Correction, UInt16)                                 'right up
-                FITSSumImage(DeltaX - GroupDeltaX, DeltaY) = CType(FITSSumImage(DeltaX - GroupDeltaX, DeltaY) * Correction, UInt16)                                 'left down
-                FITSSumImage(DeltaX - GroupDeltaX, DeltaY - GroupDeltaY) = CType(FITSSumImage(DeltaX - GroupDeltaX, DeltaY - GroupDeltaY) * Correction, UInt16)     'left up
+                If VignetteCorrection.ContainsKey(DistanceDicKey) Then
+                    Dim Correction As Double = 1 / VignetteCorrection(DistanceDicKey)
+                    FITSSumImage(DeltaX, DeltaY) = CType(FITSSumImage(DeltaX, DeltaY) * Correction, UInt16)                                                             'right down
+                    FITSSumImage(DeltaX, DeltaY - GroupDeltaY) = CType(FITSSumImage(DeltaX, DeltaY - GroupDeltaY) * Correction, UInt16)                                 'right up
+                    FITSSumImage(DeltaX - GroupDeltaX, DeltaY) = CType(FITSSumImage(DeltaX - GroupDeltaX, DeltaY) * Correction, UInt16)                                 'left down
+                    FITSSumImage(DeltaX - GroupDeltaX, DeltaY - GroupDeltaY) = CType(FITSSumImage(DeltaX - GroupDeltaX, DeltaY - GroupDeltaY) * Correction, UInt16)     'left up
+                End If
+
                 GroupDeltaY += 2 : DistY += 1
             Next DeltaY
             GroupDeltaX += 2 : DistX += 1
@@ -370,8 +367,8 @@ Public Class ImageProcessing
         'Calculate the maximum distance possible from the center in X, Y and R direction
         Dim MaxDistX As Double = Double.NaN
         Dim MaxDistY As Double = Double.NaN
-        Dim MaxDistance As Double = Double.NaN
-        GetDistances(FITSSumImage, MaxDistX, MaxDistY, MaxDistance)
+        Dim MaxDistance As Double = GetMaxDistances(FITSSumImage, MaxDistX, MaxDistY)
+
         Dim Steps As Integer = VignetteCorrection.Count - 1
 
         Dim GroupDeltaX As Integer = 1 : Dim DistX As Integer = 1
@@ -394,12 +391,38 @@ Public Class ImageProcessing
         Next DeltaX
     End Sub
 
-
-    Private Shared Sub GetDistances(Of T)(ByRef FITSImage(,) As T, ByRef MaxDistX As Double, ByRef MaxDistY As Double, ByRef MaxDistance As Double)
-        'Calculate the maximum distance possible from the center in X, Y and R direction
+    '''<summary>Calculate the maximum distance possible from the center in X, Y and R direction.</summary>
+    Private Shared Function GetMaxDistances(Of T)(ByRef FITSImage(,) As T, ByRef MaxDistX As Double, ByRef MaxDistY As Double) As Double
         MaxDistX = ((FITSImage.GetUpperBound(0) \ 2) + 0.5)
         MaxDistY = ((FITSImage.GetUpperBound(1) \ 2) + 0.5)
-        MaxDistance = Math.Sqrt((MaxDistX * MaxDistX) + (MaxDistY * MaxDistY))
-    End Sub
+        Return Math.Sqrt((MaxDistX * MaxDistX) + (MaxDistY * MaxDistY))
+    End Function
+
+    '=========================================================================================================================
+    ' BINNING
+    '=========================================================================================================================
+
+    '''<summary>Run a software binning.</summary>
+    Public Shared Function Binning(ByRef Data(,) As UInt16, ByVal Factor As Integer) As UInt32(,)
+        Dim NewWidth As Integer = CInt(Math.Floor((Data.GetUpperBound(0) + 1) / Factor))
+        Dim NewHeight As Integer = CInt(Math.Floor((Data.GetUpperBound(1) + 1) / Factor))
+        Dim RetVal(NewWidth - 1, NewHeight - 1) As UInt32
+        Dim DataXPtr As Integer = 0
+        For X As Integer = 0 To RetVal.GetUpperBound(0)
+            Dim DataYPtr As Integer = 0
+            For Y As Integer = 0 To RetVal.GetUpperBound(1)
+                Dim NewPixel As UInt32 = 0
+                For BinX As Integer = 0 To Factor - 1
+                    For BinY As Integer = 0 To Factor - 1
+                        NewPixel += Data(DataXPtr + BinX, DataYPtr + BinY)
+                    Next BinY
+                Next BinX
+                RetVal(X, Y) = NewPixel
+                DataYPtr += Factor
+            Next Y
+            DataXPtr += Factor
+        Next X
+        Return RetVal
+    End Function
 
 End Class

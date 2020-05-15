@@ -11,6 +11,8 @@ Public Class cStopper
     Public Property PadMessage As Integer = 30
     Public Property PadTime As Integer = 11
 
+    Private MyProc As Process = Process.GetCurrentProcess
+
     '''<summary>Constructor.</summary>
     Public Sub New()
         Watch.Reset() : Watch.Start()
@@ -49,9 +51,17 @@ Public Class cStopper
 
     '''<summary>Log the timing and restart the watch again.</summary>
     Public Function [Stamp](ByVal Text As String) As String
+        Return Stamp(Text, False)
+    End Function
+
+    '''<summary>Log the timing and restart the watch again.</summary>
+    '''<param name="Text">Text to add to stamp.</param>
+    '''<param name="LogMemory">Log memory usage (SLOW!!!!!).</param>
+    Public Function [Stamp](ByVal Text As String, ByVal LogMemory As Boolean) As String
         Watch.Stop()
-        Dim Message As String = Text.PadRight(PadMessage) & " : " & Watch.ElapsedMilliseconds.ValRegIndep.PadLeft(PadTime) & " ms - memory: " & Format(Process.GetCurrentProcess.PrivateMemorySize64 / 1048576, "0.0") & " MByte"
-        TimeLog.Add(Message)
+        Dim Message As String = Text.PadRight(PadMessage) & " : " & Watch.ElapsedMilliseconds.ValRegIndep.PadLeft(PadTime) & " ms"
+        If LogMemory = True Then Message &= "- memory: " & Format(Process.GetCurrentProcess.PrivateMemorySize64 / 1048576, "0.0") & " MByte"
+        TimeLog.Add(Format(Now, "HH.mm.ss:fff") & "|" & Message)
         MessageCache = String.Empty
         Watch.Reset()
         Watch.Start()
