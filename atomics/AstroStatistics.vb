@@ -149,6 +149,13 @@ Namespace AstroNET
             '''<summary>Statistics for each channel.</summary>
             Public MonoStatistics_Float32 As sSingleChannelStatistics_Float32
 
+            Public Function BayerHistograms_Int_Present(ByVal Idx0 As Integer, ByVal Idx1 As Integer, ByVal Key As ADUFixed) As Boolean
+                If IsNothing(BayerHistograms_Int) = True Then Return False
+                If IsNothing(BayerHistograms_Int(Idx0, Idx1)) = True Then Return False
+                If BayerHistograms_Int(Idx0, Idx1).ContainsKey(Key) = False Then Return False
+                Return True
+            End Function
+
             '''<summary>Which data are present in the statistics.</summary>
             Public ReadOnly Property DataMode() As eDataMode
                 Get
@@ -165,6 +172,8 @@ Namespace AstroNET
                         Return StatisticsReport_Float32(String.Empty)
                     Case eDataMode.Fixed
                         Return StatisticsReport_Int(String.Empty)
+                    Case Else
+                        Return New List(Of String)
                 End Select
             End Function
 
@@ -207,6 +216,25 @@ Namespace AstroNET
                 Next Idx1
                 Return RetVal
             End Function
+
+            '''<summary>Returns the number of values that are above the given value.</summary>
+            Public Function BayerHistograms_Int_ValuesAbove(ByVal Idx0 As Integer, ByVal Idx1 As Integer, ByVal X As ADUFixed) As ADUCount
+                Dim RetVal As ADUCount = 0
+                For Each Key As ADUFixed In BayerHistograms_Int(Idx0, Idx1).Keys
+                    If Key > X Then RetVAl += BayerHistograms_Int(Idx0, Idx1)(Key)
+                Next Key
+                Return RetVAl
+            End Function
+
+            '''<summary>Returns the number of values that are above the given value.</summary>
+            Public Function MonochromHistogram_Int_ValuesAbove(ByVal X As ADUFixed) As ADUCount
+                Dim RetVal As ADUCount = 0
+                For Each Key As ADUFixed In MonochromHistogram_Int.Keys
+                    If Key > X Then RetVal += MonochromHistogram_Int(Key)
+                Next Key
+                Return RetVal
+            End Function
+
 
         End Structure
 
@@ -469,12 +497,7 @@ Namespace AstroNET
                         'Combine with StatB data
                         If IsNothing(CombinedStatistics.BayerHistograms_Int) = False Then
                             For Each PixelValue As ADUFixed In CombinedStatistics.BayerHistograms_Int(BayIdx1, BayIdx2).Keys
-                                Dim HistoCount As ADUCount = CombinedStatistics.BayerHistograms_Int(BayIdx1, BayIdx2)(PixelValue)
-                                If RetVal.BayerHistograms_Int(BayIdx1, BayIdx2).ContainsKey(PixelValue) = False Then
-                                    RetVal.BayerHistograms_Int(BayIdx1, BayIdx2).Add(PixelValue, HistoCount)
-                                Else
-                                    RetVal.BayerHistograms_Int(BayIdx1, BayIdx2)(PixelValue) += HistoCount
-                                End If
+                                RetVal.BayerHistograms_Int(BayIdx1, BayIdx2).AddTo(PixelValue, CombinedStatistics.BayerHistograms_Int(BayIdx1, BayIdx2)(PixelValue))
                             Next PixelValue
                         End If
                         RetVal.BayerHistograms_Int(BayIdx1, BayIdx2) = RetVal.BayerHistograms_Int(BayIdx1, BayIdx2).SortDictionary
@@ -671,11 +694,7 @@ Namespace AstroNET
             For Each HistoX As ADUFixed In Histo.KeyList
                 If LastHistX <> ADUFixed.MaxValue Then
                     Dim Distance As Long = CType(HistoX - LastHistX, Long)
-                    If RetVal.ContainsKey(Distance) = False Then
-                        RetVal.Add(Distance, 1)
-                    Else
-                        RetVal(Distance) = RetVal(Distance) + UInt64_1
-                    End If
+                    RetVal.AddTo(Distance, UInt64_1)
                 End If
                 LastHistX = HistoX
             Next HistoX
@@ -690,11 +709,7 @@ Namespace AstroNET
             For Each HistoX As Single In Histo.KeyList
                 If Single.IsNaN(LastHistX) = False Then
                     Dim Distance As Single = HistoX - LastHistX
-                    If RetVal.ContainsKey(Distance) = False Then
-                        RetVal.Add(Distance, 1)
-                    Else
-                        RetVal(Distance) = CUInt(RetVal(Distance) + 1)
-                    End If
+                    RetVal.AddTo(Distance, 1)
                 End If
                 LastHistX = HistoX
             Next HistoX
@@ -708,11 +723,7 @@ Namespace AstroNET
                 For Idx2 As Integer = 0 To BayerHistData.GetUpperBound(1)
                     If IsNothing(BayerHistData(Idx1, Idx2)) = False Then
                         For Each KeyIdx As T In BayerHistData(Idx1, Idx2).Keys
-                            If RetVal.ContainsKey(KeyIdx) = False Then
-                                RetVal.Add(KeyIdx, BayerHistData(Idx1, Idx2)(KeyIdx))
-                            Else
-                                RetVal(KeyIdx) += BayerHistData(Idx1, Idx2)(KeyIdx)
-                            End If
+                            RetVal.AddTo(KeyIdx, BayerHistData(Idx1, Idx2)(KeyIdx))
                         Next KeyIdx
                     End If
                 Next Idx2

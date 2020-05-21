@@ -110,8 +110,8 @@ Public Class cFITSHeaderParser
                 Case eFITSKeywords.NAXIS1 : MyProps.Width = CInt(Card.Value)
                 Case eFITSKeywords.NAXIS2 : MyProps.Height = CInt(Card.Value)
                 Case eFITSKeywords.NAXIS3 : MyProps.NAXIS3 = CInt(Card.Value)
-                Case eFITSKeywords.BZERO : MyProps.BZERO = CDbl(Card.Value)
-                Case eFITSKeywords.BSCALE : MyProps.BSCALE = CDbl(Card.Value)
+                Case eFITSKeywords.BZERO : MyProps.BZERO = Val(Card.Value)
+                Case eFITSKeywords.BSCALE : MyProps.BSCALE = Val(Card.Value)
             End Select
         Next Card
     End Sub
@@ -160,11 +160,7 @@ Public Class cFITSHeaderParser
         Dim RetVal As New Dictionary(Of eFITSKeywords, Object)
         For Each Entry As cFITSHeaderParser.sHeaderElement In AllCards
             Dim Keyword As eFITSKeywords = Entry.Keyword
-            If RetVal.ContainsKey(Keyword) = False Then
-                RetVal.Add(Keyword, Entry.Value)          'entry is new -> add
-            Else
-                RetVal(Keyword) = Entry.Value             'entry already exists -> update
-            End If
+            RetVal(Keyword) = Entry.Value
         Next Entry
         Return RetVal
     End Function
@@ -175,11 +171,7 @@ Public Class cFITSHeaderParser
         Dim RetVal As New Dictionary(Of eFITSKeywords, Object)
         For Each Card As cFITSHeaderParser.sHeaderElement In CardsToProcess
             Dim Keyword As eFITSKeywords = Card.Keyword
-            If RetVal.ContainsKey(Keyword) = False Then
-                RetVal.Add(Keyword, Card.Value)          'entry is new -> add
-            Else
-                RetVal(Keyword) = Card.Value             'entry already exists -> update
-            End If
+            RetVal(Keyword) = Card.Value
         Next Card
         Return RetVal
     End Function
@@ -190,11 +182,7 @@ Public Class cFITSHeaderParser
         Dim RetVal As New Dictionary(Of eFITSKeywords, Object)
         For Each Entry As cFITSHeaderParser.sHeaderElement In AllCards
             Dim Keyword As eFITSKeywords = Entry.Keyword
-            If RetVal.ContainsKey(Keyword) = False Then
-                RetVal.Add(Keyword, Entry.Value)
-            Else
-                RetVal(Keyword) = Entry.Value
-            End If
+            RetVal(Keyword) = Entry.Value
         Next Entry
         Return RetVal
     End Function

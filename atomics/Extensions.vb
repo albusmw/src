@@ -151,6 +151,30 @@ End Module
 
 Module DirectoryExtension
 
+    '''<summary>Add the given value to the element or create a new element with this value.</summary>
+    <Extension()>
+    Public Sub AddTo(Of T1)(ByRef Dict As Dictionary(Of T1, UInt64), ByVal NewKey As T1, ByVal NewValue As UInt64)
+        If IsNothing(Dict) = False Then
+            If Dict.ContainsKey(NewKey) = False Then
+                Dict.Add(NewKey, NewValue)
+            Else
+                Dict(NewKey) = Dict(NewKey) + NewValue
+            End If
+        End If
+    End Sub
+
+    '''<summary>Add the given value to the element or create a new element with this value.</summary>
+    <Extension()>
+    Public Sub AddTo(Of T1)(ByRef Dict As Dictionary(Of T1, UInt32), ByVal NewKey As T1, ByVal NewValue As UInt32)
+        If IsNothing(Dict) = False Then
+            If Dict.ContainsKey(NewKey) = False Then
+                Dict.Add(NewKey, NewValue)
+            Else
+                Dict(NewKey) = Dict(NewKey) + NewValue
+            End If
+        End If
+    End Sub
+
     '''<summary>Get a list of all keys in the dictionary passed.</summary>
     <Extension()>
     Public Function KeyList(Of T1, T2)(ByRef Dict As Dictionary(Of T1, T2)) As List(Of T1)
@@ -197,6 +221,16 @@ Module DirectoryExtension
 
     End Function
 
+End Module
 
+Module ListExtensions
+
+    '''<summary>Add the passed new element if it does not already exist.</summary>
+    <Extension()>
+    Public Sub AddNew(Of T1)(ByRef L As List(Of T1), ByVal NewElement As T1)
+        If IsNothing(L) = False Then
+            If L.Contains(NewElement) = False Then L.Add(NewElement)
+        End If
+    End Sub
 
 End Module

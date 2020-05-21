@@ -155,9 +155,10 @@ Public Class cFITSReader
     '''<summary>Read FITS data from the passed file.</summary>
     '''<param name="FileName">File name to load FITS data from.</param>
     '''<param name="UseIPP">Use the Intel IPP (if found) for processing.</param>
+    '''<param name="ForceDirect">Force a direct read-in without applying BZERO and BSCALE.</param>
     '''<remarks>Tested and works.</remarks>
-    Public Function ReadInUInt16(ByVal FileName As String, ByVal UseIPP As Boolean) As UInt16(,)
-        Return ReadInUInt16(FileName, UseIPP, -1, -1, -1, -1)
+    Public Function ReadInUInt16(ByVal FileName As String, ByVal UseIPP As Boolean, ByVal ForceDirect As Boolean) As UInt16(,)
+        Return ReadInUInt16(FileName, UseIPP, -1, -1, -1, -1, ForceDirect)
     End Function
 
     '''<summary>Read FITS data from the passed file.</summary>
@@ -168,21 +169,8 @@ Public Class cFITSReader
     '''<param name="YOffset">0-based Y start offset - use -1 to ignore.</param>
     '''<param name="YHeight">Height [pixel] to read in.</param>
     '''<remarks>Tested and works.</remarks>
-    Public Function ReadInUInt16(ByVal FileName As String, ByVal UseIPP As Boolean, ByVal XOffset As Integer, ByVal XWidth As Integer, ByVal YOffset As Integer, ByVal YHeight As Integer) As UInt16(,)
-        Return ReadInUInt16(FileName, -1, UseIPP, XOffset, XWidth, YOffset, YHeight)
-    End Function
-
-    '''<summary>Read FITS data from the passed file.</summary>
-    '''<param name="FileName">File name to load FITS data from.</param>
-    '''<param name="DataStartPosToUse">OVerrided data start index (used e.g. to process NAXIS3>1 pictures).</param>
-    '''<param name="UseIPP">Use the Intel IPP (if found) for processing.</param>
-    '''<param name="XOffset">0-based X start offset - use -1 to ignore.</param>
-    '''<param name="XWidth">Width [pixel] to read in.</param>
-    '''<param name="YOffset">0-based Y start offset - use -1 to ignore.</param>
-    '''<param name="YHeight">Height [pixel] to read in.</param>
-    '''<remarks>Tested and works.</remarks>
-    Public Function ReadInUInt16(ByVal FileName As String, ByVal DataStartPosToUse As Integer, ByVal UseIPP As Boolean) As UInt16(,)
-        Return ReadInUInt16(FileName, DataStartPosToUse, UseIPP, -1, -1, -1, -1)
+    Public Function ReadInUInt16(ByVal FileName As String, ByVal UseIPP As Boolean, ByVal XOffset As Integer, ByVal XWidth As Integer, ByVal YOffset As Integer, ByVal YHeight As Integer, ByVal ForceDirect As Boolean) As UInt16(,)
+        Return ReadInUInt16(FileName, -1, UseIPP, XOffset, XWidth, YOffset, YHeight, ForceDirect)
     End Function
 
     '''<summary>Read FITS data from the passed file.</summary>
@@ -194,7 +182,20 @@ Public Class cFITSReader
     '''<param name="YOffset">0-based Y start offset - use -1 to ignore.</param>
     '''<param name="YHeight">Height [pixel] to read in.</param>
     '''<remarks>Tested and works.</remarks>
-    Public Function ReadInUInt16(ByVal FileName As String, ByVal DataStartPosToUse As Integer, ByVal UseIPP As Boolean, ByVal XOffset As Integer, ByVal XWidth As Integer, ByVal YOffset As Integer, ByVal YHeight As Integer) As UInt16(,)
+    Public Function ReadInUInt16(ByVal FileName As String, ByVal DataStartPosToUse As Integer, ByVal UseIPP As Boolean, ByVal ForceDirect As Boolean) As UInt16(,)
+        Return ReadInUInt16(FileName, DataStartPosToUse, UseIPP, -1, -1, -1, -1, ForceDirect)
+    End Function
+
+    '''<summary>Read FITS data from the passed file.</summary>
+    '''<param name="FileName">File name to load FITS data from.</param>
+    '''<param name="DataStartPosToUse">OVerrided data start index (used e.g. to process NAXIS3>1 pictures).</param>
+    '''<param name="UseIPP">Use the Intel IPP (if found) for processing.</param>
+    '''<param name="XOffset">0-based X start offset - use -1 to ignore.</param>
+    '''<param name="XWidth">Width [pixel] to read in.</param>
+    '''<param name="YOffset">0-based Y start offset - use -1 to ignore.</param>
+    '''<param name="YHeight">Height [pixel] to read in.</param>
+    '''<remarks>Tested and works.</remarks>
+    Public Function ReadInUInt16(ByVal FileName As String, ByVal DataStartPosToUse As Integer, ByVal UseIPP As Boolean, ByVal XOffset As Integer, ByVal XWidth As Integer, ByVal YOffset As Integer, ByVal YHeight As Integer, ByVal ForceDirect As Boolean) As UInt16(,)
 
         'Read in header and get data start position
         Dim BaseIn As New System.IO.StreamReader(FileName)
@@ -204,7 +205,7 @@ Public Class cFITSReader
 
         'Read data content
         If DataStartPosToUse > -1 Then DataStartPos = DataStartPosToUse
-        Return ReadDataContentUInt16(FileName, DataStartPos, UseIPP, XOffset, XWidth, YOffset, YHeight)
+        Return ReadDataContentUInt16(FileName, DataStartPos, UseIPP, XOffset, XWidth, YOffset, YHeight, ForceDirect)
 
     End Function
 
@@ -215,7 +216,7 @@ Public Class cFITSReader
     '''<param name="XWidth">Width [pixel] to read in.</param>
     '''<param name="YOffset">0-based Y start offset - use -1 to ignore.</param>
     '''<param name="YHeight">Height [pixel] to read in.</param>
-    Public Function ReadDataContentUInt16(ByVal FileName As String, ByVal DataStartPosition As Integer, ByVal UseIPP As Boolean, ByVal XOffset As Integer, ByVal XWidth As Integer, ByVal YOffset As Integer, ByVal YHeight As Integer) As UInt16(,)
+    Public Function ReadDataContentUInt16(ByVal FileName As String, ByVal DataStartPosition As Integer, ByVal UseIPP As Boolean, ByVal XOffset As Integer, ByVal XWidth As Integer, ByVal YOffset As Integer, ByVal YHeight As Integer, ByVal ForceDirect As Boolean) As UInt16(,)
 
         Dim BytePerPixel As Integer = 2
 
@@ -240,14 +241,24 @@ Public Class cFITSReader
             For H As Integer = 0 To ImageData.GetUpperBound(1)
                 Dim PixelOffset As Integer = (((YOffset + H) * FITSHeaderParser.Width) + XOffset)
                 DataReader.BaseStream.Position = DataStartPosition + (BytePerPixel * PixelOffset)
-                    Dim Part() As Byte = DataReader.ReadBytes((ImageData.GetUpperBound(0) + 1) * BytePerPixel)
-                    Part.CopyTo(Bytes, BytesPtr)
+                Dim Part() As Byte = DataReader.ReadBytes((ImageData.GetUpperBound(0) + 1) * BytePerPixel)
+                Part.CopyTo(Bytes, BytesPtr)
                 BytesPtr += Part.Length
             Next H
         End If
 
+        Dim DirectConvert As Boolean = True                 'convert "as-is" without scale, ... - just by the IPP
+        If UseIPP = False Then DirectConvert = False
+        If FITSHeaderParser.BZERO <> 32768 Or FITSHeaderParser.BSCALE <> 1 Then DirectConvert = False
+        If ForceDirect = True Then DirectConvert = True
 
-        If UseIPP = False Or FITSHeaderParser.BZERO <> 32768 Or FITSHeaderParser.BSCALE <> 1 Then
+        If DirectConvert Then
+            'IPP implementation
+            Dim IPPStatus As New List(Of cIntelIPP.IppStatus)
+            IPPStatus.Add(IntelIPP.Transpose(Bytes, ImageData))
+            IPPStatus.Add(IntelIPP.SwapBytes(ImageData))
+            IPPStatus.Add(IntelIPP.XorC(ImageData, &H8000))
+        Else
             'VB implementation
             Dim BytesPtr As Integer = 0
             For H As Integer = 0 To ImageData.GetUpperBound(1)
@@ -256,12 +267,6 @@ Public Class cFITSReader
                     BytesPtr += BytePerPixel
                 Next W
             Next H
-        Else
-            'IPP implementation
-            Dim IPPStatus As New List(Of cIntelIPP.IppStatus)
-            IPPStatus.Add(IntelIPP.Transpose(Bytes, ImageData))
-            IPPStatus.Add(IntelIPP.SwapBytes(ImageData))
-            IPPStatus.Add(IntelIPP.XorC(ImageData, &H8000))
         End If
 
         'Close data stream

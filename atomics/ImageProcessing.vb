@@ -114,11 +114,7 @@ Public Class ImageProcessing
                 LastEntry = Entry : FirstOne = False
             Else
                 Dim Diff As Int32 = Entry - LastEntry
-                If DiffHisto.ContainsKey(Diff) = False Then
-                    DiffHisto.Add(Diff, 1)
-                Else
-                    DiffHisto(Diff) += OneMore
-                End If
+                DiffHisto.AddTo(Diff, OneMore)
                 LastEntry = Entry
             End If
         Next Entry
@@ -152,13 +148,8 @@ Public Class ImageProcessing
                 SampleSum += FITSSumImage(CursorX, CursorY - GroupDeltaY)                       'right up
                 SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY)                       'left down
                 SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY - GroupDeltaY)         'left up
-                If BinSum.ContainsKey(CenterDistance) = False Then
-                    BinSum.Add(CenterDistance, SampleSum)
-                    BinCount.Add(CenterDistance, 4)
-                Else
-                    BinSum(CenterDistance) += SampleSum
-                    BinCount(CenterDistance) += UInt4
-                End If
+                BinSum.AddTo(CenterDistance, SampleSum)
+                BinCount.AddTo(CenterDistance, UInt4)
                 GroupDeltaY += 2 : DistYIdx += 1 : DistY = (DistYIdx - 0.5) * (DistYIdx - 0.5)
             Next CursorY
             GroupDeltaX += 2 : DistXIdx += 1 : DistX = (DistXIdx - 0.5) * (DistXIdx - 0.5)
@@ -202,13 +193,8 @@ Public Class ImageProcessing
                 SampleSum += FITSSumImage(CursorX, CursorY - GroupDeltaY)                       'right up
                 SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY)                       'left down
                 SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY - GroupDeltaY)         'left up
-                If BinSum.ContainsKey(CenterDistance) = False Then
-                    BinSum.Add(CenterDistance, SampleSum)
-                    BinCount.Add(CenterDistance, 4)
-                Else
-                    BinSum(CenterDistance) += SampleSum
-                    BinCount(CenterDistance) += UInt4
-                End If
+                BinSum.AddTo(CenterDistance, SampleSum)
+                BinCount.AddTo(CenterDistance, UInt4)
                 GroupDeltaY += 2 : DistYIdx += 1 : DistY = (DistYIdx - 0.5) * (DistYIdx - 0.5)
             Next CursorY
             GroupDeltaX += 2 : DistXIdx += 1 : DistX = (DistXIdx - 0.5) * (DistXIdx - 0.5)
@@ -246,13 +232,8 @@ Public Class ImageProcessing
                 SampleSum += FITSSumImage(CursorX, CursorY - GroupDeltaY)                       'right up
                 SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY)                       'left down
                 SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY - GroupDeltaY)         'left up
-                If BinSum.ContainsKey(CenterDistance) = False Then
-                    BinSum.Add(CenterDistance, SampleSum)
-                    BinCount.Add(CenterDistance, 4)
-                Else
-                    BinSum(CenterDistance) += SampleSum
-                    BinCount(CenterDistance) += UInt4
-                End If
+                BinSum.AddTo(CenterDistance, SampleSum)
+                BinCount.AddTo(CenterDistance, UInt4)
                 GroupDeltaY += 2 : DistYIdx += 1 : DistY = (DistYIdx - 0.5) * (DistYIdx - 0.5)
             Next CursorY
             GroupDeltaX += 2 : DistXIdx += 1 : DistX = (DistXIdx - 0.5) * (DistXIdx - 0.5)
@@ -296,8 +277,8 @@ Public Class ImageProcessing
                 SampleSum += FITSSumImage(CursorX, CursorY - GroupDeltaY)                       'right up
                 SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY)                       'left down
                 SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY - GroupDeltaY)         'left up
-                BinSum(CenterDistance) += SampleSum
-                BinCount(CenterDistance) += UInt4
+                BinSum.AddTo(CenterDistance, SampleSum)
+                BinCount.AddTo(CenterDistance, UInt4)
                 GroupDeltaY += 2 : DistYIdx += 1 : DistY = (DistYIdx - 0.5) * (DistYIdx - 0.5)
             Next CursorY
             GroupDeltaX += 2 : DistXIdx += 1 : DistX = (DistXIdx - 0.5) * (DistXIdx - 0.5)

@@ -194,12 +194,7 @@ Public Class cStatMultiThread_UInt32
         StateObj.HistDataBayer = New Dictionary(Of ADUFixed, ADUCount)
         For IdxX As Integer = StateObj.XOffset To ImageData(StateObj.NAXIS3).Data.GetUpperBound(0) - 1 + StateObj.XOffset Step 2
             For IdxY As Integer = StateObj.YOffset To ImageData(StateObj.NAXIS3).Data.GetUpperBound(1) - 1 + StateObj.YOffset Step 2
-                Dim PixelValue As UInt32 = ImageData(StateObj.NAXIS3).Data(IdxX, IdxY)
-                If StateObj.HistDataBayer.ContainsKey(PixelValue) = False Then
-                    StateObj.HistDataBayer.Add(PixelValue, cStatMultiThread.OneUInt64)
-                Else
-                    StateObj.HistDataBayer(PixelValue) += cStatMultiThread.OneUInt64
-                End If
+                StateObj.HistDataBayer.AddTo(ImageData(StateObj.NAXIS3).Data(IdxX, IdxY), cStatMultiThread.OneUInt64)
             Next IdxY
         Next IdxX
 

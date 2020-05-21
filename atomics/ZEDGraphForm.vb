@@ -13,6 +13,8 @@ Public Class cZEDGraphForm
     '''<summary>The ZED graph service (from file ZEDGraphService.vb).</summary>
     Public Plotter As cZEDGraphService = Nothing
 
+    Public Event PointValueHandler(ByVal Curve As String, ByVal X As Double, ByVal Y As Double)
+
     '''<summary>Prepare.</summary>
     Public Sub Init()
         If IsNothing(Hoster) = True Then Hoster = New System.Windows.Forms.Form
@@ -21,8 +23,16 @@ Public Class cZEDGraphForm
             Hoster.Controls.Add(zgcMain)
             zgcMain.Dock = Windows.Forms.DockStyle.Fill
             Plotter = New cZEDGraphService(zgcMain)
+            zgcMain.IsShowPointValues = True
         End If
+        AddHandler zgcMain.PointValueEvent, AddressOf HandleMove
     End Sub
+
+    '''<summary>Event forward for point move event.</summary>
+    Private Function HandleMove(sender As ZedGraph.ZedGraphControl, pane As ZedGraph.GraphPane, curve As ZedGraph.CurveItem, iPt As Integer) As String
+        RaiseEvent PointValueHandler(curve.Label.Text, curve.Points(iPt).X, curve.Points(iPt).Y)
+        Return curve.Label.Text & ": " & curve.Points(iPt).X.ValRegIndep & " x " & curve.Points(iPt).Y.ValRegIndep
+    End Function
 
     Private Function GetGraphControl() As ZedGraph.ZedGraphControl
         Hoster.Show()
