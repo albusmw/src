@@ -166,52 +166,56 @@ Namespace AstroNET
             End Property
 
             '''<summary>Report of all statistics properties of the structure.</summary>
-            Public Function StatisticsReport() As List(Of String)
+            Public Function StatisticsReport(ByVal ChannelNames As List(Of String)) As List(Of String)
                 Select Case DataMode
                     Case eDataMode.Float
-                        Return StatisticsReport_Float32(String.Empty)
+                        Return StatisticsReport_Float32(ChannelNames, String.Empty)
                     Case eDataMode.Fixed
-                        Return StatisticsReport_Int(String.Empty)
+                        Return StatisticsReport_Int(ChannelNames, String.Empty)
                     Case Else
                         Return New List(Of String)
                 End Select
             End Function
 
             '''<summary>Report of all statistics properties of the structure.</summary>
-            Public Function StatisticsReport_Int(ByVal Indent As String) As List(Of String)
+            Public Function StatisticsReport_Int(ByVal ChannelNames As List(Of String), ByVal Indent As String) As List(Of String)
                 Dim RetVal As New List(Of String)
                 RetVal.Add(Indent & "Property".PadRight(sSingleChannelStatistics_Int.ReportHeaderLength) & ": " & "Mono".PadRight(sSingleChannelStatistics_Int.ReportValueLength) & "|")
                 For Each Entry As String In MonoStatistics_Int.StatisticsReport
                     RetVal.Add(Indent & "  " & Entry & "|")
                 Next Entry
+                Dim ChannelIdx As Integer = 0
                 For Idx1 As Integer = 0 To BayerStatistics_Int.GetUpperBound(0)
                     For Idx2 As Integer = 0 To BayerStatistics_Int.GetUpperBound(1)
-                        RetVal(0) &= ("Bay[" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "]").PadRight(sSingleChannelStatistics_Int.ReportValueLength) & "|"
+                        RetVal(0) &= (ChannelNames(ChannelIdx) & "[" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "]").PadRight(sSingleChannelStatistics_Int.ReportValueLength) & "|"
                         Dim LineIdx As Integer = 1
                         For Each Entry As String In BayerStatistics_Int(Idx1, Idx2).StatisticsReport
                             RetVal(LineIdx) &= Entry.Substring(sSingleChannelStatistics_Int.ReportHeaderLength) & "|"
                             LineIdx += 1
                         Next Entry
+                        ChannelIdx += 1
                     Next Idx2
                 Next Idx1
                 Return RetVal
             End Function
 
             '''<summary>Report of all statistics properties of the structure.</summary>
-            Public Function StatisticsReport_Float32(ByVal Indent As String) As List(Of String)
+            Public Function StatisticsReport_Float32(ByVal ChannelNames As List(Of String), ByVal Indent As String) As List(Of String)
                 Dim RetVal As New List(Of String)
                 RetVal.Add(Indent & "Property".PadRight(sSingleChannelStatistics_Float32.ReportHeaderLength) & ": " & "Mono".PadRight(sSingleChannelStatistics_Float32.ReportValueLength) & "|")
                 For Each Entry As String In MonoStatistics_Float32.StatisticsReport
                     RetVal.Add(Indent & "  " & Entry & "|")
                 Next Entry
+                Dim ChannelIdx As Integer = 0
                 For Idx1 As Integer = 0 To BayerStatistics_Float32.GetUpperBound(0)
                     For Idx2 As Integer = 0 To BayerStatistics_Float32.GetUpperBound(1)
-                        RetVal(0) &= ("Bay[" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "]").PadRight(sSingleChannelStatistics_Float32.ReportValueLength) & "|"
+                        RetVal(0) &= (ChannelNames(ChannelIdx) & "[" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "]").PadRight(sSingleChannelStatistics_Float32.ReportValueLength) & "|"
                         Dim LineIdx As Integer = 1
                         For Each Entry As String In BayerStatistics_Float32(Idx1, Idx2).StatisticsReport
                             RetVal(LineIdx) &= Entry.Substring(sSingleChannelStatistics_Float32.ReportHeaderLength) & "|"
                             LineIdx += 1
                         Next Entry
+                        ChannelIdx += 1
                     Next Idx2
                 Next Idx1
                 Return RetVal

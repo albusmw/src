@@ -37,6 +37,7 @@ Public Class cImgForm
     Public Sub ShowData(ByRef Data(,) As UInt16, ByVal MinData As Long, ByVal MaxData As Long)
         Dim OutputImage As New cLockBitmap(Data.GetUpperBound(0), Data.GetUpperBound(1))
         If MaxData = 0 Then MaxData = 1
+        If MaxData = MinData Then Exit Sub
         OutputImage.LockBits()
         Dim Stride As Integer = OutputImage.BitmapData.Stride
         Dim BytePerPixel As Integer = OutputImage.ColorBytesPerPixel

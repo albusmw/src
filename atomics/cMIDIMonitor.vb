@@ -1,9 +1,6 @@
 ﻿Option Explicit On
 Option Strict On
 
-Imports System.Threading
-Imports System.Runtime.InteropServices
-
 '''<summary>Class to handle events from MIDI controlers.</summary>
 '''<see cref="http://www.codeproject.com/Articles/814885/MIDI-monitor-written-in-Visual-Basic"/>
 Public Class cMIDIMonitor
@@ -41,7 +38,7 @@ Public Class cMIDIMonitor
         ''' <summary>Version number of the device driver for the MIDI input device. The high-order byte is the major version number, and the low-order byte is the minor version number.</summary>
         Public vDriverVersion As Integer
         ''' <summary>Product name in a null-terminated string.</summary>
-        <MarshalAs(UnmanagedType.ByValTStr, SizeConst:=32)> Dim szPname As String
+        <System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst:=32)> Dim szPname As String
         ''' <summary>Reserved; must be zero.</summary>
         Public dwSupport As Integer
     End Structure
@@ -93,6 +90,7 @@ Public Class cMIDIMonitor
 
     Private MinChannelValue As Integer = 0
     Private MaxChannelValue As Integer = 127
+    Private MidChannelValue As Integer = 64
 
     '''<summary>Generic controler messages.</summary>
     Public Event NewMessage(ByVal Message As String)
@@ -213,7 +211,7 @@ Public Class cMIDIMonitor
                     'React on "press"
                     Dim CurrentData As Integer = -1
                     If DecodedData = -1 Then
-                        CurrentData = 64
+                        CurrentData = MidChannelValue
                     Else
                         'Realize an "endless rotaty"
                         Dim Increment As Integer = CurrentChannelValues(Channel) - LastChannelValues(Channel)
@@ -257,8 +255,10 @@ Public Class cMIDIMonitor
     End Sub
 
     Public Function SelectMidiDevice(ByVal DeviceID As Integer) As Boolean
-        If midiInOpen(hMidiIn, DeviceID, ptrCallback, 0, CALLBACK_FUNCTION Or MIDI_IO_STATUS) <> MMSYSERR.NOERROR Then Return False
-        If midiInStart(hMidiIn) <> MMSYSERR.NOERROR Then Return False
+        Dim OpenErr As MMSYSERR = midiInOpen(hMidiIn, DeviceID, ptrCallback, 0, CALLBACK_FUNCTION Or MIDI_IO_STATUS)
+        If OpenErr <> MMSYSERR.NOERROR Then Return False
+        Dim StartErr As MMSYSERR = midiInStart(hMidiIn)
+        If StartErr <> MMSYSERR.NOERROR Then Return False
         MonitorActive = True
         Return True
     End Function
