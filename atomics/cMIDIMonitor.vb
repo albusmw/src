@@ -1,11 +1,54 @@
 ﻿Option Explicit On
 Option Strict On
+Imports System.Dynamic
 
 '''<summary>Class to handle events from MIDI controlers.</summary>
 '''<see cref="http://www.codeproject.com/Articles/814885/MIDI-monitor-written-in-Visual-Basic"/>
 Public Class cMIDIMonitor
 
-    Public Enum MMSYSERR As Integer
+    Const DLLName As String = "winmm.dll"
+    Const DLLCharSet As Runtime.InteropServices.CharSet = Runtime.InteropServices.CharSet.Auto
+
+    Private hMidiIn As IntPtr
+    Private AsyncOpHandler As ComponentModel.AsyncOperation
+
+    '''<summary>Generic controler messages.</summary>
+    Public Event Message(ByVal Message As String)
+    Private Sub MessageRaiser(ByVal Message As Object)
+        RaiseEvent Message(CType(Message, String))
+    End Sub
+
+    '''<summary>New data from the controls.</summary>
+    Public Event Data(ByVal Channel As Integer, ByVal Value As Integer)
+    Private Sub DataRaiser(ByVal Data As Object)
+        RaiseEvent Data(CType(CType(Data, Object())(0), Integer), CType(CType(Data, Object())(1), Integer))
+    End Sub
+
+    '''<summary>New data from the controls.</summary>
+    Public Event Increment(ByVal Channel As Integer, ByVal Delta As Integer)
+    Private Sub IncrementRaiser(ByVal Data As Object)
+        RaiseEvent Increment(CType(CType(Data, Object())(0), Integer), CType(CType(Data, Object())(1), Integer))
+    End Sub
+
+    '''<summary>Verbose data for logging.</summary>
+    Public Event VerbLog(ByVal Text As String)
+    Private Sub VerbLogRaiser(ByVal Text As Object)
+        RaiseEvent VerbLog(CType(Text, String))
+    End Sub
+
+    Dim MonitorActive As Boolean = False
+
+    Private CurrentChannelValues As New Dictionary(Of Integer, Integer)
+    Private LastChannelValues As New Dictionary(Of Integer, Integer)
+    Private LastOutputData As New Dictionary(Of Integer, Integer)
+
+    '''<summary>Minimum channel value that is send by the MIDI device.</summary>
+    Private MinChannelValue As Integer = 0
+    '''<summary>Maximum channel value that is send by the MIDI device.</summary>
+    Private MaxChannelValue As Integer = 127
+    Private MidChannelValue As Integer = 64
+
+    Public Enum MMRESULT As Integer
         NOERROR = 0
         [ERROR]
         BADDEVICEID
@@ -46,7 +89,9 @@ Public Class cMIDIMonitor
     ''' <summary>The midiInGetNumDevs function retrieves the number of MIDI input devices in the system.</summary>
     ''' <returns>Returns the number of MIDI input devices present in the system. A return value of zero means that there are no devices (not that there is no error).</returns>
     ''' <see cref="https://docs.microsoft.com/en-us/windows/win32/api/mmeapi/nf-mmeapi-midiingetnumdevs"/>
-    Public Declare Function midiInGetNumDevs Lib "winmm.dll" () As Integer
+    <Runtime.InteropServices.DllImport(DLLName, SetLastError:=True, CharSet:=DLLCharSet)>
+    Public Shared Function midiInGetNumDevs() As UInt32
+    End Function
 
     ''' <summary>The midiInGetDevCaps function determines the capabilities of a specified MIDI input device.</summary>
     ''' <param name="uDeviceID">Identifier of the MIDI input device. The device identifier varies from zero to one less than the number of devices present. This parameter can also be a properly cast device handle.</param>
@@ -54,7 +99,9 @@ Public Class cMIDIMonitor
     ''' <param name="cbmic">Size, in bytes, of the MIDIINCAPS structure. Only cbMidiInCaps bytes (or less) of information is copied to the location pointed to by lpMidiInCaps. If cbMidiInCaps is zero, nothing is copied, and the function returns MMSYSERR_NOERROR.</param>
     ''' <returns>Returns MMSYSERR_NOERROR if successful or an error otherwise.</returns>
     ''' <see cref="https://docs.microsoft.com/en-us/windows/win32/api/mmeapi/nf-mmeapi-midiingetdevcaps"/>
-    Public Declare Function midiInGetDevCaps Lib "winmm.dll" Alias "midiInGetDevCapsA" (ByVal uDeviceID As Integer, ByRef lpCaps As MIDIINCAPS, ByVal cbmic As Integer) As MMSYSERR
+    <Runtime.InteropServices.DllImport(DLLName, SetLastError:=True, CharSet:=DLLCharSet)>
+    Public Shared Function midiInGetDevCaps(ByVal uDeviceID As UInt32, ByRef lpCaps As MIDIINCAPS, ByVal cbmic As UInt32) As MMRESULT
+    End Function
 
     ''' <summary>The midiInOpen function opens a specified MIDI input device.</summary>
     ''' <param name="phmi">Pointer to an HMIDIIN handle. This location is filled with a handle identifying the opened MIDI input device. The handle is used to identify the device in calls to other MIDI input functions.</param>
@@ -64,40 +111,50 @@ Public Class cMIDIMonitor
     ''' <param name="fdwOpen">Callback flag for opening the device and, optionally, a status flag that helps regulate rapid data transfers.</param>
     ''' <returns>Returns MMSYSERR_NOERROR if successful or an error otherwise.</returns>
     ''' <see cref="https://docs.microsoft.com/en-us/windows/win32/api/mmeapi/nf-mmeapi-midiinopen"/>
-    Public Declare Function midiInOpen Lib "winmm.dll" (ByRef phmi As Integer, ByVal uDeviceID As Integer, ByVal dwCallback As MidiInCallback, ByVal dwInstance As Integer, ByVal fdwOpen As Integer) As MMSYSERR
+    <Runtime.InteropServices.DllImport(DLLName, SetLastError:=True, CharSet:=DLLCharSet)>
+    Public Shared Function midiInOpen(ByRef phmi As IntPtr, ByVal uDeviceID As UInt32, ByVal dwCallback As MidiInCallback, ByVal dwInstance As Integer, ByVal fdwOpen As Integer) As MMRESULT
+    End Function
 
     ''' <summary>The midiInStart function starts MIDI input on the specified MIDI input device.</summary>
     ''' <param name="hmi">Handle to the MIDI input device.</param>
     ''' <returns>Returns MMSYSERR_NOERROR if successful or an error otherwise.</returns>
     ''' <see cref="https://docs.microsoft.com/en-us/windows/win32/api/mmeapi/nf-mmeapi-midiinstart"/>
-    Public Declare Function midiInStart Lib "winmm.dll" (ByVal hmi As Integer) As MMSYSERR
-    Public Declare Function midiInStop Lib "winmm.dll" (ByVal hMidiIn As Integer) As Integer
-    Public Declare Function midiInReset Lib "winmm.dll" (ByVal hMidiIn As Integer) As Integer
-    Public Declare Function midiInClose Lib "winmm.dll" (ByVal hMidiIn As Integer) As Integer
+    <Runtime.InteropServices.DllImport(DLLName, SetLastError:=True, CharSet:=DLLCharSet)>
+    Public Shared Function midiInStart(ByVal hmi As IntPtr) As MMRESULT
+    End Function
+
+    ''' <summary>The midiInStop function stops MIDI input on the specified MIDI input device.</summary>
+    ''' <param name="hmi">Handle to the MIDI input device.</param>
+    ''' <returns>Returns MMSYSERR_NOERROR if successful or an error otherwise.</returns>
+    ''' <see cref="https://docs.microsoft.com/en-us/windows/win32/api/mmeapi/nf-mmeapi-midiinstop"/>
+    <Runtime.InteropServices.DllImport(DLLName, SetLastError:=True, CharSet:=DLLCharSet)>
+    Public Shared Function midiInStop(ByVal hmi As IntPtr) As MMRESULT
+    End Function
+
+    ''' <summary>The midiInReset function stops input on a given MIDI input device.</summary>
+    ''' <param name="hmi">Handle to the MIDI input device.</param>
+    ''' <returns>Returns MMSYSERR_NOERROR if successful or an error otherwise.</returns>
+    ''' <see cref="https://docs.microsoft.com/en-us/windows/win32/api/mmeapi/nf-mmeapi-midiinreset"/>
+    <Runtime.InteropServices.DllImport(DLLName, SetLastError:=True, CharSet:=DLLCharSet)>
+    Public Shared Function midiInReset(ByVal hMidiIn As IntPtr) As MMRESULT
+    End Function
+
+    ''' <summary>The midiInClose function closes the specified MIDI input device.</summary>
+    ''' <param name="hmi">Handle to the MIDI input device.</param>
+    ''' <returns>Returns MMSYSERR_NOERROR if successful or an error otherwise.</returns>
+    ''' <see cref="https://docs.microsoft.com/en-us/windows/win32/api/mmeapi/nf-mmeapi-midiinclose"/>
+    <Runtime.InteropServices.DllImport(DLLName, SetLastError:=True, CharSet:=DLLCharSet)>
+    Public Shared Function midiInClose(ByVal hMidiIn As IntPtr) As MMRESULT
+
+    End Function
 
     Public Delegate Function MidiInCallback(ByVal hMidiIn As Integer, ByVal wMsg As UInteger, ByVal dwInstance As Integer, ByVal dwParam1 As UInt32, ByVal dwParam2 As Integer) As Integer
     Public ptrCallback As New MidiInCallback(AddressOf MidiInProc)
     Public Const CALLBACK_FUNCTION As Integer = &H30000
     Public Const MIDI_IO_STATUS = &H20
 
-    Public Delegate Sub DisplayDataDelegate(ByVal dwParam1 As UInt32)
 
-    Private hMidiIn As Integer
 
-    Private CurrentChannelValues As New Dictionary(Of Integer, Integer)
-    Private LastChannelValues As New Dictionary(Of Integer, Integer)
-    Private LastOutputData As New Dictionary(Of Integer, Integer)
-
-    Private MinChannelValue As Integer = 0
-    Private MaxChannelValue As Integer = 127
-    Private MidChannelValue As Integer = 64
-
-    '''<summary>Generic controler messages.</summary>
-    Public Event NewMessage(ByVal Message As String)
-    '''<summary>New data from the controls.</summary>
-    Public Event NewData(ByVal Channel As Integer, ByVal Value As Integer)
-    '''<summary>Verbose data for logging.</summary>
-    Public Event VerboseLog(ByVal Text As String)
 
     '''<summary>Number of found MIDI devices.</summary>
     Public ReadOnly Property MIDIDeviceCount As Integer
@@ -118,32 +175,22 @@ Public Class cMIDIMonitor
     Public Sub New()
 
         'Exit on no available devices
-        If midiInGetNumDevs() = 0 Then Exit Sub
+        Dim NumDevs As UInt32 = midiInGetNumDevs()
+        If NumDevs = 0 Then
+            Exit Sub
+        Else
+            'Iterate over all devices
+            ReDim MyMIDIDevices(CInt(NumDevs) - 1)
+            For DevCnt As UInt32 = 0 To CUInt(NumDevs - 1)
+                Dim InCaps As New MIDIINCAPS
+                midiInGetDevCaps(DevCnt, InCaps, CUInt(Len(InCaps)))
+                MyMIDIDevices(CInt(DevCnt)) = InCaps.szPname.Trim
+            Next DevCnt
+        End If
 
-        'Iterate over all devices
-        ReDim MyMIDIDevices(midiInGetNumDevs - 1)
-        For DevCnt As Integer = 0 To midiInGetNumDevs - 1
-            Dim InCaps As New MIDIINCAPS
-            midiInGetDevCaps(DevCnt, InCaps, Len(InCaps))
-            MyMIDIDevices(DevCnt) = InCaps.szPname.Trim
-        Next DevCnt
+        AsyncOpHandler = ComponentModel.AsyncOperationManager.CreateOperation(Nothing)
 
     End Sub
-
-    Dim StatusByte As Byte
-    Dim DataByte1 As Byte
-    Dim DataByte2 As Byte
-    Dim MonitorActive As Boolean = False
-
-    Public Property HideMidiSysMessages() As Boolean
-        Get
-            Return MyHideMidiSysMessages
-        End Get
-        Set(value As Boolean)
-            MyHideMidiSysMessages = value
-        End Set
-    End Property
-    Dim MyHideMidiSysMessages As Boolean = False
 
     Function MidiInProc(ByVal hMidiIn As Integer, ByVal wMsg As UInteger, ByVal dwInstance As Integer, ByVal dwParam1 As UInt32, ByVal dwParam2 As Integer) As Integer
 
@@ -151,7 +198,7 @@ Public Class cMIDIMonitor
 
             'Get the hex message
             Dim Message As String = Hex(dwParam1).PadLeft(6, CChar("0")) & Hex(dwParam2).PadLeft(6, CChar("0"))
-            RaiseEvent VerboseLog(Message)
+            AsyncOpHandler.Post(New Threading.SendOrPostCallback(AddressOf VerbLogRaiser), CType(Message, Object))
 
             If MyMIDIDevices(0) = "Arturia" Then
                 Decode_Arturia(Message)
@@ -210,28 +257,30 @@ Public Class cMIDIMonitor
 
                     'React on "press"
                     Dim CurrentData As Integer = -1
+                    Dim Increment As Integer = 0
                     If DecodedData = -1 Then
                         CurrentData = MidChannelValue
                     Else
                         'Realize an "endless rotaty"
-                        Dim Increment As Integer = CurrentChannelValues(Channel) - LastChannelValues(Channel)
+                        Increment = CurrentChannelValues(Channel) - LastChannelValues(Channel)
 
-                        If Increment <> 0 Then
-                            CurrentData = LastOutputData(Channel) + Increment
-                        Else
-                            If DecodedData = MinChannelValue Then CurrentData = LastOutputData(Channel) - 1
-                            If DecodedData = MaxChannelValue Then CurrentData = LastOutputData(Channel) + 1
+                        If Increment = 0 Then
+                            If DecodedData = MinChannelValue Then Increment = -1
+                            If DecodedData = MaxChannelValue Then Increment = +1
                         End If
+                        CurrentData = LastOutputData(Channel) + Increment
 
                     End If
 
                     'Store last output data
                     If LastOutputData.ContainsKey(Channel) = False Then LastOutputData.Add(Channel, CurrentData) Else LastOutputData(Channel) = CurrentData
+                    AsyncOpHandler.Post(New Threading.SendOrPostCallback(AddressOf IncrementRaiser), New Object() {Channel, Increment})
 
                     Dim Time As String = Format(dwParam2 / 1000, "000.000")
 
-                    RaiseEvent NewMessage(Format(hMidiIn, "000000") & ":" & Format(wMsg, "000000") & ":" & Message & ":" & " -> " & "...")
-                    RaiseEvent NewData(Channel, CurrentData)
+                    'RaiseEvent NewMessage(Format(hMidiIn, "000000") & ":" & Format(wMsg, "000000") & ":" & Message & ":" & " -> " & "...")
+
+                    AsyncOpHandler.Post(New Threading.SendOrPostCallback(AddressOf DataRaiser), New Object() {Channel, CurrentData})
 
                 End If
 
@@ -243,22 +292,11 @@ Public Class cMIDIMonitor
 
     End Function
 
-    Private Sub DisplayData(ByVal dwParam1 As UInt32)
-        If ((HideMidiSysMessages = True) And ((dwParam1 And &HF0) = &HF0)) Then
-            Exit Sub
-        Else
-            StatusByte = CByte((dwParam1 And &HFF))
-            DataByte1 = CByte((dwParam1 And &HFF00) >> 8)
-            DataByte2 = CByte((dwParam1 And &HFF0000) >> 16)
-            RaiseEvent NewMessage(String.Format("{0:X2} {1:X2} {2:X2}{3}", StatusByte, DataByte1, DataByte2, vbCrLf))
-        End If
-    End Sub
-
-    Public Function SelectMidiDevice(ByVal DeviceID As Integer) As Boolean
-        Dim OpenErr As MMSYSERR = midiInOpen(hMidiIn, DeviceID, ptrCallback, 0, CALLBACK_FUNCTION Or MIDI_IO_STATUS)
-        If OpenErr <> MMSYSERR.NOERROR Then Return False
-        Dim StartErr As MMSYSERR = midiInStart(hMidiIn)
-        If StartErr <> MMSYSERR.NOERROR Then Return False
+    Public Function SelectMidiDevice(ByVal DeviceID As UInt32) As Boolean
+        Dim OpenErr As MMRESULT = midiInOpen(hMidiIn, DeviceID, ptrCallback, 0, CALLBACK_FUNCTION Or MIDI_IO_STATUS)
+        If OpenErr <> MMRESULT.NOERROR Then Return False
+        Dim StartErr As MMRESULT = midiInStart(hMidiIn)
+        If StartErr <> MMRESULT.NOERROR Then Return False
         MonitorActive = True
         Return True
     End Function
@@ -279,15 +317,11 @@ Public Class cMIDIMonitor
         midiInReset(hMidiIn)
     End Sub
 
-    Private Sub Decode_XTouch()
-
-    End Sub
-
     Private Sub Decode_Arturia(ByVal Message As String)
         Dim UpDown As Int16 = CShort("&H" & Message.Substring(0, 2))
         If UpDown >= 64 Then UpDown = CShort(UpDown - 128)
         Dim Channel As Integer = CInt("&H" & Message.Substring(2, 2))
-        RaiseEvent NewData(Channel, UpDown)
+        AsyncOpHandler.Post(New Threading.SendOrPostCallback(AddressOf DataRaiser), New Object() {Channel, UpDown})
     End Sub
 
 End Class
