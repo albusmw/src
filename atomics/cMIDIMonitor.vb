@@ -24,10 +24,16 @@ Public Class cMIDIMonitor
         RaiseEvent Data(CType(CType(Data, Object())(0), Integer), CType(CType(Data, Object())(1), Integer))
     End Sub
 
-    '''<summary>New data from the controls.</summary>
+    '''<summary>Value increment triggered.</summary>
     Public Event Increment(ByVal Channel As Integer, ByVal Delta As Integer)
     Private Sub IncrementRaiser(ByVal Data As Object)
         RaiseEvent Increment(CType(CType(Data, Object())(0), Integer), CType(CType(Data, Object())(1), Integer))
+    End Sub
+
+    '''<summary>Reset triggered.</summary>
+    Public Event Reset(ByVal Channel As Integer)
+    Private Sub ResetRaiser(ByVal Data As Object)
+        RaiseEvent Reset(CType(Data, Integer))
     End Sub
 
     '''<summary>Verbose data for logging.</summary>
@@ -259,6 +265,8 @@ Public Class cMIDIMonitor
                     Dim CurrentData As Integer = -1
                     Dim Increment As Integer = 0
                     If DecodedData = -1 Then
+                        'Press -> reset
+                        AsyncOpHandler.Post(New Threading.SendOrPostCallback(AddressOf ResetRaiser), Channel)
                         CurrentData = MidChannelValue
                     Else
                         'Realize an "endless rotaty"

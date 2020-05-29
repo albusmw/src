@@ -7,10 +7,13 @@ Public Class cZEDGraphService
     '''<summary>Display lines and/or dots.</summary>
     Public Enum eCurveMode
         '''<summary>Line only.</summary>
+        <System.ComponentModel.Description("Lines")>
         Lines
         '''<summary>Dots only.</summary>
+        <System.ComponentModel.Description("Dots")>
         Dots
         '''<summary>Lines and dots.</summary>
+        <System.ComponentModel.Description("Lines and Dots")>
         LinesAndPoints
     End Enum
 

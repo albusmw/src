@@ -131,6 +131,9 @@ Namespace AstroNET
                 [Float] = 2
             End Enum
 
+            '''<summary>Number of single items in the statistics (e.g. for loop statistics).</summary>
+            Public Count As Integer
+
             '''<summary>Full-resolution histogram data - bayer data.</summary>
             Public BayerHistograms_Int(,) As Dictionary(Of ADUFixed, ADUCount)
             '''<summary>Full-resolution histogram data - mono data, sorted.</summary>
@@ -503,11 +506,13 @@ Namespace AstroNET
                             For Each PixelValue As ADUFixed In CombinedStatistics.BayerHistograms_Int(BayIdx1, BayIdx2).Keys
                                 RetVal.BayerHistograms_Int(BayIdx1, BayIdx2).AddTo(PixelValue, CombinedStatistics.BayerHistograms_Int(BayIdx1, BayIdx2)(PixelValue))
                             Next PixelValue
+                            CombinedStatistics.Count += 1
                         End If
                         RetVal.BayerHistograms_Int(BayIdx1, BayIdx2) = RetVal.BayerHistograms_Int(BayIdx1, BayIdx2).SortDictionary
                     Next BayIdx2
                 Next BayIdx1
                 CalculateAllFromBayerStatistics(DataMode, RetVal)
+                RetVal.Count = CombinedStatistics.Count
             End If
             Return RetVal
         End Function
