@@ -169,6 +169,11 @@ Namespace AstroNET
             End Property
 
             '''<summary>Report of all statistics properties of the structure.</summary>
+            Public Function StatisticsReport() As List(Of String)
+                Return StatisticsReport(New List(Of String)({"R", "G1", "G2", "B"}))
+            End Function
+
+            '''<summary>Report of all statistics properties of the structure.</summary>
             Public Function StatisticsReport(ByVal ChannelNames As List(Of String)) As List(Of String)
                 Select Case DataMode
                     Case eDataMode.Float
@@ -317,13 +322,6 @@ Namespace AstroNET
                 RetVal.Add("Total pixel       : " & TotalPixel.PadLeft(ReportValueLength))
                 RetVal.Add("ADU values count  : " & DifferentADUValues.ValRegIndep.PadLeft(ReportValueLength))
                 RetVal.Add("  in 25-75 pct    : " & ADUValues2575.ValRegIndep.PadLeft(ReportValueLength))
-                RetVal.Add("Min value         : " & (Min.Key.ValRegIndep & " (" & Min.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
-                RetVal.Add("Modus value       : " & (Modus.Key.ValRegIndep & " (" & Modus.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
-                RetVal.Add("Max value         : " & (Max.Key.ValRegIndep & " (" & Max.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
-                RetVal.Add("Median value      : " & Median.ValRegIndep.PadLeft(ReportValueLength))
-                RetVal.Add("Mean value        : " & Format(Mean, "0.000").ToString.Trim.PadLeft(ReportValueLength))
-                RetVal.Add("Standard dev.     : " & Format(StdDev, "0.000").ToString.Trim.PadLeft(ReportValueLength))
-                RetVal.Add("Variance          : " & Format(Variance, "0.000").ToString.Trim.PadLeft(ReportValueLength))
                 'Data on histogram of ADU stepping
                 If HistXDist_keys.Count = 0 Then
                     RetVal.Add("ADU step size min : " & NotPresent.PadLeft(ReportValueLength))
@@ -332,11 +330,17 @@ Namespace AstroNET
                     RetVal.Add("ADU step size min : " & Format(HistXDist_keys(0), "####0").ToString.Trim.PadLeft(ReportValueLength))
                     RetVal.Add("ADU different step: " & Format(HistXDist_keys.Count, "####0").ToString.Trim.PadLeft(ReportValueLength))
                 End If
+                RetVal.Add("Min value         : " & (Min.Key.ValRegIndep & " (" & Min.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
+                RetVal.Add("Modus value       : " & Modus.Key.ValRegIndep.PadLeft(ReportValueLength))
+                RetVal.Add("Modus value count : " & (Modus.Value.ValRegIndep & " x").PadLeft(ReportValueLength))
+                RetVal.Add("Max value         : " & (Max.Key.ValRegIndep & " (" & Max.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
+                RetVal.Add("Median value      : " & Median.ValRegIndep.PadLeft(ReportValueLength))
+                RetVal.Add("Mean value        : " & Format(Mean, "0.000").ToString.Trim.PadLeft(ReportValueLength))
+                RetVal.Add("Standard dev.     : " & Format(StdDev, "0.000").ToString.Trim.PadLeft(ReportValueLength))
+                RetVal.Add("Variance          : " & Format(Variance, "0.000").ToString.Trim.PadLeft(ReportValueLength))
                 'Percentile report
                 For Each Pct As Integer In New Integer() {1, 5, 10, 25, 50, 75, 90, 95, 99}
-                    If IsNothing(Percentile) = False Then
-                        If Percentile.ContainsKey(Pct) Then RetVal.Add(("Percentil - " & Pct.ToString.Trim.PadLeft(2) & " %  : ").PadRight(ReportHeaderLength) & Format(Percentile(Pct)).ToString.Trim.PadLeft(ReportValueLength))
-                    End If
+                    If Percentile.ContainsKey(Pct) Then RetVal.Add(("Percentil - " & Pct.ToString.Trim.PadLeft(2) & " %  : ").PadRight(ReportHeaderLength) & Format(Percentile(Pct)).ToString.Trim.PadLeft(ReportValueLength))
                 Next Pct
                 Return RetVal
             End Function
@@ -414,13 +418,6 @@ Namespace AstroNET
                 RetVal.Add("Total pixel       : " & TotalPixel.PadLeft(ReportValueLength))
                 RetVal.Add("ADU values count  : " & DifferentADUValues.ValRegIndep.PadLeft(ReportValueLength))
                 RetVal.Add("  in 25-75 pct    : " & ADUValues2575.ValRegIndep.PadLeft(ReportValueLength))
-                RetVal.Add("Min value         : " & (Min.Key.ValRegIndep & " (" & Min.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
-                RetVal.Add("Modus value       : " & (Modus.Key.ValRegIndep & " (" & Modus.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
-                RetVal.Add("Max value         : " & (Max.Key.ValRegIndep & " (" & Max.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
-                RetVal.Add("Median value      : " & Median.ValRegIndep.PadLeft(ReportValueLength))
-                RetVal.Add("Mean value        : " & Format(Mean, "0.000").ToString.Trim.PadLeft(ReportValueLength))
-                RetVal.Add("Standard dev.     : " & Format(StdDev, "0.000").ToString.Trim.PadLeft(ReportValueLength))
-                RetVal.Add("Variance          : " & Format(Variance, "0.000").ToString.Trim.PadLeft(ReportValueLength))
                 'Data on histogram of ADU stepping
                 If HistXDist_keys.Count = 0 Then
                     RetVal.Add("ADU step size min : " & NotPresent.PadLeft(ReportValueLength))
@@ -429,6 +426,14 @@ Namespace AstroNET
                     RetVal.Add("ADU step size min : " & Format(HistXDist_keys(0), "####0").ToString.Trim.PadLeft(ReportValueLength))
                     RetVal.Add("ADU different step: " & Format(HistXDist_keys.Count, "####0").ToString.Trim.PadLeft(ReportValueLength))
                 End If
+                RetVal.Add("Min value         : " & (Min.Key.ValRegIndep & " (" & Min.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
+                RetVal.Add("Modus value       : " & Modus.Key.ValRegIndep.PadLeft(ReportValueLength))
+                RetVal.Add("Modus value count : " & (Modus.Value.ValRegIndep & " x").PadLeft(ReportValueLength))
+                RetVal.Add("Max value         : " & (Max.Key.ValRegIndep & " (" & Max.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
+                RetVal.Add("Median value      : " & Median.ValRegIndep.PadLeft(ReportValueLength))
+                RetVal.Add("Mean value        : " & Format(Mean, "0.000").ToString.Trim.PadLeft(ReportValueLength))
+                RetVal.Add("Standard dev.     : " & Format(StdDev, "0.000").ToString.Trim.PadLeft(ReportValueLength))
+                RetVal.Add("Variance          : " & Format(Variance, "0.000").ToString.Trim.PadLeft(ReportValueLength))
                 'Percentile report
                 For Each Pct As Integer In New Integer() {1, 5, 10, 25, 50, 75, 90, 95, 99}
                     If Percentile.ContainsKey(Pct) Then RetVal.Add(("Percentil - " & Pct.ToString.Trim.PadLeft(2) & " %  : ").PadRight(ReportHeaderLength) & Format(Percentile(Pct)).ToString.Trim.PadLeft(ReportValueLength))
