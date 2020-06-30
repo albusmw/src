@@ -15,7 +15,7 @@ Partial Public Class Parser
         Public [Time] As Integer = 1
         ''' <summary>Magnitudes per square arc second as acquired from the meter.</summary>
         Public [MPSAS] As Integer = Invalid
-        ''' <summary>Calculated from the MPSAS value acquired from the meter</summary>
+        ''' <summary>Calculated from the MPSAS value acquired from the meter.</summary>
         Public [NELM] As Integer = Invalid
         Public SolarAlt As Integer = Invalid
         Public LunarAlt As Integer = Invalid
@@ -40,26 +40,28 @@ Partial Public Class Parser
     '''<param name="TodayDate">Today's date to run calculation for.</param>
     '''<param name="BestValues">Dictioary of best values.</param>
     '''<param name="Today"></param>
-    Public Shared Sub ParseSQM(ByVal Filename As String, ByVal TodayDate As Date, ByRef BestValues As Dictionary(Of Date, Ato.cSingleValueStatistics), ByRef Today As Dictionary(Of DateTime, sSQMToday))
+    '''<returns>List of raw values only date-time-MPSAS</returns>
+    Public Shared Function ParseSQM(ByVal Filename As String, ByVal TodayDate As Date, ByRef BestValues As Dictionary(Of Date, Ato.cSingleValueStatistics), ByRef Today As Dictionary(Of DateTime, sSQMToday)) As List(Of String)
 
         Dim Content As String() = Nothing
         Dim SplitChar As Char = ","c
+        Dim RetVal As New List(Of String)
 
         'Try to load the complete content
         Try
             If System.IO.File.Exists(Filename) = False Then
                 RaiseEvent [Error]("File <" & Filename & "> does not exist.")
-                Exit Sub
+                Return RetVal
             Else
                 Content = System.IO.File.ReadAllLines(Filename)
             End If
         Catch ex As Exception
             RaiseEvent [Error]("File <" & Filename & "> could not be loaded.")
-            Exit Sub
+            Return RetVal
         End Try
 
-        If IsNothing(Content) = True Then Exit Sub
-        If Content.Length <= 2 Then Exit Sub
+        If IsNothing(Content) = True Then Return RetVal
+        If Content.Length <= 2 Then Return RetVal
 
         Dim SQMFields As New cSQMFields
         Dim Headers As String() = Split(Content(1), SplitChar)
@@ -72,13 +74,14 @@ Partial Public Class Parser
             End Select
         Next Idx
 
-        For Idx As Integer = 0 To Content.GetUpperBound(0)
-            If Content(Idx).StartsWith("20") Then
-                Dim Line As String() = Split(Content(Idx), SplitChar)
+        For LineIdx As Integer = 0 To Content.GetUpperBound(0)
+            If Content(LineIdx).StartsWith("20") Then
+                Dim Line As String() = Split(Content(LineIdx), SplitChar)
                 Dim DateTime As DateTime
                 DateTime.TryParse(Line(SQMFields.Date) & " " & Line(SQMFields.Time), DateTime)
                 Dim DateOnly As Date = DateTime.Date
                 Dim MPSAS As Double = Val(Line(SQMFields.MPSAS).Replace(",", "."))
+                RetVal.Add(DateTime.ValRegIndep & "__" & MPSAS.ValRegIndep)
                 Dim SolAlt As Double = cSQMFields.Invalid : If SQMFields.SolarAlt <> cSQMFields.Invalid Then SolAlt = Val(Line(SQMFields.SolarAlt).Replace(",", "."))
                 Dim LunarAlt As Double = cSQMFields.Invalid : If SQMFields.LunarAlt <> cSQMFields.Invalid Then LunarAlt = Val(Line(SQMFields.LunarAlt).Replace(",", "."))
                 Dim LunarPhase As Double = cSQMFields.Invalid : If SQMFields.LunarPhase <> cSQMFields.Invalid Then LunarPhase = Val(Line(SQMFields.LunarPhase).Replace(",", "."))
@@ -93,8 +96,10 @@ Partial Public Class Parser
                     Today.Add(DateTime, New sSQMToday(MPSAS, SolAlt, LunarAlt, LunarPhase))
                 End If
             End If
-        Next Idx
+        Next LineIdx
 
-    End Sub
+        Return RetVal
+
+    End Function
 
 End Class

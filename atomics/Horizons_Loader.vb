@@ -115,24 +115,11 @@ Class Horizons_Loader
 
     Private Shared Function LoadData(ByVal RequestURL As String) As String()
 
-        'Net.ServicePointManager.ServerCertificateValidationCallback += ValidateRemoteCertificate()     ' <- not required
-        Net.ServicePointManager.SecurityProtocol = Net.SecurityProtocolType.Tls
+        Dim Downloader As New System.Net.WebClient()
+        Downloader.Encoding = System.Text.Encoding.UTF8
+        Dim Data As Byte() = Downloader.DownloadData(RequestURL)
+        Return Downloader.Encoding.GetString(Data).Split(Chr(10))
 
-        'Query data from request URL
-        Dim address As New Uri(RequestURL)
-        Dim mWC As New System.Net.WebClient
-        Dim InStream As IO.Stream = mWC.OpenRead(address)
-        Dim InReader As New IO.StreamReader(InStream)
-        Dim Data As String() = InReader.ReadToEnd.Split(Chr(10))
-
-        Return Data
-
-    End Function
-
-    Private Function ValidateRemoteCertificate(sender As Object, cert As Security.Cryptography.X509Certificates.X509Certificate, chain As System.Security.Cryptography.X509Certificates.X509Chain, Err As Net.Security.SslPolicyErrors) As Boolean
-        If Err = System.Net.Security.SslPolicyErrors.None Then Return True
-        Console.WriteLine("X509Certificate [{0}] Policy Error: '{1}'", cert.Subject, Err.ToString())
-        Return False
     End Function
 
 End Class
