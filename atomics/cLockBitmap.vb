@@ -28,7 +28,9 @@ Public Class cLockBitmap
 
     '''<summary>Init a new bitmap with the given width and height.</summary>
     Public Sub New(ByVal Width As Integer, ByVal Height As Integer)
-        Me.BitmapToProcess = New Drawing.Bitmap(Width, Height, PixelFormat)
+        If Width > 0 And Height > 0 Then
+            Me.BitmapToProcess = New Drawing.Bitmap(Width, Height, PixelFormat)
+        End If
     End Sub
 
     '''<summary>Lock bitmap data.</summary>

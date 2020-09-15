@@ -64,8 +64,8 @@ Namespace AstroNET
             Next Idx
         End Sub
 
-        '''<summary>Return which data type is currenty loaded (only 1 data type can be loaded).</summary>
-        Public ReadOnly Property DataModeType() As sStatistics.eDataMode
+        '''<summary>Return if the data type is currenty float or fixed (only 1 data type can be loaded).</summary>
+        Public ReadOnly Property DataFixFloat() As sStatistics.eDataMode
             Get
                 Select Case DataMode
                     Case eDataMode.Float32
@@ -169,63 +169,67 @@ Namespace AstroNET
             End Property
 
             '''<summary>Report of all statistics properties of the structure.</summary>
-            Public Function StatisticsReport() As List(Of String)
-                Return StatisticsReport(New List(Of String)({"R", "G1", "G2", "B"}))
+            Public Function StatisticsReport(ByVal MonoOnly As Boolean) As List(Of String)
+                Return StatisticsReport(MonoOnly, New List(Of String)({"R", "G1", "G2", "B"}))
             End Function
 
             '''<summary>Report of all statistics properties of the structure.</summary>
-            Public Function StatisticsReport(ByVal ChannelNames As List(Of String)) As List(Of String)
+            Public Function StatisticsReport(ByVal MonoOnly As Boolean, ByVal ChannelNames As List(Of String)) As List(Of String)
                 Select Case DataMode
                     Case eDataMode.Float
-                        Return StatisticsReport_Float32(ChannelNames, String.Empty)
+                        Return StatisticsReport_Float32(MonoOnly, ChannelNames, String.Empty)
                     Case eDataMode.Fixed
-                        Return StatisticsReport_Int(ChannelNames, String.Empty)
+                        Return StatisticsReport_Int(MonoOnly, ChannelNames, String.Empty)
                     Case Else
                         Return New List(Of String)
                 End Select
             End Function
 
             '''<summary>Report of all statistics properties of the structure.</summary>
-            Public Function StatisticsReport_Int(ByVal ChannelNames As List(Of String), ByVal Indent As String) As List(Of String)
+            Public Function StatisticsReport_Int(ByVal MonoOnly As Boolean, ByVal ChannelNames As List(Of String), ByVal Indent As String) As List(Of String)
                 Dim RetVal As New List(Of String)
                 RetVal.Add(Indent & "Property".PadRight(sSingleChannelStatistics_Int.ReportHeaderLength) & ": " & "Mono".PadRight(sSingleChannelStatistics_Int.ReportValueLength) & "|")
                 For Each Entry As String In MonoStatistics_Int.StatisticsReport
                     RetVal.Add(Indent & "  " & Entry & "|")
                 Next Entry
-                Dim ChannelIdx As Integer = 0
-                For Idx1 As Integer = 0 To BayerStatistics_Int.GetUpperBound(0)
-                    For Idx2 As Integer = 0 To BayerStatistics_Int.GetUpperBound(1)
-                        RetVal(0) &= (ChannelNames(ChannelIdx) & "[" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "]").PadRight(sSingleChannelStatistics_Int.ReportValueLength) & "|"
-                        Dim LineIdx As Integer = 1
-                        For Each Entry As String In BayerStatistics_Int(Idx1, Idx2).StatisticsReport
-                            RetVal(LineIdx) &= Entry.Substring(sSingleChannelStatistics_Int.ReportHeaderLength) & "|"
-                            LineIdx += 1
-                        Next Entry
-                        ChannelIdx += 1
-                    Next Idx2
-                Next Idx1
+                If Not MonoOnly Then
+                    Dim ChannelIdx As Integer = 0
+                    For Idx1 As Integer = 0 To BayerStatistics_Int.GetUpperBound(0)
+                        For Idx2 As Integer = 0 To BayerStatistics_Int.GetUpperBound(1)
+                            RetVal(0) &= (ChannelNames(ChannelIdx) & "[" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "]").PadRight(sSingleChannelStatistics_Int.ReportValueLength) & "|"
+                            Dim LineIdx As Integer = 1
+                            For Each Entry As String In BayerStatistics_Int(Idx1, Idx2).StatisticsReport
+                                RetVal(LineIdx) &= Entry.Substring(sSingleChannelStatistics_Int.ReportHeaderLength) & "|"
+                                LineIdx += 1
+                            Next Entry
+                            ChannelIdx += 1
+                        Next Idx2
+                    Next Idx1
+                End If
                 Return RetVal
             End Function
 
             '''<summary>Report of all statistics properties of the structure.</summary>
-            Public Function StatisticsReport_Float32(ByVal ChannelNames As List(Of String), ByVal Indent As String) As List(Of String)
+            Public Function StatisticsReport_Float32(ByVal MonoOnly As Boolean, ByVal ChannelNames As List(Of String), ByVal Indent As String) As List(Of String)
                 Dim RetVal As New List(Of String)
                 RetVal.Add(Indent & "Property".PadRight(sSingleChannelStatistics_Float32.ReportHeaderLength) & ": " & "Mono".PadRight(sSingleChannelStatistics_Float32.ReportValueLength) & "|")
                 For Each Entry As String In MonoStatistics_Float32.StatisticsReport
                     RetVal.Add(Indent & "  " & Entry & "|")
                 Next Entry
-                Dim ChannelIdx As Integer = 0
-                For Idx1 As Integer = 0 To BayerStatistics_Float32.GetUpperBound(0)
-                    For Idx2 As Integer = 0 To BayerStatistics_Float32.GetUpperBound(1)
-                        RetVal(0) &= (ChannelNames(ChannelIdx) & "[" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "]").PadRight(sSingleChannelStatistics_Float32.ReportValueLength) & "|"
-                        Dim LineIdx As Integer = 1
-                        For Each Entry As String In BayerStatistics_Float32(Idx1, Idx2).StatisticsReport
-                            RetVal(LineIdx) &= Entry.Substring(sSingleChannelStatistics_Float32.ReportHeaderLength) & "|"
-                            LineIdx += 1
-                        Next Entry
-                        ChannelIdx += 1
-                    Next Idx2
-                Next Idx1
+                If Not MonoOnly Then
+                    Dim ChannelIdx As Integer = 0
+                    For Idx1 As Integer = 0 To BayerStatistics_Float32.GetUpperBound(0)
+                        For Idx2 As Integer = 0 To BayerStatistics_Float32.GetUpperBound(1)
+                            RetVal(0) &= (ChannelNames(ChannelIdx) & "[" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "]").PadRight(sSingleChannelStatistics_Float32.ReportValueLength) & "|"
+                            Dim LineIdx As Integer = 1
+                            For Each Entry As String In BayerStatistics_Float32(Idx1, Idx2).StatisticsReport
+                                RetVal(LineIdx) &= Entry.Substring(sSingleChannelStatistics_Float32.ReportHeaderLength) & "|"
+                                LineIdx += 1
+                            Next Entry
+                            ChannelIdx += 1
+                        Next Idx2
+                    Next Idx1
+                End If
                 Return RetVal
             End Function
 
@@ -340,7 +344,9 @@ Namespace AstroNET
                 RetVal.Add("Variance          : " & Format(Variance, "0.000").ToString.Trim.PadLeft(ReportValueLength))
                 'Percentile report
                 For Each Pct As Integer In New Integer() {1, 5, 10, 25, 50, 75, 90, 95, 99}
-                    If Percentile.ContainsKey(Pct) Then RetVal.Add(("Percentil - " & Pct.ToString.Trim.PadLeft(2) & " %  : ").PadRight(ReportHeaderLength) & Format(Percentile(Pct)).ToString.Trim.PadLeft(ReportValueLength))
+                    If IsNothing(Percentile) = False Then
+                        If Percentile.ContainsKey(Pct) Then RetVal.Add(("Percentil - " & Pct.ToString.Trim.PadLeft(2) & " %  : ").PadRight(ReportHeaderLength) & Format(Percentile(Pct)).ToString.Trim.PadLeft(ReportValueLength))
+                    End If
                 Next Pct
                 Return RetVal
             End Function
@@ -552,6 +558,7 @@ Namespace AstroNET
         Private Shared Function CalcStatisticFromHistogram(ByRef Histogram As Dictionary(Of ADUFixed, ADUCount)) As sSingleChannelStatistics_Int
 
             If IsNothing(Histogram) = True Then Return Nothing
+            If Histogram.Count = 0 Then Return Nothing
 
             Dim RetVal As sSingleChannelStatistics_Int = sSingleChannelStatistics_Int.InitForShort()
             Dim AllADUValues As List(Of ADUFixed) = Histogram.KeyList

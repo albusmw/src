@@ -11,10 +11,13 @@ Public Class cColorMaps
 
     '''<summary>Available color maps.</summary>
     Public Enum eMaps
+        '''<summary>Gray color.</summary>
         None
         Hot
         Jet
         Bone
+        FalseColor
+        FalseColorHSL
     End Enum
 
     '''<summary>Invalid color in NONE schema.</summary>
@@ -25,6 +28,25 @@ Public Class cColorMaps
     Private Shared ColorInvalid_Jet As Drawing.Color = Drawing.Color.Black
     '''<summary>Invalid color in BONE schema.</summary>
     Private Shared ColorInvalid_Bone As Drawing.Color = Drawing.Color.Red
+
+    '''<summary>Get the color accoring to a certain color map.</summary>
+    Public Shared Function ColorByMap(ByVal Data As Double, ByVal Map As eMaps) As Drawing.Color
+        Select Case Map
+            Case eMaps.None
+                Return None(Data)
+            Case eMaps.Hot
+                Return Hot(Data)
+            Case eMaps.Jet
+                Return Jet(Data)
+            Case eMaps.None
+                Return Bone(Data)
+            Case eMaps.FalseColor
+                Return FalseColor(Data)
+            Case eMaps.FalseColorHSL
+                Return FalseColorHSL(Data)
+        End Select
+    End Function
+
 
     '''<summary>Calculate the gray color according to the passed double value.</summary>
     '''<param name="X">Value to calculate color for (0..255).</param>
@@ -40,7 +62,7 @@ Public Class cColorMaps
 
     '''<summary>Calculate a color according to the hot schema (Black-red-yellow-white color map).</summary>
     '''<param name="X">Value to calculate color for (0..255).</param>
-    '''<returns>Color according to the value.</returns>
+    '''<returns>Color according to the value (0..255).</returns>
     Public Shared Function Hot(ByVal X As Double) As Drawing.Color
 
         X /= 255
@@ -68,7 +90,7 @@ Public Class cColorMaps
 
     '''<summary>Calculate a color according to the jet schema (Variant of HSV).</summary>
     '''<param name="X">Value to calculate color for (0..255).</param>
-    '''<returns>Color according to the value.</returns>
+    '''<returns>Color according to the value (0..255).</returns>
     Public Shared Function Jet(ByVal X As Double) As Drawing.Color
 
         Dim R As Byte, G As Byte, B As Byte
@@ -106,7 +128,7 @@ Public Class cColorMaps
 
     '''<summary>Calculate a color according to the bone schema (Gray-scale with a tinge of blue color map).</summary>
     '''<param name="X">Value to calculate color for (0..255).</param>
-    '''<returns>Color according to the value.</returns>
+    '''<returns>Color according to the value (0..255).</returns>
     Public Shared Function Bone(ByVal X As Double) As Drawing.Color
 
         X /= 255
@@ -127,7 +149,7 @@ Public Class cColorMaps
 
     '''<summary>Calculate a color according to the false color schema of MATLAB.</summary>
     '''<param name="X">Value to calculate color for (0..255).</param>
-    '''<returns>Color according to the value.</returns>
+    '''<returns>Color according to the value (0..255).</returns>
     '''<remarks>MATLAB command: dlmwrite('A:\Test.txt',floor(colormap(hsv(4096))*255).','delimiter', ',');</remarks>
     Public Shared Function FalseColor(ByVal X As Double) As Drawing.Color
         Dim FCI As Integer = CInt(Math.Floor(X * 16))
@@ -138,7 +160,7 @@ Public Class cColorMaps
 
     '''<summary>Calculate a color according to the false color schema by HLS to RGB conversion.</summary>
     '''<param name="X">Value to calculate color for (0..255).</param>
-    '''<returns>Color according to the value.</returns>
+    '''<returns>Color according to the value (0..255).</returns>
     Public Shared Function FalseColorHSL(ByVal X As Double) As Drawing.Color
         X = X * (360 / 255)
         If X < 0 Then Return Drawing.Color.Black

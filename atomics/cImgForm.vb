@@ -1,13 +1,18 @@
 ﻿Option Explicit On
 Option Strict On
 
-'''<summary>Display a simple picturebox window (form and graph on it).</summary>
+'''<summary>Display a simple picturebox window for 2D data with a definable color map (form and graph on it).</summary>
 Public Class cImgForm
 
     '''<summary>The form that shall be displayed.</summary>
     Public Hoster As System.Windows.Forms.Form = Nothing
     '''<summary>The ZED graph control inside the form.</summary>
     Public Image As PictureBoxEx = Nothing
+
+    '''<summary>Back color to use.</summary>
+    Public Property ImageBackColor As Drawing.Color = Drawing.Color.Black
+    '''<summary>Color map to use.</summary>
+    Public Property ColorMap As cColorMaps.eMaps = cColorMaps.eMaps.Jet
 
     '''<summary>Prepare.</summary>
     Public Sub New()
@@ -19,7 +24,7 @@ Public Class cImgForm
                 .Dock = Windows.Forms.DockStyle.Fill
                 .InterpolationMode = Drawing.Drawing2D.InterpolationMode.NearestNeighbor
                 .SizeMode = Windows.Forms.PictureBoxSizeMode.Zoom
-                .BackColor = Drawing.Color.Black
+                .BackColor = ImageBackColor
             End With
         End If
     End Sub
@@ -46,7 +51,7 @@ Public Class cImgForm
             Dim BaseOffset As Integer = YOffset
             For X As Integer = 0 To OutputImage.Width - 1
                 Dim DispVal As Integer = CInt((Data(X, Y) - MinData) * (255 / (MaxData - MinData)))
-                Dim Coloring As Drawing.Color = cColorMaps.Jet(DispVal)
+                Dim Coloring As Drawing.Color = cColorMaps.ColorByMap(DispVal, ColorMap)
                 OutputImage.Pixels(BaseOffset) = Coloring.R
                 OutputImage.Pixels(BaseOffset + 1) = Coloring.G
                 OutputImage.Pixels(BaseOffset + 2) = Coloring.B
@@ -73,7 +78,7 @@ Public Class cImgForm
             Dim BaseOffset As Integer = YOffset
             For X As Integer = 0 To OutputImage.Width - 1
                 Dim DispVal As Integer = CInt((Data(X, Y) - MinData) * (255 / (MaxData - MinData)))
-                Dim Coloring As Drawing.Color = cColorMaps.Jet(DispVal)
+                Dim Coloring As Drawing.Color = cColorMaps.ColorByMap(DispVal, ColorMap)
                 OutputImage.Pixels(BaseOffset) = Coloring.R
                 OutputImage.Pixels(BaseOffset + 1) = Coloring.G
                 OutputImage.Pixels(BaseOffset + 2) = Coloring.B
