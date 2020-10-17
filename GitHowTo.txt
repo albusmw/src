@@ -1,0 +1,6 @@
+Remote-Repo auf neuem PC laden:
+ - Git Extensions
+ - Repository klonen
+ - Zu klonen: https://github.com/albusmw/src.git
+ - Ziel: C:\GIT
+ - Fertig.
