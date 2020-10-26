@@ -79,7 +79,6 @@ Namespace AstroNET
             End Get
         End Property
 
-
         '''<summary>Return which data type is currenty loaded (only 1 data type can be loaded).</summary>
         Public ReadOnly Property DataMode() As eDataMode
             Get

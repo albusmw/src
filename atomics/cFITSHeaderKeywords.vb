@@ -218,6 +218,11 @@ Public Enum eFITSKeywords
     <FITSComment("Equinox of the World Coordinate System (WCS)")>
     [EQUINOX]
 
+    '''<summary>Name of selected filter.</summary>
+    <FITSKeyword("FILTER")>
+    <FITSComment("Name of selected filter")>
+    [FILTER]
+
     '''<summary>Focus value (from logbook). Used when a single value is given in the logs.</summary>
     <FITSKeyword("FOCUS")>
     <FITSComment("Focuser position in steps")>
