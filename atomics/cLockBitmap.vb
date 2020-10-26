@@ -1,6 +1,68 @@
 Option Explicit On
 Option Strict On
 
+'''<summary>Class for fast access to bitmap data in memory using as 32-bit buffer.</summary>
+Public Class cLockBitmap32Bit
+
+    '''<summary>Pixel format to use - fixed to 32-bit.</summary>
+    Private ReadOnly PixelFormat As System.Drawing.Imaging.PixelFormat = System.Drawing.Imaging.PixelFormat.Format32bppArgb
+
+    Public BitmapToProcess As Drawing.Bitmap = Nothing
+    Public BitmapData As Drawing.Imaging.BitmapData = Nothing
+
+    Private BitmapDataPtr As IntPtr = IntPtr.Zero
+
+    Public Pixels As Int32()
+
+    Public Property Width() As Integer = -1
+    Public Property Height() As Integer = -1
+
+    '''<summary>Init a new bitmap with the given width and height.</summary>
+    Public Sub New(ByVal Width As Integer, ByVal Height As Integer)
+        If Width > 0 And Height > 0 Then
+            Me.BitmapToProcess = New Drawing.Bitmap(Width, Height, PixelFormat)
+        End If
+    End Sub
+
+    '''<summary>Lock bitmap data.</summary>
+    Public Sub LockBits()
+
+        'Get width and height of bitmap
+        Width = BitmapToProcess.Width
+        Height = BitmapToProcess.Height
+
+        'Check if bpp (Bits Per Pixel) is 32
+        Select Case System.Drawing.Bitmap.GetPixelFormatSize(BitmapToProcess.PixelFormat)
+            Case 32
+                'Supported
+            Case Else
+                Throw New ArgumentException("Only 32 bpp images are supported.")
+        End Select
+
+        'Lock bitmap and return bitmap data
+        BitmapData = BitmapToProcess.LockBits(New Drawing.Rectangle(0, 0, Width, Height), Drawing.Imaging.ImageLockMode.ReadWrite, BitmapToProcess.PixelFormat)
+
+        'Create byte array to copy pixel values
+        Pixels = New Int32((Width * Height) - 1) {}
+        BitmapDataPtr = BitmapData.Scan0
+
+        'Copy data from pointer to array
+        Runtime.InteropServices.Marshal.Copy(BitmapDataPtr, Pixels, 0, Pixels.Length)
+
+    End Sub
+
+    '''<summary>Unlock bitmap data.</summary>
+    Public Sub UnlockBits()
+        Try
+            Runtime.InteropServices.Marshal.Copy(Pixels, 0, BitmapDataPtr, Pixels.Length)       'Copy data from byte array to pointer
+            BitmapToProcess.UnlockBits(BitmapData)                                              'Unlock bitmap data
+        Catch ex As Exception
+            Throw ex
+        End Try
+    End Sub
+
+End Class
+
 '''<summary>Class for fast access to bitmap data in memory.</summary>
 Public Class cLockBitmap
 
@@ -12,7 +74,7 @@ Public Class cLockBitmap
 
     Private PixelFormat As System.Drawing.Imaging.PixelFormat = System.Drawing.Imaging.PixelFormat.Format24bppRgb
 
-    Public ColorBytesPerPixel As Integer = 0
+    Public Property ColorBytesPerPixel As Integer = 0
 
 
     Public BitmapToProcess As Drawing.Bitmap = Nothing
@@ -29,6 +91,14 @@ Public Class cLockBitmap
     '''<summary>Init a new bitmap with the given width and height.</summary>
     Public Sub New(ByVal Width As Integer, ByVal Height As Integer)
         If Width > 0 And Height > 0 Then
+            Me.BitmapToProcess = New Drawing.Bitmap(Width, Height, PixelFormat)
+        End If
+    End Sub
+
+    '''<summary>Init a new bitmap with the given width and height.</summary>
+    Public Sub New(ByVal Width As Integer, ByVal Height As Integer, ByVal PixelFormatToUse As System.Drawing.Imaging.PixelFormat)
+        If Width > 0 And Height > 0 Then
+            PixelFormat = PixelFormatToUse
             Me.BitmapToProcess = New Drawing.Bitmap(Width, Height, PixelFormat)
         End If
     End Sub
@@ -231,7 +301,7 @@ Public Class cLockBitmap
     '''<summary>Calculate a linear grayscale image from the passed data.</summary>
     '''<param name="ImageData">Data to calculate cLockBitmap from.</param>
     '''<param name="MaxData">Data maximum.</param>
-    Public Shared Function CalculateOutputBitmap(ByRef ImageData(,) As UInt16, ByVal MaxData As Double) As cLockBitmap
+    Public Shared Function GetGrayscaleImage(ByRef ImageData(,) As UInt16, ByVal MaxData As Double) As cLockBitmap
         Dim OutputImage As New cLockBitmap(ImageData.GetUpperBound(0), ImageData.GetUpperBound(1))
         OutputImage.LockBits()
         Dim Stride As Integer = OutputImage.BitmapData.Stride

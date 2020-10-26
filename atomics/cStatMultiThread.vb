@@ -43,7 +43,7 @@ Public Class cStatMultiThread_UInt16
         End Property
     End Structure
 
-    '''<summary>The real image data.</summary>
+    '''<summary>The real image data - 3 is the maximum NAXIS3 value for e.g. LRGB images.</summary>
     Public ImageData(3) As sImgData_UInt16
 
     '''<summary>Perform a calculation with 4 threads, one for each bayer channel.</summary>
