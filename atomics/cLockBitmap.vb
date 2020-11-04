@@ -4,9 +4,6 @@ Option Strict On
 '''<summary>Class for fast access to bitmap data in memory using as 32-bit buffer.</summary>
 Public Class cLockBitmap32Bit
 
-    '''<summary>Pixel format to use - fixed to 32-bit.</summary>
-    Private ReadOnly PixelFormat As System.Drawing.Imaging.PixelFormat = System.Drawing.Imaging.PixelFormat.Format32bppArgb
-
     Public BitmapToProcess As Drawing.Bitmap = Nothing
     Public BitmapData As Drawing.Imaging.BitmapData = Nothing
 
@@ -14,40 +11,38 @@ Public Class cLockBitmap32Bit
 
     Public Pixels As Int32()
 
-    Public Property Width() As Integer = -1
-    Public Property Height() As Integer = -1
+    Public ReadOnly Property Width As Integer
+        Get
+            If IsNothing(BitmapToProcess.Width) = False Then Return BitmapToProcess.Width Else Return -1
+        End Get
+    End Property
+
+    Public ReadOnly Property Height As Integer
+        Get
+            If IsNothing(BitmapToProcess.Height) = False Then Return BitmapToProcess.Height Else Return -1
+        End Get
+    End Property
 
     '''<summary>Init a new bitmap with the given width and height.</summary>
-    Public Sub New(ByVal Width As Integer, ByVal Height As Integer)
-        If Width > 0 And Height > 0 Then
-            Me.BitmapToProcess = New Drawing.Bitmap(Width, Height, PixelFormat)
+    Public Sub New(ByVal NewWidth As Integer, ByVal NewHeight As Integer)
+        If NewWidth > 0 And NewHeight > 0 Then
+            Me.BitmapToProcess = New Drawing.Bitmap(NewWidth, NewHeight, System.Drawing.Imaging.PixelFormat.Format32bppArgb)
+            Pixels = New Int32((Width * Height) - 1) {}
         End If
     End Sub
 
     '''<summary>Lock bitmap data.</summary>
-    Public Sub LockBits()
-
-        'Get width and height of bitmap
-        Width = BitmapToProcess.Width
-        Height = BitmapToProcess.Height
-
-        'Check if bpp (Bits Per Pixel) is 32
-        Select Case System.Drawing.Bitmap.GetPixelFormatSize(BitmapToProcess.PixelFormat)
-            Case 32
-                'Supported
-            Case Else
-                Throw New ArgumentException("Only 32 bpp images are supported.")
-        End Select
+    '''<param name="CopyBitmapData">Run an initial copy operation.</param>
+    Public Sub LockBits(ByVal CopyBitmapData As Boolean)
 
         'Lock bitmap and return bitmap data
         BitmapData = BitmapToProcess.LockBits(New Drawing.Rectangle(0, 0, Width, Height), Drawing.Imaging.ImageLockMode.ReadWrite, BitmapToProcess.PixelFormat)
 
         'Create byte array to copy pixel values
-        Pixels = New Int32((Width * Height) - 1) {}
         BitmapDataPtr = BitmapData.Scan0
 
         'Copy data from pointer to array
-        Runtime.InteropServices.Marshal.Copy(BitmapDataPtr, Pixels, 0, Pixels.Length)
+        If CopyBitmapData = True Then Runtime.InteropServices.Marshal.Copy(BitmapDataPtr, Pixels, 0, Pixels.Length)
 
     End Sub
 

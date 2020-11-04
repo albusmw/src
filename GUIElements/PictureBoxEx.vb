@@ -6,7 +6,8 @@ Public Class PictureBoxEx : Inherits System.Windows.Forms.PictureBox
     Public Property InterpolationMode As Drawing.Drawing2D.InterpolationMode
 
     Protected Overrides Sub OnPaint(ByVal paintEventArgs As Windows.Forms.PaintEventArgs)
-        paintEventArgs.Graphics.InterpolationMode = InterpolationMode
+        'Change interpolation mode only if not invalid ...
+        If InterpolationMode <> Drawing2D.InterpolationMode.Invalid Then paintEventArgs.Graphics.InterpolationMode = InterpolationMode
         MyBase.OnPaint(paintEventArgs)
     End Sub
 

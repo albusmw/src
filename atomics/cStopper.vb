@@ -40,26 +40,47 @@ Public Class cStopper
     '================================================================================
 
     '''<summary>Log the timing and restart the watch again.</summary>
-    Public Sub Toc()
-        Stamp(MessageCache)
-    End Sub
+    Public Function Toc() As Long
+        Dim ElapsedMilliseconds As Long = -1
+        Stamp(MessageCache, ElapsedMilliseconds)
+        Return ElapsedMilliseconds
+    End Function
 
     '''<summary>Log the timing and restart the watch again.</summary>
-    Public Sub Toc(ByVal Text As String)
-        Stamp(Text)
-    End Sub
+    '''<returns>Elapes time [ms].</returns>
+    Public Function Toc(ByVal Text As String) As Long
+        Dim ElapsedMilliseconds As Long = -1
+        Stamp(Text, ElapsedMilliseconds)
+        Return ElapsedMilliseconds
+    End Function
 
     '''<summary>Log the timing and restart the watch again.</summary>
+    '''Dim ElapsedMilliseconds As Long = -1
     Public Function [Stamp](ByVal Text As String) As String
-        Return Stamp(Text, False)
+        Dim ElapsedMilliseconds As Long = -1
+        Return Stamp(Text, ElapsedMilliseconds)
+    End Function
+
+    '''<summary>Log the timing and restart the watch again.</summary>
+    Public Function [Stamp](ByVal Text As String, ByRef ElapsedMilliseconds As Long) As String
+        Return Stamp(Text, False, ElapsedMilliseconds)
     End Function
 
     '''<summary>Log the timing and restart the watch again.</summary>
     '''<param name="Text">Text to add to stamp.</param>
     '''<param name="LogMemory">Log memory usage (SLOW!!!!!).</param>
     Public Function [Stamp](ByVal Text As String, ByVal LogMemory As Boolean) As String
+        Dim ElapsedMilliseconds As Long = -1
+        Return Stamp(Text, LogMemory, ElapsedMilliseconds)
+    End Function
+
+    '''<summary>Log the timing and restart the watch again.</summary>
+    '''<param name="Text">Text to add to stamp.</param>
+    '''<param name="LogMemory">Log memory usage (SLOW!!!!!).</param>
+    Public Function [Stamp](ByVal Text As String, ByVal LogMemory As Boolean, ByRef ElapsedMilliseconds As Long) As String
         Watch.Stop()
-        Dim Message As String = Text.PadRight(PadMessage) & " : " & Watch.ElapsedMilliseconds.ValRegIndep.PadLeft(PadTime) & " ms"
+        ElapsedMilliseconds = Watch.ElapsedMilliseconds
+        Dim Message As String = Text.PadRight(PadMessage) & " : " & ElapsedMilliseconds.ValRegIndep.PadLeft(PadTime) & " ms"
         If LogMemory = True Then Message &= "- memory: " & Format(Process.GetCurrentProcess.PrivateMemorySize64 / 1048576, "0.0") & " MByte"
         TimeLog.Add(Format(Now, "HH.mm.ss:fff") & "|" & Message)
         MessageCache = String.Empty

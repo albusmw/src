@@ -250,6 +250,18 @@ Namespace AstroNET
                 Return RetVal
             End Function
 
+            '''<summary>Get a fractional percentile value.</summary>
+            Public Function MonochromHistogram_PctFract(ByVal X As Double) As ADUFixed
+                Dim SamplesSeen As ADUCount = 0
+                Dim NextPctLimit As UInt64 = CType(X * (MonoStatistics_Int.Samples / 100), UInt64)
+                For Each ADUValue As ADUFixed In MonochromHistogram_Int.Keys
+                    SamplesSeen += MonochromHistogram_Int(ADUValue)
+                    If SamplesSeen >= NextPctLimit Then
+                        Return ADUValue
+                    End If
+                Next ADUValue
+                Return MonoStatistics_Int.Max.Key
+            End Function
 
         End Structure
 

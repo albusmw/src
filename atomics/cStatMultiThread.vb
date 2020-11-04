@@ -18,8 +18,6 @@ Public Class cStatMultiThread
     End Class
 End Class
 
-
-
 '''<summary>Class to calculate 2D matrix statistics multi-threaded.</summary>
 '''<remarks>Calculation is done by buidling a vector with all possible entries (only 2^16 length).</remarks>
 Public Class cStatMultiThread_UInt16
