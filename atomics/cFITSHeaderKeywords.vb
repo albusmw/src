@@ -475,34 +475,34 @@ Public Class cFITSKeywords
         Return "'" & Value & "'"
     End Function
 
-    '''<summary>Formated content for all "DATE..." fields, without time.</summary>
+    '''<summary>Formated content as a double number.</summary>
     Public Shared Function GetDouble(ByVal Value As Double) As String
         Return Value.ToString.Trim.Replace(",", ".")
     End Function
 
     '''<summary>Formated content for all "DATE..." fields, without time.</summary>
     Public Shared Function GetDate() As String
-        Return "'" & GetDate(Now) & "'"
+        Return GetDate(Now)
     End Function
 
     '''<summary>Formated content for all "DATE..." fields, without time.</summary>
     Public Shared Function GetDate(ByVal Moment As DateTime) As String
-        Return "'" & Format(Moment, "yyyy-dd-MM") & "'"
+        Return Format(Moment, "yyyy-dd-MM")
     End Function
 
     '''<summary>Formated content for all "DATE..." fields, time.</summary>
     Public Shared Function GetDateWithTime() As String
-        Return "'" & GetDateWithTime(Now) & "'"
+        Return GetDateWithTime(Now)
     End Function
 
     '''<summary>Formated content for all "DATE..." fields, time.</summary>
     Public Shared Function GetDateWithTime(ByVal Moment As DateTime) As String
-        Return "'" & Format(Moment, "yyyy-dd-MMTHH:mm:ss.fff") & "'"
+        Return Format(Moment, "yyyy-dd-MMTHH:mm:ss.fff")
     End Function
 
     '''<summary>Formated content for all "TIME..." fields, time.</summary>
     Public Shared Function GetTime(ByVal Moment As DateTime) As String
-        Return "'" & Format(Moment, "HH:mm:ss.fff") & "'"
+        Return Format(Moment, "HH:mm:ss.fff")
     End Function
 
 End Class
