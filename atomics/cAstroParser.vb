@@ -18,21 +18,25 @@ Public Class AstroParser
     Private Shared ReadOnly Sep As Char = CChar("|")
 
     '''<summary>NEW parser for coordinate input (not yet finished) - split entry into number and unit parts.</summary>
-    Public Shared Function ParseCoord(ByVal Argument As String) As List(Of sCoordParts)
+    '''<param name="Argument">Text to parse.</param>
+    '''<param name="NoUnits">Indicate that there are no units at all.</param>
+    '''<returns>List of found digit-unit pairs.</returns>
+    Public Shared Function ParseCoord(ByVal Argument As String, ByVal NoUnits As Boolean) As List(Of sCoordParts)
 
         Dim Opt As Text.RegularExpressions.RegexOptions = System.Text.RegularExpressions.RegexOptions.IgnoreCase
         Dim NumberRegEx As String = "[0-9.,]{1,}"
-        Dim NonNumberRegEx As String = "[^0-9.,]{1,}"
+        Dim NonNumberRegEx As String = "[^0-9.,]{0,}"
         Dim RegExInp As String = System.Text.RegularExpressions.Regex.Replace(Argument, "\s", String.Empty)
         Dim AllDigits As New Text.RegularExpressions.Regex(NumberRegEx & NonNumberRegEx, Opt)
         Dim Result As Text.RegularExpressions.MatchCollection = AllDigits.Matches(RegExInp)
 
         Dim RetVal As New List(Of sCoordParts)
+        NoUnits = True
         For Each Item As Text.RegularExpressions.Group In Result
             Dim NumPart As String = System.Text.RegularExpressions.Regex.Match(Item.Value, NumberRegEx).Value
-            Dim NonNumPart As String = System.Text.RegularExpressions.Regex.Match(Item.Value, NonNumberRegEx).Value
+            Dim NonNumPart As String = System.Text.RegularExpressions.Regex.Match(Item.Value, NonNumberRegEx).Value.Trim
             RetVal.Add(New sCoordParts(Val(NumPart.Replace(",", ".")), NonNumPart))
-            Console.WriteLine("<" & Item.Value & "> == <" & NumPart & "|" & NonNumPart & ">")
+            If NonNumPart.Length > 0 Then NoUnits = False
         Next Item
 
         Return RetVal
@@ -43,15 +47,22 @@ Public Class AstroParser
     '''<param name="Text">Text.</param>
     '''<returns>Value [h].</returns>
     Public Shared Function ParseRA(ByVal Text As String) As Double
-        '1.) Try to generate a common notation
-        Dim Splitted As List(Of sCoordParts) = ParseCoord(Text)
+        'In case of no units passen (e.g. ":"), HH:MM:SS is assumed and default units are used
+        Dim NoUnits As Boolean = True
+        Dim DefaultUnits As String() = {"H", "M", "S"}
+        Dim UnitPtr As Integer = 0
+
+        Dim Splitted As List(Of sCoordParts) = ParseCoord(Text, NoUnits)
         Dim RetVal As Double = 0
         For Each Part As sCoordParts In Splitted
-            Select Case Part.Unit.ToUpper
+            Dim UnitToUse As String = Part.Unit.ToUpper
+            If NoUnits Then UnitToUse = DefaultUnits(UnitPtr)
+            Select Case UnitToUse
                 Case "H" : RetVal += Part.Value
                 Case "M", "MIN", "'", "´" : RetVal += (Part.Value / 60.0)
                 Case "S", "SEC", "''", Chr(34), "´´", "``" : RetVal += (Part.Value / 3600.0)
             End Select
+            UnitPtr += 1
         Next Part
         Return RetVal
     End Function
