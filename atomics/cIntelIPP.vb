@@ -246,6 +246,7 @@ Partial Public Class cIntelIPP
     End Sub
     Friend Shared Sub AdjustSize(Of InT, OutT)(ByRef Source(,) As InT, ByRef Target(,) As OutT)
         Dim Adjust As Boolean = False
+        If IsNothing(Target) = True Then Target = New OutT(,) {}
         If Source.GetUpperBound(0) <> Target.GetUpperBound(0) Then Adjust = True
         If Source.GetUpperBound(1) <> Target.GetUpperBound(1) Then Adjust = True
         If Adjust Then ReDim Target(0 To Source.GetUpperBound(0), 0 To Source.GetUpperBound(1))
@@ -922,6 +923,15 @@ Partial Public Class cIntelIPP
         Dim RetVal As IppStatus = IppStatus.NoErr
         Dim Caller As System.Delegate = CallIPPS("ippsCopy_16s", GetType(CallSignature.IntPtr_IntPtr_Integer))
         Using Pinner As New cPinHandler
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), Pinner.Pin(ArrayOut), ArrayIn.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    Public Function Copy(ByRef ArrayIn(,) As UInt32, ByRef ArrayOut(,) As UInt32) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsCopy_32s", GetType(CallSignature.IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            AdjustSize(ArrayIn, ArrayOut)
             RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), Pinner.Pin(ArrayOut), ArrayIn.Length), IppStatus)
         End Using : Return RetVal
     End Function
