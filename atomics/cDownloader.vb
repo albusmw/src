@@ -28,6 +28,7 @@ Public Class cDownloader
         If IsNothing(Downloader) Then Downloader = New System.Net.WebClient()
         If String.IsNullOrEmpty(MyProxyURL) = False Then ConfigProxy(Downloader)
         Downloader.Encoding = System.Text.Encoding.UTF8
+        'System.Net.ServicePointManager.ServerCertificateValidationCallback = AddressOf ValidateCertificate
     End Sub
 
     'Configure the connection to work with the specified proxy
@@ -42,7 +43,11 @@ Public Class cDownloader
 
     Public Function DownloadString(ByVal URL As String) As String
         If IsNothing(Downloader) Then InitWebClient()
-        Return Downloader.DownloadString(URL)
+        Try
+            Return Downloader.DownloadString(URL)
+        Catch ex As Exception
+            Return String.Empty
+        End Try
     End Function
 
     Public Function DownloadFile(ByVal URL As String, ByVal FileName As String) As Boolean
@@ -52,6 +57,10 @@ Public Class cDownloader
         Catch ex As Exception
             Return False
         End Try
+    End Function
+
+    Private Shared Function ValidateCertificate(sender As Object, certificate As Security.Cryptography.X509Certificates.X509Certificate, chain As Security.Cryptography.X509Certificates.X509Chain, sslPolicyErrors As Net.Security.SslPolicyErrors) As Boolean
+        Return True
     End Function
 
 End Class
