@@ -1,6 +1,9 @@
 ﻿Option Explicit On
 Option Strict On
 
+'List of named stars:
+'http://www.pas.rochester.edu/~emamajek/WGSN/IAU-CSN.txt
+
 Public Class cAstroCats
 
     'Needs references:  cDownloader.vb
@@ -167,35 +170,116 @@ Public Class cAstroCats
     '''<remarks>The SIMBAD astronomical database. The CDS reference database for astronomical objects.</remarks>
     Public Class cSimbad
 
+        'Documentation:
+        ' http://simbad.u-strasbg.fr/Pages/guide/sim-url.htx
+
+        Public Class Descriptors
+            Public Shared Identifier As String = "Identifier"
+            Public Shared Typ As String = "Typ"
+            Public Shared Typ_verbose As String = "Typ_verbose"
+            Public Shared Coord_RA As String = "Coord_RA"
+            Public Shared Coord_DEC As String = "Coord_DEC"
+            Public Shared Mag_V As String = "Mag_V"
+        End Class
+
         'Example query:
         'Criteria=Vmag%3c4&submit=submit%20query&OutputMode=LIST&maxObject=1000&CriteriaFile=&output.format=ASCII
 
         '''<summary>Root URL where to load the content from.</summary>
-        Public Shared Property RootURL() As String = "http://simbad.u-strasbg.fr/simbad/sim-sam?"
+        Public Shared Property RootURL_SimSam() As String = "http://simbad.u-strasbg.fr/simbad/sim-sam?"
+        '''<summary>Root URL where to load the content from.</summary>
+        Public Shared Property RootURL_SimId() As String = "http://simbad.u-strasbg.fr/simbad/sim-id?"
 
         '''<summary>Downloader for content.</summary>
         Private Shared MyDownloader As New cDownloader
 
         '''<summary>Run a specific query against the SIMBAD database.</summary>
-        Public Shared Function Query(ByVal QueryToRun As String) As String
+        Public Shared Function QuerySimSam(ByVal QueryToRun As String) As String
             MyDownloader.InitWebClient()
-            Return MyDownloader.DownloadString(RootURL & QueryToRun)
+            Return MyDownloader.DownloadString(RootURL_SimSam & QueryToRun)
         End Function
 
-        Public Shared Function GetList(ByVal QueryToRun As String) As List(Of List(Of String))
-            Dim Answer As String = Query(QueryToRun)
-            Dim RetVal As New List(Of List(Of String))
+        '''<summary>Run a specific query against the SIMBAD database.</summary>
+        Public Shared Function QuerySimID(ByVal QueryToRun As String) As String
+            MyDownloader.InitWebClient()
+            Return MyDownloader.DownloadString(RootURL_SimId & QueryToRun)
+        End Function
+
+        '''<summary>Run a specific conplete catalog on the SIMBAD database.</summary>
+        Public Shared Function QuerySimID_Cat(ByVal Catalog As String) As String
+            MyDownloader.InitWebClient()
+            Dim Query As String = RootURL_SimId & "Ident=" & Catalog & "&NbIdent=cat&submit=submit+id&output.format=ASCII"
+            Return MyDownloader.DownloadString(Query)
+        End Function
+
+        '''<summary>Get the object data of a specific named element.</summary>
+        Public Shared Function GetNamedElement(ByVal ElementName As String, ByRef RA As Double, ByRef Dec As Double) As String
+
+            RA = Double.NaN
+            Dec = Double.NaN
+
+            Try
+                Dim req As Net.HttpWebRequest = CType(Net.WebRequest.Create(RootURL_SimId & "Ident=" & ElementName & "&output.format=ASCII"), Net.HttpWebRequest)
+                req.Method = "Get"
+                Dim Answer As String = (New IO.StreamReader(CType(req.GetResponse(), Net.HttpWebResponse).GetResponseStream)).ReadToEnd
+                Return Answer
+            Catch ex As Exception
+                Return String.Empty
+            End Try
+
+        End Function
+
+        '''<summary>Parse the returned SIMBAD answer.</summary>
+        Public Shared Function ParseAnswer(ByVal SIMBADAnswer As String) As List(Of Dictionary(Of String, Object))
+            Dim RetVal As New List(Of Dictionary(Of String, Object))
             Dim InDataCounter As Integer = 0                        'there are 2 starting lines which are ignored (header and -------)
-            For Each Line As String In Answer.Split(Chr(10))
+            Dim Header As New Dictionary(Of String, Integer)        'mapping between header and column index
+            For Each Line As String In SIMBADAnswer.Split(Chr(10))
                 Dim SingleLine As String() = TrimObjectCode(Split(Line, "|"))
                 If SingleLine.Length > 5 Then
+                    'Process the header
+                    If InDataCounter = 0 Then
+                        For Idx As Integer = 0 To SingleLine.GetUpperBound(0)
+                            Header.Add(SingleLine(Idx).Replace(" ", String.Empty), Idx)
+                        Next Idx
+                    End If
                     If InDataCounter >= 2 Then
-                        RetVal.Add(New List(Of String)({SingleLine(1), SimbadObjectCode(SingleLine(2)), SingleLine(6)}))
+                        Dim ObjectDescription As New Dictionary(Of String, Object)
+                        Dim OType As String = CStr(GetNamedElement(SingleLine, Header, "typ"))
+                        Dim Coords As String = CStr(GetNamedElement(SingleLine, Header, "coord1 (ICRS,J2000/2000)"))
+                        ObjectDescription.Add(Descriptors.Identifier, GetNamedElement(SingleLine, Header, "identifier"))                 'identifier
+                        ObjectDescription.Add(Descriptors.Typ, OType)
+                        If IsNothing(OType) = False Then ObjectDescription.Add(Descriptors.Typ_verbose, SimbadObjectCode(OType))
+                        If IsNothing(Coords) = False Then
+                            Dim CoordSplit As String() = Split(Coords, " ")
+                            ObjectDescription.Add(Descriptors.Coord_RA, Val(CoordSplit(0)) + (Val(CoordSplit(1)) / 60) + (Val(CoordSplit(2)) / 3600))
+                            ObjectDescription.Add(Descriptors.Coord_DEC, Val(CoordSplit(3)) + (Val(CoordSplit(4)) / 60) + (Val(CoordSplit(5)) / 3600))
+                        End If
+                        ObjectDescription.Add(Descriptors.Mag_V, GetNamedElement(SingleLine, Header, "Mag V"))
+                        RetVal.Add(ObjectDescription)
                     End If
                     InDataCounter += 1
                 End If
             Next Line
             Return RetVal
+        End Function
+
+        ''' <summary>Get the requested element from the SIMBAD answer.</summary>
+        ''' <param name="SplitAnswer">Splitted single SIMBAD answer line.</param>
+        ''' <param name="Header">Detected header elements.</param>
+        ''' <param name="Element">Requested element.</param>
+        Public Shared Function GetNamedElement(ByRef SplitAnswer As String(), ByRef Header As Dictionary(Of String, Integer), ByVal Element As String) As Object
+            Element = Element.Replace(" ", String.Empty)
+            If Header.ContainsKey(Element) = True Then
+                Dim Idx As Integer = Header(Element)
+                If SplitAnswer.GetUpperBound(0) >= Idx Then
+                    Return SplitAnswer(Idx)
+                Else
+                    Return Nothing                              'answer is not long enough
+                End If
+            Else
+                Return Nothing                                  'requested element is not present
+            End If
         End Function
 
         '''<summary>Translate the code from webpage codes webpage to VB code (which can be found below ...).</summary>
@@ -233,15 +317,19 @@ Public Class cAstroCats
             Return ObjectCode
         End Function
 
+        Public Shared Function SortByMagV(A As String, B As String) As Integer
+            Return Val(A.Substring(0, 5)).CompareTo(Val(B.Substring(0, 5)))
+        End Function
+
         '''<summary>SIMBAD object codes and description.</summary>
         Public Shared ReadOnly SimbadObjectCode As New Dictionary(Of String, String) From {
-{"?", "Unknown (Object of unknown nature)"},
-{"ev", "Transient (transient event)"},
+{"?", "Unknown (Object Of unknown nature)"},
+{"ev", "Transient (transient Event)"},
 {"Rad", "Radio (Radio-source)"},
 {"mR", "Radio(m) (metric Radio-source)"},
 {"cm", "Radio(cm) (centimetric Radio-source)"},
 {"mm", "Radio(mm) (millimetric Radio-source)"},
-{"smm", "Radio(sub-mm) (sub-millimetric source)"},
+{"smm", "Radio(Sub-mm) (Sub-millimetric source)"},
 {"HI", "HI (HI (21cm) source)"},
 {"rB", "radioBurst (radio Burst)"},
 {"Mas", "Maser (Maser)"},
@@ -250,14 +338,14 @@ Public Class cAstroCats
 {"NIR", "IR<10um (Near-IR source (λ < 10 µm))"},
 {"red", "Red (Very red source)"},
 {"ERO", "RedExtreme (Extremely Red Object)"},
-{"blu", "Blue (Blue object)"},
+{"blu", "Blue (Blue Object)"},
 {"UV", "UV (UV-emission source)"},
 {"X", "X (X-ray source)"},
 {"UX?", "ULX? (Ultra-luminous X-ray candidate)"},
 {"ULX", "ULX (Ultra-luminous X-ray source)"},
 {"gam", "gamma (gamma-ray source)"},
 {"gB", "gammaBurst (gamma-ray Burst)"},
-{"err", "Inexistent (Not an object (error, artefact, ...))"},
+{"err", "Inexistent (Not an Object (Error, artefact, ...))"},
 {"grv", "Gravitation (Gravitational Source)"},
 {"Lev", "LensingEv ((Micro)Lensing Event)"},
 {"LS?", "Candidate_LensSystem (Possible gravitational lens System)"},
@@ -268,9 +356,9 @@ Public Class cAstroCats
 {"GWE", "GravWaveEvent (Gravitational Wave Event)"},
 {"..?", "Candidates (Candidate objects)"},
 {"G?", "Possible_G (Possible Galaxy)"},
-{"SC?", "Possible_SClG (Possible Supercluster of Galaxies)"},
-{"C?G", "Possible_ClG (Possible Cluster of Galaxies)"},
-{"Gr?", "Possible_GrG (Possible Group of Galaxies)"},
+{"SC?", "Possible_SClG (Possible Supercluster Of Galaxies)"},
+{"C?G", "Possible_ClG (Possible Cluster Of Galaxies)"},
+{"Gr?", "Possible_GrG (Possible Group Of Galaxies)"},
 {"As?", "Possible_As* ()"},
 {"**?", "Candidate_** (Physical Binary Candidate)"},
 {"EB?", "Candidate_EB* (Eclipsing Binary Candidate)"},
@@ -286,13 +374,13 @@ Public Class cAstroCats
 {"TT?", "Candidate_TTau* (T Tau star Candidate)"},
 {"C*?", "Candidate_C* (Possible Carbon Star)"},
 {"S*?", "Candidate_S* (Possible S Star)"},
-{"OH?", "Candidate_OH (Possible Star with envelope of OH/IR type)"},
-{"CH?", "Candidate_CH (Possible Star with envelope of CH type)"},
+{"OH?", "Candidate_OH (Possible Star With envelope Of OH/IR type)"},
+{"CH?", "Candidate_CH (Possible Star With envelope Of CH type)"},
 {"WR?", "Candidate_WR* (Possible Wolf-Rayet Star)"},
 {"Be?", "Candidate_Be* (Possible Be Star)"},
 {"Ae?", "Candidate_Ae* (Possible Herbig Ae/Be Star)"},
 {"HB?", "Candidate_HB* (Possible Horizontal Branch Star)"},
-{"RR?", "Candidate_RRLyr (Possible Star of RR Lyr type)"},
+{"RR?", "Candidate_RRLyr (Possible Star Of RR Lyr type)"},
 {"Ce?", "Candidate_Cepheid (Possible Cepheid)"},
 {"RB?", "Candidate_RGB* (Possible Red Giant Branch star)"},
 {"sg?", "Candidate_SG* (Possible Supergiant star)"},
@@ -312,43 +400,43 @@ Public Class cAstroCats
 {"SN?", "Candidate_SN* (SuperNova Candidate)"},
 {"LM?", "Candidate_low-mass* (Low-mass star candidate)"},
 {"BD?", "Candidate_brownD* (Brown Dwarf Candidate)"},
-{"mul", "multiple_object (Composite object)"},
-{"reg", "Region (Region defined in the sky)"},
-{"vid", "Void (Underdense region of the Universe)"},
-{"SCG", "SuperClG (Supercluster of Galaxies)"},
-{"ClG", "ClG (Cluster of Galaxies)"},
-{"GrG", "GroupG (Group of Galaxies)"},
-{"CGG", "Compact_Gr_G (Compact Group of Galaxies)"},
-{"PaG", "PairG (Pair of Galaxies)"},
+{"mul", "multiple_object (Composite Object)"},
+{"reg", "Region (Region defined In the sky)"},
+{"vid", "Void (Underdense region Of the Universe)"},
+{"SCG", "SuperClG (Supercluster Of Galaxies)"},
+{"ClG", "ClG (Cluster Of Galaxies)"},
+{"GrG", "GroupG (Group Of Galaxies)"},
+{"CGG", "Compact_Gr_G (Compact Group Of Galaxies)"},
+{"PaG", "PairG (Pair Of Galaxies)"},
 {"IG", "IG (Interacting Galaxies)"},
 {"C?*", "Cl*? (Possible (open) star cluster)"},
 {"Gl?", "GlCl? (Possible Globular Cluster)"},
-{"Cl*", "Cl* (Cluster of Stars)"},
+{"Cl*", "Cl* (Cluster Of Stars)"},
 {"GlC", "GlCl (Globular Cluster)"},
 {"OpC", "OpCl (Open (galactic) Cluster)"},
-{"As*", "Assoc* (Association of Stars)"},
+{"As*", "Assoc* (Association Of Stars)"},
 {"St*", "Stream* (Stellar Stream)"},
 {"MGr", "MouvGroup (Moving Group)"},
-{"**", "** (Double or multiple star)"},
+{"**", "** (Double Or multiple star)"},
 {"EB*", "EB* (Eclipsing binary)"},
-{"Al*", "EB*Algol (Eclipsing binary of Algol type)"},
-{"bL*", "EB*betLyr (Eclipsing binary of beta Lyr type)"},
-{"WU*", "EB*WUMa (Eclipsing binary of W UMa type)"},
+{"Al*", "EB*Algol (Eclipsing binary Of Algol type)"},
+{"bL*", "EB*betLyr (Eclipsing binary Of beta Lyr type)"},
+{"WU*", "EB*WUMa (Eclipsing binary Of W UMa type)"},
 {"EP*", "EB*Planet (Star showing eclipses by its planet)"},
 {"SB*", "SB* (Spectroscopic binary)"},
 {"El*", "EllipVar (Ellipsoidal variable Star)"},
 {"Sy*", "Symbiotic* (Symbiotic Star)"},
 {"CV*", "CataclyV* (Cataclysmic Variable Star)"},
 {"DQ*", "DQHer (CV DQ Her type (intermediate polar))"},
-{"AM*", "AMHer (CV of AM Her type (polar))"},
-{"NL*", "Nova-like (Nova-like Star)"},
+{"AM*", "AMHer (CV Of AM Her type (polar))"},
+{"NL*", "Nova-Like (Nova-Like Star)"},
 {"No*", "Nova (Nova)"},
 {"DN*", "DwarfNova (Dwarf Nova)"},
 {"XB*", "XB (X-ray Binary)"},
 {"LXB", "LMXB (Low Mass X-ray Binary)"},
 {"HXB", "HMXB (High Mass X-ray Binary)"},
 {"ISM", "ISM (Interstellar matter)"},
-{"PoC", "PartofCloud (Part of Cloud)"},
+{"PoC", "PartofCloud (Part Of Cloud)"},
 {"PN?", "PN? (Possible Planetary Nebula)"},
 {"CGb", "ComGlob (Cometary Globule)"},
 {"bub", "Bubble (Bubble)"},
@@ -360,7 +448,7 @@ Public Class cAstroCats
 {"RNe", "RfNeb (Reflection Nebula)"},
 {"MoC", "MolCld (Molecular Cloud)"},
 {"glb", "Globule (Globule (low-mass dark cloud))"},
-{"cor", "denseCore (Dense core)"},
+{"cOr", "denseCore (Dense core)"},
 {"SFR", "SFregion (Star forming region)"},
 {"HVC", "HVCld (High-velocity Cloud)"},
 {"HII", "HII (HII (ionized) region)"},
@@ -369,15 +457,15 @@ Public Class cAstroCats
 {"SR?", "SNR? (SuperNova Remnant Candidate)"},
 {"SNR", "SNR (SuperNova Remnant)"},
 {"cir", "Circumstellar (CircumStellar matter)"},
-{"of?", "outflow? (Outflow candidate)"},
+{"Of?", "outflow? (Outflow candidate)"},
 {"out", "Outflow (Outflow)"},
 {"HH", "HH (Herbig-Haro Object)"},
 {"*", "Star (Star)"},
-{"*iC", "*inCl (Star in Cluster)"},
-{"*iN", "*inNeb (Star in Nebula)"},
-{"*iA", "*inAssoc (Star in Association)"},
-{"*i*", "*in** (Star in double system)"},
-{"V*?", "V*? (Star suspected of Variability)"},
+{"*iC", "*inCl (Star In Cluster)"},
+{"*In", "*inNeb (Star In Nebula)"},
+{"*iA", "*inAssoc (Star In Association)"},
+{"*i*", "*In** (Star In Double system)"},
+{"V*?", "V*? (Star suspected Of Variability)"},
 {"Pe*", "Pec* (Peculiar Star)"},
 {"HB*", "HB* (Horizontal Branch Star)"},
 {"Y*O", "YSO (Young Stellar Object)"},
@@ -397,54 +485,54 @@ Public Class cAstroCats
 {"pA*", "post-AGB* (Post-AGB Star (proto-PN))"},
 {"WD*", "WD* (White Dwarf)"},
 {"ZZ*", "pulsWD* (Pulsating White Dwarf)"},
-{"LM*", "low-mass* (Low-mass star (M<1solMass))"},
+{"LM*", "low-mass* (Low-mass star (M<1SolMass))"},
 {"BD*", "brownD* (Brown Dwarf (M<0.08solMass))"},
 {"N*", "Neutron* (Confirmed Neutron Star)"},
 {"OH*", "OH/IR (OH/IR star)"},
-{"CH*", "CH (Star with envelope of CH type)"},
+{"CH*", "CH (Star With envelope Of CH type)"},
 {"pr*", "pMS* (Pre-main sequence Star)"},
 {"TT*", "TTau* (T Tau-type Star)"},
 {"WR*", "WR* (Wolf-Rayet Star)"},
 {"PM*", "PM* (High proper-motion Star)"},
 {"HV*", "HV* (High-velocity Star)"},
 {"V*", "V* (Variable Star)"},
-{"Ir*", "Irregular_V* (Variable Star of irregular type)"},
-{"Or*", "Orion_V* (Variable Star of Orion Type)"},
-{"RI*", "Rapid_Irreg_V* (Variable Star with rapid variations)"},
+{"Ir*", "Irregular_V* (Variable Star Of irregular type)"},
+{"Or*", "Orion_V* (Variable Star Of Orion Type)"},
+{"RI*", "Rapid_Irreg_V* (Variable Star With rapid variations)"},
 {"Er*", "Eruptive* (Eruptive variable Star)"},
 {"Fl*", "Flare* (Flare Star)"},
-{"FU*", "FUOr (Variable Star of FU Ori type)"},
-{"RC*", "Erupt*RCrB (Variable Star of R CrB type)"},
-{"RC?", "RCrB_Candidate (Variable Star of R CrB type candiate)"},
+{"FU*", "FUOr (Variable Star Of FU Ori type)"},
+{"RC*", "Erupt*RCrB (Variable Star Of R CrB type)"},
+{"RC?", "RCrB_Candidate (Variable Star Of R CrB type candiate)"},
 {"Ro*", "RotV* (Rotationally variable Star)"},
-{"a2*", "RotV*alf2CVn (Variable Star of alpha2 CVn type)"},
+{"a2*", "RotV*alf2CVn (Variable Star Of alpha2 CVn type)"},
 {"Psr", "Pulsar (Pulsar)"},
-{"BY*", "BYDra (Variable of BY Dra type)"},
-{"RS*", "RSCVn (Variable of RS CVn type)"},
+{"BY*", "BYDra (Variable Of BY Dra type)"},
+{"RS*", "RSCVn (Variable Of RS CVn type)"},
 {"Pu*", "PulsV* (Pulsating variable Star)"},
-{"RR*", "RRLyr (Variable Star of RR Lyr type)"},
+{"RR*", "RRLyr (Variable Star Of RR Lyr type)"},
 {"Ce*", "Cepheid (Cepheid variable Star)"},
-{"dS*", "PulsV*delSct (Variable Star of delta Sct type)"},
-{"RV*", "PulsV*RVTau (Variable Star of RV Tau type)"},
-{"WV*", "PulsV*WVir (Variable Star of W Vir type)"},
-{"bC*", "PulsV*bCep (Variable Star of beta Cep type)"},
+{"dS*", "PulsV*delSct (Variable Star Of delta Sct type)"},
+{"RV*", "PulsV*RVTau (Variable Star Of RV Tau type)"},
+{"WV*", "PulsV*WVir (Variable Star Of W Vir type)"},
+{"bC*", "PulsV*bCep (Variable Star Of beta Cep type)"},
 {"cC*", "deltaCep (Classical Cepheid (delta Cep type))"},
-{"gD*", "gammaDor (Variable Star of gamma Dor type)"},
-{"SX*", "pulsV*SX (Variable Star of SX Phe type (subdwarf))"},
+{"gD*", "gammaDor (Variable Star Of gamma Dor type)"},
+{"SX*", "pulsV*SX (Variable Star Of SX Phe type (subdwarf))"},
 {"LP*", "LPV* (Long-period variable star)"},
-{"Mi*", "Mira (Variable Star of Mira Cet type)"},
+{"Mi*", "Mira (Variable Star Of Mira Cet type)"},
 {"sr*", "semi-regV* (Semi-regular pulsating Star)"},
 {"SN*", "SN (SuperNova)"},
-{"su*", "Sub-stellar (Sub-stellar object)"},
+{"su*", "Sub-stellar (Sub-stellar Object)"},
 {"Pl?", "Planet? (Extra-solar Planet Candidate)"},
 {"Pl", "Planet (Extra-solar Confirmed Planet)"},
 {"G", "Galaxy (Galaxy)"},
-{"PoG", "PartofG (Part of a Galaxy)"},
-{"GiC", "GinCl (Galaxy in Cluster of Galaxies)"},
-{"BiC", "BClG (Brightest galaxy in a Cluster (BCG))"},
-{"GiG", "GinGroup (Galaxy in Group of Galaxies)"},
-{"GiP", "GinPair (Galaxy in Pair of Galaxies)"},
-{"HzG", "High_z_G (Galaxy with high redshift)"},
+{"PoG", "PartofG (Part Of a Galaxy)"},
+{"GiC", "GinCl (Galaxy In Cluster Of Galaxies)"},
+{"BiC", "BClG (Brightest galaxy In a Cluster (BCG))"},
+{"GiG", "GinGroup (Galaxy In Group Of Galaxies)"},
+{"GiP", "GinPair (Galaxy In Pair Of Galaxies)"},
+{"HzG", "High_z_G (Galaxy With high redshift)"},
 {"ALS", "AbsLineSystem (Absorption Line system)"},
 {"LyA", "Ly-alpha_ALS (Ly alpha Absorption Line system)"},
 {"DLA", "DLy-alpha_ALS (Damped Ly-alpha Absorption Line system)"},
@@ -462,16 +550,16 @@ Public Class cAstroCats
 {"SBG", "StarburstG (Starburst Galaxy)"},
 {"bCG", "BlueCompG (Blue compact Galaxy)"},
 {"LeI", "LensedImage (Gravitationally Lensed Image)"},
-{"LeG", "LensedG (Gravitationally Lensed Image of a Galaxy)"},
-{"LeQ", "LensedQ (Gravitationally Lensed Image of a Quasar)"},
+{"LeG", "LensedG (Gravitationally Lensed Image Of a Galaxy)"},
+{"LeQ", "LensedQ (Gravitationally Lensed Image Of a Quasar)"},
 {"AGN", "AGN (Active Galaxy Nucleus)"},
 {"LIN", "LINER (LINER-type Active Galaxy Nucleus)"},
 {"SyG", "Seyfert (Seyfert Galaxy)"},
 {"Sy1", "Seyfert_1 (Seyfert 1 Galaxy)"},
 {"Sy2", "Seyfert_2 (Seyfert 2 Galaxy)"},
 {"Bla", "Blazar (Blazar)"},
-{"BLL", "BLLac (BL Lac - type object)"},
-{"OVV", "OVV (Optically Violently Variable object)"},
+{"BLL", "BLLac (BL Lac - type Object)"},
+{"OVV", "OVV (Optically Violently Variable Object)"},
 {"QSO", "QSO (Quasar)"}
 }
 

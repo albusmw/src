@@ -10,9 +10,15 @@ Namespace Ato
 
     '''<summary>Class to communicate with the planewave equipment (EFA, Delta-T).</summary>
     '''<seealso cref="EFA-Communication-Protocols.pdf"/>
-    '''<seealso cref="EFA-Communication-Protocols 2.pdf"/>
+    '''<seealso cref="C:\Users\albus\Dropbox\Astro\Unterlagen Ausrüstung\PlaneWave\EFA-Communication-Protocols 2.pdf"/>
     '''<seealso cref="efalib_for_customers.txt"/>
     Public Class PlaneWaveEFA
+
+        Public Enum eOnOff
+            Unknown = -1
+            Off = 0
+            [On] = 1
+        End Enum
 
         '''<summary>Available commands.</summary>
         Private Enum Commands As Byte
@@ -204,24 +210,30 @@ Namespace Ato
         End Function
 
         '''<summary>Command to parse the answer of TEMP_GET over.</summary>
-        Public Shared Function TEMP_GET_decode(ByRef Answer As Byte()) As Double
+        Public Shared Function TEMP_GET_decode(ByRef Answer As Byte(), ByRef Status As String) As Double
             Dim RetVal As Integer = Integer.MinValue
+            Dim NoSensor As Integer = &H7F7F
+            Status = String.Empty
             If Answer.Length >= 8 Then
                 RetVal = Answer(Answer.GetUpperBound(0) - 1) * 256 + (Answer(Answer.GetUpperBound(0) - 2))
-                If RetVal = &H7F7F Then Return Double.NaN
+                If RetVal = NoSensor Then
+                    Status = "No sensor for the address requested"
+                    Return -1000
+                End If
                 If RetVal > &H8000 Then RetVal = RetVal - &H10000
             Else
+                Status = "Wrong answer length"
                 Return Double.NaN
             End If
             Return RetVal * (1 / 16)
         End Function
 
         '''<summary>Command to parse the answer of FANS_GET.</summary>
-        Public Shared Function FANS_GET_decode(ByRef Answer As Byte()) As Boolean
+        Public Shared Function FANS_GET_decode(ByRef Answer As Byte()) As Ato.PlaneWaveEFA.eOnOff
             If Answer.Length >= 7 Then
-                Return CBool(IIf(Answer(Answer.GetUpperBound(0) - 1) = 3, False, True))
+                Return CType(IIf(Answer(Answer.GetUpperBound(0) - 1) = 3, Ato.PlaneWaveEFA.eOnOff.Off, Ato.PlaneWaveEFA.eOnOff.On), eOnOff)
             Else
-                Return False
+                Return Ato.PlaneWaveEFA.eOnOff.Unknown
             End If
         End Function
 
