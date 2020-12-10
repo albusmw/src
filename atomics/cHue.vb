@@ -11,30 +11,41 @@ Public Class cHue
     'https://github.com/Q42/Q42.HueApi
     'Install-Package Q42.HueApi -Version 3.16.0
     'Demo: https://github.com/andriks2/Andriks.HueApiDemo
+    'For color conversion see https://www.codeproject.com/Articles/613798/Colorspaces-and-Conversions
 
-    '''<summary>Key for this API.</summary>
-    Public Property MyPersonalAppKey As String = "lQcLDFzNwxOvkEpppP6loXXRUacXRL4tIG3gGQRN"
+    '''<summary>IP of the hue bridge.</summary>
     Public Property BridgeIP As String = "192.168.10.183"
+    '''<summary>Key to access the bridge from this app.</summary>
+    Public Property AppKey As String = "lQcLDFzNwxOvkEpppP6loXXRUacXRL4tIG3gGQRN"
 
     Private Const APIAddressTemplate As String = "http://{0}/api"
     Private Const BodyTemplate As String = "{{\""devicetype\"":\""{0}\""}}"
 
-    Public Async Sub Go(ByVal State As Boolean)
+    ''' <summary>Set the state of all lights OFF.</summary>
+    ''' <param name="State">State (FALSE=Off, TRUE=On).</param>
+    ''' <param name="Saturation">Saturation.</param>
+    ''' <param name="Brightness">Brightness.</param>
+    Public Sub AllOff()
+        AllLights(False, 0, 0, Color.Black)
+    End Sub
+
+    ''' <summary>Set the state of all lights.</summary>
+    ''' <param name="State">State (FALSE=Off, TRUE=On).</param>
+    ''' <param name="Saturation">Saturation.</param>
+    ''' <param name="Brightness">Brightness (0...255).</param>
+    Public Async Sub AllLights(ByVal State As Boolean, ByVal Saturation As Byte, ByVal Brightness As Byte, ByVal LEDColor As Color)
 
         Dim Client As New Q42.HueApi.LocalHueClient(BridgeIP)
-        Client.Initialize(MyPersonalAppKey)
+        Client.Initialize(AppKey)
         Dim AllLights As IEnumerable(Of Q42.HueApi.Light) = Await Client.GetLightsAsync
 
         Dim Command As New Q42.HueApi.LightCommand
 
         Command.On = State
-        Command.Saturation = 255
-        Command.Brightness = 100
-        Command.ColorCoordinates = New Double() {1.0, 0.0}
-        Dim Light_0 As Q42.HueApi.Models.Groups.HueResults = Await Client.SendCommandAsync(Command, New String() {AllLights(0).Id})
-
-        Command.ColorCoordinates = New Double() {1.0, 0.0}
-        Dim Light_1 As Q42.HueApi.Models.Groups.HueResults = Await Client.SendCommandAsync(Command, New String() {AllLights(1).Id})
+        Command.Saturation = Saturation
+        Command.Brightness = Brightness
+        Command = Q42.HueApi.ColorConverters.Original.LightCommandExtensions.SetColor(Command, New Q42.HueApi.ColorConverters.RGBColor(LEDColor.R, LEDColor.G, LEDColor.B), "LCT001")
+        Dim AllLightsResult As Q42.HueApi.Models.Groups.HueResults = Await Client.SendCommandAsync(Command)
 
     End Sub
 
