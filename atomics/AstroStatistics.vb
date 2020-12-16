@@ -90,24 +90,36 @@ Namespace AstroNET
             End Get
         End Property
 
-        '''<summary>Return the current dimensions of the loaded data.</summary>
-        Public ReadOnly Property Dimensions() As String
+        '''<summary>NAXIS1 value of the loaded data.</summary>
+        Public ReadOnly Property NAXIS1() As Integer
             Get
-                If DataProcessor_UInt16.ImageData(0).Data.LongLength > 0 Then
-                    Return DataProcessor_UInt16.ImageData(0).NAXIS1.ValRegIndep & "x" & DataProcessor_UInt16.ImageData(0).NAXIS2.ValRegIndep
+                Dim RetVal As Integer = -1
+                RetVal = DataProcessor_UInt16.ImageData(0).NAXIS1 : If RetVal <> -1 Then Return RetVal
+                RetVal = DataProcessor_UInt32.ImageData(0).NAXIS1 : If RetVal <> -1 Then Return RetVal
+                RetVal = DataProcessor_Float32.ImageData(0).NAXIS1 : If RetVal <> -1 Then Return RetVal
+                If IsNothing(DataProcessor_Int32.ImageData) = False Then
+                    If DataProcessor_Int32.ImageData.LongLength > 0 Then RetVal = (DataProcessor_Int32.ImageData.GetUpperBound(0) + 1)
                 End If
-                If DataProcessor_UInt32.ImageData(0).Data.LongLength > 0 Then
-                    Return DataProcessor_UInt32.ImageData(0).NAXIS1.ValRegIndep & "x" & DataProcessor_UInt32.ImageData(0).NAXIS2.ValRegIndep
-                End If
-                If DataProcessor_Float32.ImageData(0).Data.LongLength > 0 Then
-                    Return DataProcessor_Float32.ImageData(0).NAXIS1.ValRegIndep & "x" & DataProcessor_Float32.ImageData(0).NAXIS2.ValRegIndep
-                End If
-                If DataProcessor_Int32.ImageData.LongLength > 0 Then
-                    Return (DataProcessor_Int32.ImageData.GetUpperBound(0) + 1).ValRegIndep & "x" & (DataProcessor_Int32.ImageData.GetUpperBound(1) + 1).ValRegIndep
-                End If
-                Return Nothing
+                Return RetVal
             End Get
         End Property
+
+        '''<summary>NAXIS2 value of the loaded data.</summary>
+        Public ReadOnly Property NAXIS2() As Integer
+            Get
+                Dim RetVal As Integer = -1
+                RetVal = DataProcessor_UInt16.ImageData(0).NAXIS2 : If RetVal <> -1 Then Return RetVal
+                RetVal = DataProcessor_UInt32.ImageData(0).NAXIS2 : If RetVal <> -1 Then Return RetVal
+                RetVal = DataProcessor_Float32.ImageData(0).NAXIS2 : If RetVal <> -1 Then Return RetVal
+                If IsNothing(DataProcessor_Int32.ImageData) = False Then
+                    If DataProcessor_Int32.ImageData.LongLength > 0 Then RetVal = (DataProcessor_Int32.ImageData.GetUpperBound(1) + 1)
+                End If
+                Return RetVal
+            End Get
+        End Property
+
+        '''<summary>Return the current dimensions of the loaded data.</summary>
+        Public ReadOnly Property Dimensions() As String = NAXIS1.ValRegIndep & "x" & NAXIS2.ValRegIndep
 
         '''<summary>Constructor that creates an Intel IPP reference.</summary>
         '''<param name="IPPPath">Path to ipps.dll and ippvm.dll - if not set IPP will not be used.</param>
@@ -168,67 +180,101 @@ Namespace AstroNET
             End Property
 
             '''<summary>Report of all statistics properties of the structure.</summary>
-            Public Function StatisticsReport(ByVal MonoOnly As Boolean) As List(Of String)
-                Return StatisticsReport(MonoOnly, New List(Of String)({"R", "G1", "G2", "B"}))
+            Public Function StatisticsReport(ByVal MonoStatistics As Boolean, ByVal BayerStatistics As Boolean) As List(Of String)
+                Return StatisticsReport(MonoStatistics, BayerStatistics, New List(Of String)({"R", "G1", "G2", "B"}))
             End Function
 
             '''<summary>Report of all statistics properties of the structure.</summary>
-            Public Function StatisticsReport(ByVal MonoOnly As Boolean, ByVal ChannelNames As List(Of String)) As List(Of String)
+            Public Function StatisticsReport(ByVal MonoStatistics As Boolean, ByVal BayerStatistics As Boolean, ByVal ChannelNames As List(Of String)) As List(Of String)
                 Select Case DataMode
                     Case eDataMode.Float
-                        Return StatisticsReport_Float32(MonoOnly, ChannelNames, String.Empty)
+                        Return StatisticsReport_Float32(MonoStatistics, BayerStatistics, ChannelNames, String.Empty)
                     Case eDataMode.Fixed
-                        Return StatisticsReport_Int(MonoOnly, ChannelNames, String.Empty)
+                        Return StatisticsReport_Int(MonoStatistics, BayerStatistics, ChannelNames, String.Empty)
                     Case Else
                         Return New List(Of String)
                 End Select
             End Function
 
             '''<summary>Report of all statistics properties of the structure.</summary>
-            Public Function StatisticsReport_Int(ByVal MonoOnly As Boolean, ByVal ChannelNames As List(Of String), ByVal Indent As String) As List(Of String)
+            '''<param name="MonoStatistics">TRUE to display the mono statistics.</param>
+            '''<param name="BayerStatistics">TRUE to display the bayer statistics.</param>
+            '''<param name="BayerChannelNames">This of bayer channel names.</param>
+            '''<param name="Indent">Indent string.</param>
+            Public Function StatisticsReport_Int(ByVal MonoStatistics As Boolean, ByVal BayerStatistics As Boolean, ByVal BayerChannelNames As List(Of String), ByVal Indent As String) As List(Of String)
                 Dim RetVal As New List(Of String)
-                RetVal.Add(Indent & "Property".PadRight(sSingleChannelStatistics_Int.ReportHeaderLength) & ": " & "Mono".PadRight(sSingleChannelStatistics_Int.ReportValueLength) & "|")
-                For Each Entry As String In MonoStatistics_Int.StatisticsReport
-                    RetVal.Add(Indent & "  " & Entry & "|")
-                Next Entry
-                If Not MonoOnly Then
+                Dim MonoReport As List(Of String) = MonoStatistics_Int.StatisticsReport
+                'Init all rows with headers
+                RetVal.Add("Property".PadRight(sSingleChannelStatistics_Int.ReportHeaderLength - 1) & ": ")
+                For LineIdx As Integer = 0 To MonoReport.Count - 1
+                    RetVal.Add(MonoStatistics_Int.HeaderOnly(MonoReport(LineIdx)))
+                Next LineIdx
+                'Add mono report
+                If MonoStatistics Then
+                    Dim ChannelName As String = "Mono".PadRight(sSingleChannelStatistics_Int.ReportValueLength)
+                    RetVal(0) &= ChannelName & "| "
+                    For LineIdx As Integer = 0 To MonoReport.Count - 1
+                        RetVal(LineIdx + 1) &= MonoStatistics_Int.ValueOnly(MonoReport(LineIdx)) & "|"
+                    Next LineIdx
+                End If
+                'Add bayer report
+                If BayerStatistics Then
                     Dim ChannelIdx As Integer = 0
                     For Idx1 As Integer = 0 To BayerStatistics_Int.GetUpperBound(0)
                         For Idx2 As Integer = 0 To BayerStatistics_Int.GetUpperBound(1)
-                            RetVal(0) &= (ChannelNames(ChannelIdx) & "[" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "]").PadRight(sSingleChannelStatistics_Int.ReportValueLength) & "|"
-                            Dim LineIdx As Integer = 1
-                            For Each Entry As String In BayerStatistics_Int(Idx1, Idx2).StatisticsReport
-                                RetVal(LineIdx) &= Entry.Substring(sSingleChannelStatistics_Int.ReportHeaderLength) & "|"
-                                LineIdx += 1
-                            Next Entry
+                            Dim ChannelName As String = (BayerChannelNames(ChannelIdx) & "[" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "]").PadRight(sSingleChannelStatistics_Int.ReportValueLength)
+                            Dim BayerReport As List(Of String) = BayerStatistics_Int(Idx1, Idx2).StatisticsReport
+                            RetVal(0) &= (ChannelName & "| ")
+                            For LineIdx As Integer = 0 To BayerReport.Count - 1
+                                RetVal(LineIdx + 1) &= BayerStatistics_Int(Idx1, Idx2).ValueOnly(BayerReport(LineIdx)) & "|"
+                            Next LineIdx
                             ChannelIdx += 1
                         Next Idx2
                     Next Idx1
                 End If
+                'Add indent
+                For Idx As Integer = 0 To RetVal.Count - 1
+                    RetVal(Idx) = Indent & RetVal(Idx)
+                Next Idx
                 Return RetVal
             End Function
 
             '''<summary>Report of all statistics properties of the structure.</summary>
-            Public Function StatisticsReport_Float32(ByVal MonoOnly As Boolean, ByVal ChannelNames As List(Of String), ByVal Indent As String) As List(Of String)
+            Public Function StatisticsReport_Float32(ByVal MonoStatistics As Boolean, ByVal BayerStatistics As Boolean, ByVal BayerChannelNames As List(Of String), ByVal Indent As String) As List(Of String)
                 Dim RetVal As New List(Of String)
-                RetVal.Add(Indent & "Property".PadRight(sSingleChannelStatistics_Float32.ReportHeaderLength) & ": " & "Mono".PadRight(sSingleChannelStatistics_Float32.ReportValueLength) & "|")
-                For Each Entry As String In MonoStatistics_Float32.StatisticsReport
-                    RetVal.Add(Indent & "  " & Entry & "|")
-                Next Entry
-                If Not MonoOnly Then
+                Dim MonoReport As List(Of String) = MonoStatistics_Float32.StatisticsReport
+                'Init all rows with headers
+                RetVal.Add("Property".PadRight(sSingleChannelStatistics_Float32.ReportHeaderLength - 1) & ": ")
+                For LineIdx As Integer = 0 To MonoReport.Count - 1
+                    RetVal.Add(MonoStatistics_Float32.HeaderOnly(MonoReport(LineIdx)))
+                Next LineIdx
+                'Add mono report
+                If MonoStatistics Then
+                    Dim ChannelName As String = "Mono".PadRight(sSingleChannelStatistics_Float32.ReportValueLength)
+                    RetVal(0) &= ChannelName & "| "
+                    For LineIdx As Integer = 0 To MonoReport.Count - 1
+                        RetVal(LineIdx + 1) &= MonoStatistics_Float32.ValueOnly(MonoReport(LineIdx)) & "|"
+                    Next LineIdx
+                End If
+                'Add bayer report
+                If BayerStatistics Then
                     Dim ChannelIdx As Integer = 0
                     For Idx1 As Integer = 0 To BayerStatistics_Float32.GetUpperBound(0)
                         For Idx2 As Integer = 0 To BayerStatistics_Float32.GetUpperBound(1)
-                            RetVal(0) &= (ChannelNames(ChannelIdx) & "[" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "]").PadRight(sSingleChannelStatistics_Float32.ReportValueLength) & "|"
-                            Dim LineIdx As Integer = 1
-                            For Each Entry As String In BayerStatistics_Float32(Idx1, Idx2).StatisticsReport
-                                RetVal(LineIdx) &= Entry.Substring(sSingleChannelStatistics_Float32.ReportHeaderLength) & "|"
-                                LineIdx += 1
-                            Next Entry
+                            Dim ChannelName As String = (BayerChannelNames(ChannelIdx) & "[" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "]").PadRight(sSingleChannelStatistics_Float32.ReportValueLength)
+                            Dim BayerReport As List(Of String) = BayerStatistics_Float32(Idx1, Idx2).StatisticsReport
+                            RetVal(0) &= (ChannelName & "| ")
+                            For LineIdx As Integer = 0 To BayerReport.Count - 1
+                                RetVal(LineIdx + 1) &= BayerStatistics_Float32(Idx1, Idx2).ValueOnly(BayerReport(LineIdx)) & "|"
+                            Next LineIdx
                             ChannelIdx += 1
                         Next Idx2
                     Next Idx1
                 End If
+                'Add indent
+                For Idx As Integer = 0 To RetVal.Count - 1
+                    RetVal(Idx) = Indent & RetVal(Idx)
+                Next Idx
                 Return RetVal
             End Function
 
@@ -268,14 +314,15 @@ Namespace AstroNET
         '''<summary>Statistic information of one channel (RGB or total).</summary>
         '''<remarks>The maximum word with is taken as pixel values to cover all fixed-point formats ...</remarks>
         Public Structure sSingleChannelStatistics_Int
+            Public Shared ReadOnly DefaultPcts As Integer() = ({1, 5, 10, 25, 50, 75, 90, 95, 99})
             '''<summary>Number of characters in the header of the report.</summary>
-            Public Shared ReadOnly Property ReportHeaderLength As Integer = 20
+            Public Shared ReadOnly Property ReportHeaderLength As Integer = 19
             '''<summary>Number of characters in the value of the report.</summary>
             Public Shared ReadOnly Property ReportValueLength As Integer = 16
             '''<summary>Width [pixel] of the last image.</summary>
-            Public Width As UInt32
+            Public Width As Int32
             '''<summary>Height [pixel] of the last image.</summary>
-            Public Height As UInt32
+            Public Height As Int32
             '''<summary>Number of total samples (pixels) in the data set.</summary>
             Public Samples As UInt64
             '''<summary>Maximum value occured (value and number of pixel that have this value).</summary>
@@ -300,10 +347,33 @@ Namespace AstroNET
             Public Percentile As Dictionary(Of Integer, Int64)
             '''<summary>Pixel value that is present the most often.</summary>
             Public Modus As KeyValuePair(Of ADUFixed, ADUCount)
+            '''<summary>Dimensions as string.</summary>
+            Public ReadOnly Property Dimensions As String
+                Get
+                    Return Width.ValRegIndep & "x" & Height.ValRegIndep
+                End Get
+            End Property
+            '''<summary>Dimensions as string.</summary>
+            Public ReadOnly Property SamplesReadable As String
+                Get
+                    Dim TotalPixel As String = ((Samples / 1000000).ValRegIndep("0.0") & "M")
+                    If Samples < 1000000 Then TotalPixel = ((Samples / 1000).ValRegIndep("0.0") & "k")
+                    Return TotalPixel
+                End Get
+            End Property
             '''<summary>Standard deviation (calculated as in FitsWork).</summary>
             Public ReadOnly Property Variance As Double
                 Get
                     Return StdDev ^ 2
+                End Get
+            End Property
+            '''<summary>The HistXDist dictionary is not initialized or missing.</summary>
+            Public ReadOnly Property HistXDistMissing As Boolean
+                Get
+                    If IsNothing(HistXDist) Then Return True
+                    If IsNothing(HistXDist.KeyList) Then Return True
+                    If HistXDist.Count = 0 Then Return True
+                    Return False
                 End Get
             End Property
             '''<summary>Init all inner variables.</summary>
@@ -324,42 +394,76 @@ Namespace AstroNET
                 RetVal.Modus = Nothing
                 Return RetVal
             End Function
+            '''<summary>Report of all statistics properties of the structure as dictionary.</summary>
+            Public Function AllStats() As Dictionary(Of String, Object)
+                Dim RetVal As New Dictionary(Of String, Object)
+                RetVal.Add("Dimensions", Dimensions)
+                RetVal.Add("Total pixel", Samples)
+                RetVal.Add("Total pixel [kM]", SamplesReadable)
+                RetVal.Add("ADU values count", DifferentADUValues)
+                RetVal.Add("ADU values count 25-75 pct", ADUValues2575)
+                If HistXDistMissing Then
+                    RetVal.Add("ADU step size min", Nothing)
+                    RetVal.Add("ADU different step", Nothing)
+                Else
+                    RetVal.Add("ADU step size min", HistXDist.KeyList(0))
+                    RetVal.Add("ADU different step", HistXDist.KeyList.Count)
+                End If
+                RetVal.Add("Min value", Min.Key)
+                RetVal.Add("Min value #", Min.Value)
+                RetVal.Add("Modus value", Modus.Key)
+                RetVal.Add("Modus value #", Modus.Value)
+                RetVal.Add("Max value", Max.Key)
+                RetVal.Add("Max value #", Max.Value)
+                RetVal.Add("Median value", Median)
+                RetVal.Add("Mean value", Mean)
+                RetVal.Add("Standard dev", StdDev)
+                RetVal.Add("Variance", Variance)
+                For Each Pct As Integer In DefaultPcts
+                    If IsNothing(Percentile) = False Then
+                        If Percentile.ContainsKey(Pct) Then RetVal.Add(Pct.ToString.Trim.PadLeft(2) & "th", Percentile(Pct))
+                    End If
+                Next Pct
+                Return RetVal
+            End Function
             '''<summary>Report of all statistics properties of the structure.</summary>
-            '''<param name="DispHeader">TRUE to display the header, FALSE else.</param>
             Public Function StatisticsReport() As List(Of String)
                 Dim NotPresent As String = New String("-"c, ReportValueLength)
                 Dim RetVal As New List(Of String)
-                Dim HistXDist_keys As List(Of Long) = HistXDist.KeyList : If IsNothing(HistXDist_keys) = True Then HistXDist_keys = New List(Of Long)
-                Dim TotalPixel As String = ((Samples / 1000000).ValRegIndep("0.0") & "M")
-                If Samples < 1000000 Then TotalPixel = ((Samples / 1000).ValRegIndep("0.0") & "k")
-                RetVal.Add("Dimensions        : " & (Width.ValRegIndep & "x" & Height.ValRegIndep).PadLeft(ReportValueLength))
+                RetVal.Add("Dimensions        : " & Dimensions.PadLeft(ReportValueLength))
                 RetVal.Add("Total pixel       : " & Samples.ValRegIndep.PadLeft(ReportValueLength))
-                RetVal.Add("Total pixel       : " & TotalPixel.PadLeft(ReportValueLength))
+                RetVal.Add("Total pixel [kM]  : " & SamplesReadable.PadLeft(ReportValueLength))
                 RetVal.Add("ADU values count  : " & DifferentADUValues.ValRegIndep.PadLeft(ReportValueLength))
                 RetVal.Add("  in 25-75 pct    : " & ADUValues2575.ValRegIndep.PadLeft(ReportValueLength))
                 'Data on histogram of ADU stepping
-                If HistXDist_keys.Count = 0 Then
+                If HistXDistMissing Then
                     RetVal.Add("ADU step size min : " & NotPresent.PadLeft(ReportValueLength))
                     RetVal.Add("ADU different step: " & NotPresent.PadLeft(ReportValueLength))
                 Else
-                    RetVal.Add("ADU step size min : " & Format(HistXDist_keys(0), "####0").ToString.Trim.PadLeft(ReportValueLength))
-                    RetVal.Add("ADU different step: " & Format(HistXDist_keys.Count, "####0").ToString.Trim.PadLeft(ReportValueLength))
+                    RetVal.Add("ADU step size min : " & Format(HistXDist.KeyList(0), "####0").ToString.Trim.PadLeft(ReportValueLength))
+                    RetVal.Add("ADU different step: " & Format(HistXDist.KeyList.Count, "####0").ToString.Trim.PadLeft(ReportValueLength))
                 End If
                 RetVal.Add("Min value         : " & (Min.Key.ValRegIndep & " (" & Min.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
-                RetVal.Add("Modus value       : " & Modus.Key.ValRegIndep.PadLeft(ReportValueLength))
-                RetVal.Add("Modus value count : " & (Modus.Value.ValRegIndep & " x").PadLeft(ReportValueLength))
+                RetVal.Add("Modus value       : " & (Modus.Key.ValRegIndep & " (" & Modus.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
                 RetVal.Add("Max value         : " & (Max.Key.ValRegIndep & " (" & Max.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
                 RetVal.Add("Median value      : " & Median.ValRegIndep.PadLeft(ReportValueLength))
                 RetVal.Add("Mean value        : " & Format(Mean, "0.000").ToString.Trim.PadLeft(ReportValueLength))
-                RetVal.Add("Standard dev.     : " & Format(StdDev, "0.000").ToString.Trim.PadLeft(ReportValueLength))
+                RetVal.Add("Standard dev      : " & Format(StdDev, "0.000").ToString.Trim.PadLeft(ReportValueLength))
                 RetVal.Add("Variance          : " & Format(Variance, "0.000").ToString.Trim.PadLeft(ReportValueLength))
                 'Percentile report
-                For Each Pct As Integer In New Integer() {1, 5, 10, 25, 50, 75, 90, 95, 99}
+                For Each Pct As Integer In DefaultPcts
                     If IsNothing(Percentile) = False Then
                         If Percentile.ContainsKey(Pct) Then RetVal.Add(("Percentil - " & Pct.ToString.Trim.PadLeft(2) & " %  : ").PadRight(ReportHeaderLength) & Format(Percentile(Pct)).ToString.Trim.PadLeft(ReportValueLength))
                     End If
                 Next Pct
                 Return RetVal
+            End Function
+            '''<summary>Get only the header of the report entry.</summary>
+            Public Function HeaderOnly(ByVal Text As String) As String
+                If Text.Length >= ReportHeaderLength Then Return Text.Substring(0, ReportHeaderLength) Else Return Text
+            End Function
+            Public Function ValueOnly(ByVal Text As String) As String
+                If Text.Length > ReportHeaderLength Then Return Text.Substring(sSingleChannelStatistics_Int.ReportHeaderLength) Else Return Text
             End Function
         End Structure
 
@@ -371,9 +475,9 @@ Namespace AstroNET
             '''<summary>Number of characters in the value of the report.</summary>
             Public Shared ReadOnly Property ReportValueLength As Integer = 16
             '''<summary>Width [pixel] of the last image.</summary>
-            Public Width As UInt32
+            Public Width As Int32
             '''<summary>Height [pixel] of the last image.</summary>
-            Public Height As UInt32
+            Public Height As Int32
             '''<summary>Number of total samples (pixels) in the data set.</summary>
             Public Samples As ADUCount
             '''<summary>Maximum value occured (value and number of pixel that have this value).</summary>
@@ -457,6 +561,13 @@ Namespace AstroNET
                 Next Pct
                 Return RetVal
             End Function
+            '''<summary>Get only the header of the report entry.</summary>
+            Public Function HeaderOnly(ByVal Text As String) As String
+                If Text.Length >= ReportHeaderLength Then Return Text.Substring(0, ReportHeaderLength) Else Return Text
+            End Function
+            Public Function ValueOnly(ByVal Text As String) As String
+                If Text.Length > ReportHeaderLength Then Return Text.Substring(sSingleChannelStatistics_Int.ReportHeaderLength) Else Return Text
+            End Function
         End Structure
 
         '''<summary>Calculate the image statistics of the passed image data.</summary>
@@ -466,21 +577,22 @@ Namespace AstroNET
             Dim RetVal As New sStatistics
             Select Case DataMode
                 Case sStatistics.eDataMode.Float
-                    RetVal.BayerHistograms_Float32 = BayerStatistics_Float32()  'Calculate a 2x2 bayer statistics (also for mono data as thread-based will speed up ...)
-                    CalculateAllFromBayerStatistics(DataMode, RetVal)           'Add all other data (mono histo and statistics)
+                    RetVal.BayerHistograms_Float32 = RunHistoCalc_Float32()     'Calculate a 2x2 bayer statistics (also for mono data as thread-based will speed up ...)
+                    DeriveAllFromBayerHisto(DataMode, RetVal)                   'Add all other data (mono histo and statistics)
                 Case sStatistics.eDataMode.Fixed
                     RetVal.BayerHistograms_Int = BayerStatistics_Int(0)         'Calculate a 2x2 bayer statistics (also for mono data as thread-based will speed up ...)
-                    CalculateAllFromBayerStatistics(DataMode, RetVal)           'Add all other data (mono histo and statistics)
+                    DeriveAllFromBayerHisto(DataMode, RetVal)                   'Add all other data (mono histo and statistics)
+                    'Processing for 3-plane color image (not bayer but 3 "full resolution" color planes)
                     If DataProcessor_UInt16.ImageData(1).Length > 1 Then
                         ClearBayerStatistics(RetVal)                            'Clear bayer statistics
                         SetReadColorStat(RetVal, RetVal, 0, 0)                  'Make 1st channel to red stats
                         Dim Green As New sStatistics                            'Prepare new statistics for green
                         Green.BayerHistograms_Int = BayerStatistics_Int(1)      'Calculate 2nd layer (Index=1 - green)
-                        CalculateAllFromBayerStatistics(DataMode, Green)        'Add all other data (mono histo and statistics)
+                        DeriveAllFromBayerHisto(DataMode, Green)                'Add all other data (mono histo and statistics)
                         SetReadColorStat(RetVal, Green, 0, 1)                   'Make 1st channel to red stats
                         Dim Blue As New sStatistics                             'Prepare new statistics for blue
                         Blue.BayerHistograms_Int = BayerStatistics_Int(2)       'Calculate 3rd layer (Index=2 - blue)
-                        CalculateAllFromBayerStatistics(DataMode, Blue)         'Add all other data (mono histo and statistics)
+                        DeriveAllFromBayerHisto(DataMode, Blue)                 'Add all other data (mono histo and statistics)
                         SetReadColorStat(RetVal, Blue, 1, 1)                    'Make 1st channel to red stats
                     End If
             End Select
@@ -493,21 +605,21 @@ Namespace AstroNET
         '''<summary>Reset the bayer statistics to prepare for a real color statistics.</summary>
         Private Sub ClearBayerStatistics(ByRef Results As sStatistics)
             With Results
-                .BayerHistograms_Int(0, 0) = Nothing
-                .BayerHistograms_Int(1, 0) = Nothing
-                .BayerHistograms_Int(0, 1) = Nothing
-                .BayerHistograms_Int(1, 1) = Nothing
-                .BayerStatistics_Int(0, 0) = Nothing
-                .BayerStatistics_Int(1, 0) = Nothing
-                .BayerStatistics_Int(0, 1) = Nothing
-                .BayerStatistics_Int(1, 1) = Nothing
+                For BayIdx1 As Integer = 0 To 1
+                    For BayIdx2 As Integer = 0 To 1
+                        .BayerHistograms_Int(BayIdx1, BayIdx2) = Nothing
+                        .BayerStatistics_Int(BayIdx1, BayIdx2) = Nothing
+                        .BayerHistograms_Float32(BayIdx1, BayIdx2) = Nothing
+                        .BayerStatistics_Float32(BayIdx1, BayIdx2) = Nothing
+                    Next BayIdx2
+                Next BayIdx1
             End With
         End Sub
 
         '''<summary>Set a certain bayer channel.</summary>
-        Private Sub SetReadColorStat(ByRef StatisticsToSet As sStatistics, ByVal NewStatistics As sStatistics, ByVal BIdx0 As Integer, ByVal BIdx1 As Integer)
-            StatisticsToSet.BayerStatistics_Int(BIdx0, BIdx1) = NewStatistics.MonoStatistics_Int
-            StatisticsToSet.BayerHistograms_Int(BIdx0, BIdx1) = NewStatistics.MonochromHistogram_Int
+        Private Sub SetReadColorStat(ByRef StatisticsToSet As sStatistics, ByVal NewStatistics As sStatistics, ByVal BayIdx1 As Integer, ByVal BayIdx2 As Integer)
+            StatisticsToSet.BayerStatistics_Int(BayIdx1, BayIdx2) = NewStatistics.MonoStatistics_Int
+            StatisticsToSet.BayerHistograms_Int(BayIdx1, BayIdx2) = NewStatistics.MonochromHistogram_Int
         End Sub
 
         '''<summary>Combine 2 SingleChannelStatistics elements (e.g. to calculate the aggregated statistic for multi-frame capture).</summary>
@@ -533,40 +645,40 @@ Namespace AstroNET
                         RetVal.BayerHistograms_Int(BayIdx1, BayIdx2) = RetVal.BayerHistograms_Int(BayIdx1, BayIdx2).SortDictionary
                     Next BayIdx2
                 Next BayIdx1
-                CalculateAllFromBayerStatistics(DataMode, RetVal)
+                DeriveAllFromBayerHisto(DataMode, RetVal)
                 RetVal.Count = CombinedStatistics.Count
             End If
             Return RetVal
         End Function
 
-        '''<summary>Calculate all statistic data (mono histo and statistics) from the passed bayer statistics.</summary>
-        Private Shared Sub CalculateAllFromBayerStatistics(ByVal DataMode As AstroNET.Statistics.sStatistics.eDataMode, ByRef RetVal As sStatistics)
+        '''<summary>Derive all statistic data (mono histo and statistics) from the bayer statistics calculated before.</summary>
+        Private Shared Sub DeriveAllFromBayerHisto(ByVal DataMode As AstroNET.Statistics.sStatistics.eDataMode, ByRef RetVal As sStatistics)
             'Calculate a monochromatic statistics from the bayer histograms
             Select Case DataMode
                 Case sStatistics.eDataMode.Float
                     RetVal.MonochromHistogram_Float32 = CombineBayerToMonoStatistics(RetVal.BayerHistograms_Float32)
                     ReDim RetVal.BayerStatistics_Float32(RetVal.BayerHistograms_Float32.GetUpperBound(0), RetVal.BayerHistograms_Float32.GetUpperBound(1))
-                    For Idx1 As Integer = 0 To RetVal.BayerHistograms_Float32.GetUpperBound(0)
-                        For Idx2 As Integer = 0 To RetVal.BayerHistograms_Float32.GetUpperBound(1)
-                            RetVal.BayerStatistics_Float32(Idx1, Idx2) = CalcStatisticFromHistogram(RetVal.BayerHistograms_Float32(Idx1, Idx2))
-                        Next Idx2
-                    Next Idx1
-                    RetVal.MonoStatistics_Float32 = CalcStatisticFromHistogram(RetVal.MonochromHistogram_Float32)
+                    For BayerOffsetX As Integer = 0 To RetVal.BayerHistograms_Float32.GetUpperBound(0)
+                        For BayerOffsetY As Integer = 0 To RetVal.BayerHistograms_Float32.GetUpperBound(1)
+                            RetVal.BayerStatistics_Float32(BayerOffsetX, BayerOffsetY) = CalcStatValuesFromHisto(RetVal.BayerHistograms_Float32(BayerOffsetX, BayerOffsetY))
+                        Next BayerOffsetY
+                    Next BayerOffsetX
+                    RetVal.MonoStatistics_Float32 = CalcStatValuesFromHisto(RetVal.MonochromHistogram_Float32)
                 Case sStatistics.eDataMode.Fixed
                     RetVal.MonochromHistogram_Int = CombineBayerToMonoStatistics(RetVal.BayerHistograms_Int)
                     ReDim RetVal.BayerStatistics_Int(RetVal.BayerHistograms_Int.GetUpperBound(0), RetVal.BayerHistograms_Int.GetUpperBound(1))
-                    For Idx1 As Integer = 0 To RetVal.BayerHistograms_Int.GetUpperBound(0)
-                        For Idx2 As Integer = 0 To RetVal.BayerHistograms_Int.GetUpperBound(1)
-                            RetVal.BayerStatistics_Int(Idx1, Idx2) = CalcStatisticFromHistogram(RetVal.BayerHistograms_Int(Idx1, Idx2))
-                        Next Idx2
-                    Next Idx1
-                    RetVal.MonoStatistics_Int = CalcStatisticFromHistogram(RetVal.MonochromHistogram_Int)
+                    For BayerOffsetX As Integer = 0 To RetVal.BayerHistograms_Int.GetUpperBound(0)
+                        For BayerOffsetY As Integer = 0 To RetVal.BayerHistograms_Int.GetUpperBound(1)
+                            RetVal.BayerStatistics_Int(BayerOffsetX, BayerOffsetY) = CalcStatValuesFromHisto(RetVal.BayerHistograms_Int(BayerOffsetX, BayerOffsetY))
+                        Next BayerOffsetY
+                    Next BayerOffsetX
+                    RetVal.MonoStatistics_Int = CalcStatValuesFromHisto(RetVal.MonochromHistogram_Int)
             End Select
         End Sub
 
         '''<summary>Calculate the statistic data from the passed histogram data.</summary>
         '''<param name="Histogram">Calculated histogram data.</param>
-        Private Shared Function CalcStatisticFromHistogram(ByRef Histogram As Dictionary(Of ADUFixed, ADUCount)) As sSingleChannelStatistics_Int
+        Private Shared Function CalcStatValuesFromHisto(ByRef Histogram As Dictionary(Of ADUFixed, ADUCount)) As sSingleChannelStatistics_Int
 
             If IsNothing(Histogram) = True Then Return Nothing
             If Histogram.Count = 0 Then Return Nothing
@@ -652,7 +764,7 @@ Namespace AstroNET
 
         '''<summary>Calculate the statistic data from the passed histogram data.</summary>
         '''<param name="Histogram">Calculated histogram data.</param>
-        Private Shared Function CalcStatisticFromHistogram(ByRef Histogram As Dictionary(Of Single, ADUCount)) As sSingleChannelStatistics_Float32
+        Private Shared Function CalcStatValuesFromHisto(ByRef Histogram As Dictionary(Of Single, ADUCount)) As sSingleChannelStatistics_Float32
 
             If IsNothing(Histogram) = True Then Return Nothing
 
@@ -763,10 +875,8 @@ Namespace AstroNET
             Return RetVal.SortDictionary
         End Function
 
-        '''<summary>Calculate basic bayer statistics on the passed data matrix.</summary>
-        '''<param name="Data">Matrix of data - 2D matrix what contains the raw sensor data.</param>
-        '''<param name="XEntries">Number of different X entries - 1 for B/W, 2 for normal RGGB, other values are exotic.</param>
-        '''<param name="YEntries">Number of different Y entries - 1 for B/W, 2 for normal RGGB, other values are exotic.</param>
+        '''<summary>Calculate basic bayer statistics on the image data matrix.</summary>
+        '''<param name="NAXIS3">NAXIS3 of the image data to be used.</param>
         '''<returns>A sorted dictionary which contains all found values of type T in the Data matrix and its count.</returns>
         Public Function BayerStatistics_Int(ByVal NAXIS3 As Integer) As Dictionary(Of ADUFixed, ADUCount)(,)
 
@@ -778,7 +888,7 @@ Namespace AstroNET
                 If IsNothing(DataProcessor_UInt16.ImageData) = False Then
                     If DataProcessor_UInt16.ImageData(NAXIS3).Length > 0 Then
                         Dim Results(,) As cStatMultiThread.cStatObjFixed = Nothing
-                        DataProcessor_UInt16.Calculate(NAXIS3, Results)
+                        DataProcessor_UInt16.RunHistoCalc(NAXIS3, Results)
                         For Idx1 As Integer = 0 To 1
                             For Idx2 As Integer = 0 To 1
                                 RetVal(Idx1, Idx2) = Results(Idx1, Idx2).HistDataBayer
@@ -793,7 +903,7 @@ Namespace AstroNET
                 If IsNothing(DataProcessor_Int32.ImageData) = False Then
                     If DataProcessor_Int32.ImageData.Length > 0 Then
                         Dim Results(,) As cStatMultiThread.cStatObjFixed = Nothing
-                        DataProcessor_Int32.Calculate(Results)
+                        DataProcessor_Int32.RunHistoCalc(Results)
                         For Idx1 As Integer = 0 To 1
                             For Idx2 As Integer = 0 To 1
                                 RetVal(Idx1, Idx2) = Results(Idx1, Idx2).HistDataBayer
@@ -808,7 +918,7 @@ Namespace AstroNET
                 If IsNothing(DataProcessor_UInt32.ImageData) = False Then
                     If DataProcessor_UInt32.ImageData(NAXIS3).Length > 0 Then
                         Dim Results(,) As cStatMultiThread.cStatObjFixed = Nothing
-                        DataProcessor_UInt32.Calculate(NAXIS3, Results)
+                        DataProcessor_UInt32.RunHistoCalc(NAXIS3, Results)
                         For Idx1 As Integer = 0 To 1
                             For Idx2 As Integer = 0 To 1
                                 RetVal(Idx1, Idx2) = Results(Idx1, Idx2).HistDataBayer
@@ -827,7 +937,7 @@ Namespace AstroNET
         '''<param name="XEntries">Number of different X entries - 1 for B/W, 2 for normal RGGB, other values are exotic.</param>
         '''<param name="YEntries">Number of different Y entries - 1 for B/W, 2 for normal RGGB, other values are exotic.</param>
         '''<returns>A sorted dictionary which contains all found values of type T in the Data matrix and its count.</returns>
-        Public Function BayerStatistics_Float32() As Dictionary(Of Single, ADUCount)(,)
+        Public Function RunHistoCalc_Float32() As Dictionary(Of Single, ADUCount)(,)
 
             'Count all values
             Dim RetVal(1, 1) As Dictionary(Of Single, UInt64)
@@ -837,7 +947,7 @@ Namespace AstroNET
                 If IsNothing(DataProcessor_Float32.ImageData) = False Then
                     If DataProcessor_Float32.ImageData.Length > 0 Then
                         Dim Results(,) As cStatMultiThread_Float32.cStateObj = Nothing
-                        DataProcessor_Float32.Calculate(Results)
+                        DataProcessor_Float32.RunHistoCalc(Results)
                         For Idx1 As Integer = 0 To 1
                             For Idx2 As Integer = 0 To 1
                                 RetVal(Idx1, Idx2) = Results(Idx1, Idx2).HistDataBayer
