@@ -6,10 +6,28 @@ Option Strict On
 '''<todo>Add this class also to ZEDGraphUtil.</todo>
 Public Class cZEDGraphForm
 
+    Public Property Tag() As Object
+        Get
+            If IsNothing(Hoster) = True Then Return Nothing Else Return Hoster.Tag
+        End Get
+        Set(value As Object)
+            If IsNothing(Hoster) = False Then Hoster.Tag = value
+        End Set
+    End Property
+
+    Public Property Text() As String
+        Get
+            If IsNothing(Hoster) = True Then Return Nothing Else Return Hoster.Text
+        End Get
+        Set(value As String)
+            If IsNothing(Hoster) = False Then Hoster.Text = value
+        End Set
+    End Property
+
     '''<summary>The form that shall be displayed.</summary>
     Public Hoster As System.Windows.Forms.Form = Nothing
     '''<summary>The ZED graph control inside the form.</summary>
-    Private zgcMain As ZedGraph.ZedGraphControl = Nothing
+    Public zgcMain As ZedGraph.ZedGraphControl = Nothing
     '''<summary>The ZED graph service (from file ZEDGraphService.vb).</summary>
     Public Plotter As cZEDGraphService = Nothing
 
@@ -120,5 +138,9 @@ Public Class cZEDGraphForm
         ZEDGraphUtil.PlotXvsY(zgcMain, PlotName, XAxis.ToArray, YAxis.ToArray, New ZEDGraphUtil.sGraphStyle(ColorToUse, ZEDGraphUtil.sGraphStyle.eCurveMode.Dots), XAxis(0), XAxis(XAxis.Count - 1))
         Return GetGraphControl()
     End Function
+
+    Public Shared Widening Operator CType(v As Form) As cZEDGraphForm
+        Throw New NotImplementedException()
+    End Operator
 
 End Class

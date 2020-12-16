@@ -101,6 +101,16 @@ Module StringExtension
 
 End Module
 
+Module DoubleExtension
+
+
+    <Extension()>
+    Public Function ValRegIndep(ByVal Value As String) As Double
+        Return Val(Value.Replace(",", "."))
+    End Function
+
+End Module
+
 Module VectorExtension
 
     <Extension()>

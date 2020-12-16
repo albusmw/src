@@ -6,14 +6,33 @@ Option Strict On
 
 Public Class cNEFReader
 
-    Public Sub Read(ByVal FileName As String)
+    Public Function Read(ByVal NEFFileLocation As String) As String
 
         Dim Folder As String = "C:\Bin\LibRaw\bin"
         Dim EXE As String = "unprocessed_raw.exe"
         Dim Argument As String = "-T"
 
-        Process.Start(System.IO.Path.Combine(Folder, EXE), Argument & " " & Chr(34) & FileName & Chr(34))
+        'Copy file to temporary location
+        If System.IO.File.Exists(NEFFileLocation) = False Then Return "File <" & NEFFileLocation & "> not found"
+        Dim FileNameOnly As String = System.IO.Path.GetFileName(NEFFileLocation)
+        Dim TempFile As String = System.IO.Path.Combine(System.IO.Path.GetTempPath, FileNameOnly)
+        If System.IO.File.Exists(TempFile) Then System.IO.File.Delete(TempFile)
+        System.IO.File.Copy(NEFFileLocation, TempFile)
 
-    End Sub
+        'Run LibRaw
+        Dim LibRawStartInfo As New ProcessStartInfo
+        With LibRawStartInfo
+            .FileName = System.IO.Path.Combine(Folder, EXE)
+            .Arguments = Argument & " " & Chr(34) & TempFile & Chr(34)
+            .UseShellExecute = False
+            .RedirectStandardOutput = True
+            .RedirectStandardError = True
+        End With
+
+        Dim LibRaw As Process = Process.Start(LibRawStartInfo)
+        LibRaw.WaitForExit()
+        Dim OutInfo As String = LibRaw.StandardOutput.ReadToEnd
+
+    End Function
 
 End Class

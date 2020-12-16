@@ -18,6 +18,10 @@ Public Class cStatMultiThread
     End Class
 End Class
 
+'=================================================================================================================================
+' UInt16
+'=================================================================================================================================
+
 '''<summary>Class to calculate 2D matrix statistics multi-threaded.</summary>
 '''<remarks>Calculation is done by buidling a vector with all possible entries (only 2^16 length).</remarks>
 Public Class cStatMultiThread_UInt16
@@ -26,17 +30,17 @@ Public Class cStatMultiThread_UInt16
         Public Data(,) As UInt16
         Public ReadOnly Property Length() As Long
             Get
-                If IsNothing(Data) = True Then Return 0 Else Return Data.LongLength
+                If IsNothing(Data) = True Then Return -1 Else Return Data.LongLength
             End Get
         End Property
         Public ReadOnly Property NAXIS1() As Integer
             Get
-                If IsNothing(Data) = True Then Return 0 Else Return Data.GetUpperBound(0) + 1
+                If IsNothing(Data) = True Then Return -1 Else Return Data.GetUpperBound(0) + 1
             End Get
         End Property
         Public ReadOnly Property NAXIS2() As Integer
             Get
-                If IsNothing(Data) = True Then Return 0 Else Return Data.GetUpperBound(1) + 1
+                If IsNothing(Data) = True Then Return -1 Else Return Data.GetUpperBound(1) + 1
             End Get
         End Property
     End Structure
@@ -45,7 +49,7 @@ Public Class cStatMultiThread_UInt16
     Public ImageData(3) As sImgData_UInt16
 
     '''<summary>Perform a calculation with 4 threads, one for each bayer channel.</summary>
-    Public Sub Calculate(ByVal NAXIS3 As Integer, ByRef Results(,) As cStatMultiThread.cStatObjFixed)
+    Public Sub RunHistoCalc(ByVal NAXIS3 As Integer, ByRef Results(,) As cStatMultiThread.cStatObjFixed)
 
         'Data are processed
         Dim StObj(3) As cStatMultiThread.cStatObjFixed
@@ -114,7 +118,36 @@ Public Class cStatMultiThread_UInt16
 
     End Sub
 
+    '''<summary>Get a list of pixel above a certain value.</summary>
+    '''<param name="ValueAbove">Value (included) to search for.</param>
+    Public Function GetAbove(ByVal ValueAbove As UInt16) As Dictionary(Of UInt16, List(Of Point))
+
+        'Find top 1% of values and create a dictionary for the values and all pixel with this value
+        Dim RetVal As New Dictionary(Of UInt16, List(Of Point))
+        With ImageData(0)
+            For Idx1 As Integer = 0 To .NAXIS1 - 1
+                For Idx2 As Integer = 0 To .NAXIS2 - 1
+                    If .Data(Idx1, Idx2) >= ValueAbove Then
+                        If RetVal.ContainsKey(.Data(Idx1, Idx2)) = False Then
+                            RetVal.Add(.Data(Idx1, Idx2), New List(Of Point)({New Point(Idx1, Idx2)}))
+                        Else
+                            RetVal(.Data(Idx1, Idx2)).Add(New Point(Idx1, Idx2))
+                        End If
+                    End If
+                Next Idx2
+            Next Idx1
+        End With
+
+        RetVal = RetVal.SortDictionaryInverse
+        Return RetVal
+
+    End Function
+
 End Class
+
+'=================================================================================================================================
+' UInt32
+'=================================================================================================================================
 
 '''<summary>Class to calculate 2D matrix statistics multi-threaded.</summary>
 '''<remarks>Calculation as for UInt16 is not possible as a vector with all entries would be 2^32 entries long.</remarks>
@@ -124,17 +157,17 @@ Public Class cStatMultiThread_UInt32
         Public Data(,) As UInt32
         Public ReadOnly Property Length() As Long
             Get
-                If IsNothing(Data) = True Then Return 0 Else Return Data.LongLength
+                If IsNothing(Data) = True Then Return -1 Else Return Data.LongLength
             End Get
         End Property
         Public ReadOnly Property NAXIS1() As Integer
             Get
-                If IsNothing(Data) = True Then Return 0 Else Return Data.GetUpperBound(0) + 1
+                If IsNothing(Data) = True Then Return -1 Else Return Data.GetUpperBound(0) + 1
             End Get
         End Property
         Public ReadOnly Property NAXIS2() As Integer
             Get
-                If IsNothing(Data) = True Then Return 0 Else Return Data.GetUpperBound(1) + 1
+                If IsNothing(Data) = True Then Return -1 Else Return Data.GetUpperBound(1) + 1
             End Get
         End Property
     End Structure
@@ -143,7 +176,7 @@ Public Class cStatMultiThread_UInt32
     Public ImageData(3) As sImgData_UInt32
 
     '''<summary>Perform a calculation with 4 threads, one for each bayer channel.</summary>
-    Public Sub Calculate(ByVal NAXIS3 As Integer, ByRef Results(,) As cStatMultiThread.cStatObjFixed)
+    Public Sub RunHistoCalc(ByVal NAXIS3 As Integer, ByRef Results(,) As cStatMultiThread.cStatObjFixed)
 
         'Data are processed
         Dim StObj(3) As cStatMultiThread.cStatObjFixed
@@ -204,6 +237,10 @@ Public Class cStatMultiThread_UInt32
 
 End Class
 
+'=================================================================================================================================
+' Int32
+'=================================================================================================================================
+
 '''<summary>Class to calculate 2D matrix statistics multi-threaded.</summary>
 Public Class cStatMultiThread_Int32
 
@@ -211,7 +248,7 @@ Public Class cStatMultiThread_Int32
     Public ImageData(,) As Int32
 
     '''<summary>Perform a calculation with 4 threads, one for each bayer channel.</summary>
-    Public Sub Calculate(ByRef Results(,) As cStatMultiThread.cStatObjFixed)
+    Public Sub RunHistoCalc(ByRef Results(,) As cStatMultiThread.cStatObjFixed)
 
         'Data are processed
         Dim StObj(3) As cStatMultiThread.cStatObjFixed
@@ -276,6 +313,10 @@ Public Class cStatMultiThread_Int32
 
 End Class
 
+'=================================================================================================================================
+' Float32
+'=================================================================================================================================
+
 '''<summary>Class to calculate 2D matrix statistics multi-threaded.</summary>
 Public Class cStatMultiThread_Float32
 
@@ -283,17 +324,17 @@ Public Class cStatMultiThread_Float32
         Public Data(,) As Single
         Public ReadOnly Property Length() As Long
             Get
-                If IsNothing(Data) = True Then Return 0 Else Return Data.LongLength
+                If IsNothing(Data) = True Then Return -1 Else Return Data.LongLength
             End Get
         End Property
         Public ReadOnly Property NAXIS1() As Integer
             Get
-                If IsNothing(Data) = True Then Return 0 Else Return Data.GetUpperBound(0) + 1
+                If IsNothing(Data) = True Then Return -1 Else Return Data.GetUpperBound(0) + 1
             End Get
         End Property
         Public ReadOnly Property NAXIS2() As Integer
             Get
-                If IsNothing(Data) = True Then Return 0 Else Return Data.GetUpperBound(1) + 1
+                If IsNothing(Data) = True Then Return -1 Else Return Data.GetUpperBound(1) + 1
             End Get
         End Property
     End Structure
@@ -310,7 +351,7 @@ Public Class cStatMultiThread_Float32
     End Class
 
     '''<summary>Perform a calculation with 4 threads, one for each bayer channel.</summary>
-    Public Sub Calculate(ByRef Results(,) As cStateObj)
+    Public Sub RunHistoCalc(ByRef Results(,) As cStateObj)
 
         'Data are processed
         Dim StObj(3) As cStateObj

@@ -45,11 +45,22 @@ Namespace Ato
             AddHandler Box.DragDrop, AddressOf DragDrop_GetFile
         End Sub
 
+        '''<summary>Add the standard handling for drag-n-drop to the passed text box.</summary>
+        Public Sub New(ByRef Box As Windows.Forms.CheckedListBox)
+            AllowDrop(Box)
+            AddHandler Box.DragEnter, AddressOf DragEnter_AcceptFile
+            AddHandler Box.DragDrop, AddressOf DragDrop_GetFile
+        End Sub
+
         Public Sub AllowDrop(ByRef Box As Windows.Forms.TextBox)
             Box.AllowDrop = True
         End Sub
 
         Public Sub AllowDrop(ByRef Box As Windows.Forms.ListBox)
+            Box.AllowDrop = True
+        End Sub
+
+        Public Sub AllowDrop(ByRef Box As Windows.Forms.CheckedListBox)
             Box.AllowDrop = True
         End Sub
 
@@ -65,6 +76,9 @@ Namespace Ato
                 If TypeOf sender Is Windows.Forms.ListBox Then
                     e.Effect = Windows.Forms.DragDropEffects.All
                 End If
+                If TypeOf sender Is Windows.Forms.CheckedListBox Then
+                    e.Effect = Windows.Forms.DragDropEffects.All
+                End If
             End If
         End Sub
 
@@ -76,15 +90,22 @@ Namespace Ato
                     If TypeOf sender Is Windows.Forms.TextBox Then
                         If FillList = True Then
                             CType(sender, Windows.Forms.TextBox).Text = CType(e.Data.GetData(Windows.Forms.DataFormats.FileDrop), String())(0)
-                        Else
-                            RaiseEvent DropOccured(CType(e.Data.GetData(Windows.Forms.DataFormats.FileDrop), String()))
                         End If
+                        RaiseEvent DropOccured(CType(e.Data.GetData(Windows.Forms.DataFormats.FileDrop), String()))
                         Exit Sub
                     End If
                     If TypeOf sender Is Windows.Forms.ListBox Then
                         If FillList = True Then
                             CType(sender, Windows.Forms.ListBox).Items.AddRange(CType(e.Data.GetData(Windows.Forms.DataFormats.FileDrop), String()))
                         End If
+                        RaiseEvent DropOccured(CType(e.Data.GetData(Windows.Forms.DataFormats.FileDrop), String()))
+                        Exit Sub
+                    End If
+                    If TypeOf sender Is Windows.Forms.CheckedListBox Then
+                        If FillList = True Then
+                            CType(sender, Windows.Forms.CheckedListBox).Items.AddRange(CType(e.Data.GetData(Windows.Forms.DataFormats.FileDrop), String()))
+                        End If
+                        RaiseEvent DropOccured(CType(e.Data.GetData(Windows.Forms.DataFormats.FileDrop), String()))
                         Exit Sub
                     End If
                 End If

@@ -68,6 +68,7 @@ Public Class cFITSHeaderChanger
 
         Dim RetVal As New List(Of cFITSHeaderParser.sHeaderElement)
         Dim BytesRead As Integer = 0
+        Dim FormatProvider As IFormatProvider = Globalization.CultureInfo.InvariantCulture
 
         If System.IO.File.Exists(File) = True Then
 
@@ -101,25 +102,21 @@ Public Class cFITSHeaderChanger
                         HeaderElement.Comment = CStr(Value).Substring(SepPos + 1).Trim
                         Value = CStr(Value).Substring(0, SepPos).Trim
                     End If
-                    Select Case cFITSKeywords.GetDataType(HeaderElement.Keyword).ToUpper
-                        Case "INTEGER" : HeaderElement.Value = CInt(Value)
-                        Case "DOUBLE" : HeaderElement.Value = Val(Value)
-                        Case Else
-                            'Try to auto-detect the value
-                            If Value.StartsWith("'") And Value.EndsWith("'") Then
-                                If Value.Length > 2 Then HeaderElement.Value = Value.Substring(1, Value.Length - 2)
-                            Else
-                                    Dim ValueAsInt As Integer = Integer.MinValue
-                                Dim ValueAsDouble As Double = Double.NaN
-                                If Integer.TryParse(Value, ValueAsInt) = True Then
-                                    HeaderElement.Value = ValueAsInt
-                                Else
-                                    If Double.TryParse(Value, ValueAsDouble) = True Then
-                                        HeaderElement.Value = ValueAsDouble
-                                    End If
-                                End If
+                    'Try to auto-detect the value
+                    If Value.StartsWith("'") And Value.EndsWith("'") Then
+                        'String
+                        If Value.Length > 2 Then HeaderElement.Value = Value.Substring(1, Value.Length - 2)
+                    Else
+                        Dim ValueAsInt As Integer = Integer.MinValue
+                        Dim ValueAsDouble As Double = Double.NaN
+                        If Integer.TryParse(Value, ValueAsInt) = True Then
+                            HeaderElement.Value = ValueAsInt
+                        Else
+                            If Double.TryParse(Value, Globalization.NumberStyles.Float, FormatProvider, ValueAsDouble) = True Then
+                                HeaderElement.Value = ValueAsDouble
                             End If
-                    End Select
+                        End If
+                    End If
 
                     'Store final element as new header element
                     RetVal.Add(HeaderElement)
