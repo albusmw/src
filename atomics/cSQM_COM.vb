@@ -1,0 +1,80 @@
+Option Explicit On
+Option Strict On
+
+'''<summary>Class for direct SQM access.</summary>
+Public Class cSQM_COM
+
+    'C:\Users\albusmw\Dropbox\Astro\Unterlagen Ausrüstung\SQM-LU_Users_manual.pdf
+
+    Dim COM_port As IO.Ports.SerialPort
+    Dim ReadBuffer As String = String.Empty
+    Dim StopChars As String = Chr(13) & Chr(10)
+
+    '''<summary>Supported SQM commands.</summary>
+    '''<remarks>Taken from C:\Users\albusmw\Dropbox\Astro\Unterlagen Ausrüstung\Baader AllSky\Allsky Dome.pdf</remarks>
+    Public Class SQMCommand
+        '''<summary>All Segments will be opened.</summary>
+        Public Shared ReadOnly Property [ReadingRequest] As String = "rx"
+    End Class
+
+    Public Function Init(ByVal SerialPort As String) As String
+
+        Dim InitCOMNow As Boolean = False
+        If IsNothing(COM_port) = True Then
+            InitCOMNow = True
+        Else
+            If COM_port.IsOpen = False Then InitCOMNow = True
+        End If
+
+        If InitCOMNow Then
+            COM_port = New IO.Ports.SerialPort(SerialPort, 115200, IO.Ports.Parity.None, 8, IO.Ports.StopBits.One)
+            COM_port.ReadTimeout = 1000
+            COM_port.Handshake = IO.Ports.Handshake.None
+            AddHandler COM_port.DataReceived, New IO.Ports.SerialDataReceivedEventHandler(AddressOf COM_port_DataReceived)
+            Try
+                COM_port.Open()
+            Catch ex As Exception
+                'COM port not available ...
+            End Try
+        End If
+
+    End Function
+
+    '''<summary>Send command to dome.</summary>
+    '''<param name="command">Command to send.</param>
+    '''<remarks>Taken from Baader driver.</remarks>
+    Public Function GetAnswer(ByVal command As String) As String
+        ReadBuffer = String.Empty
+        If COM_port.IsOpen Then
+            COM_port.Write(command & StopChars)
+            Do
+                System.Threading.Thread.Sleep(10)
+            Loop Until ReadBuffer.EndsWith(StopChars)
+            Return ReadBuffer.Substring(0, ReadBuffer.Length - StopChars.Length)
+        Else
+            Return Nothing
+        End If
+    End Function
+
+    Public Sub Parse_rx(ByVal Answer As String, ByRef Magnitude As Double, ByRef Temperature As Double)
+        If Answer.Length < 55 Then Exit Sub
+        Try
+            Magnitude = Val(Answer.Substring(3, 5))
+        Catch ex As Exception
+            Magnitude = Double.NaN
+        End Try
+        Try
+            Temperature = Val(Answer.Substring(49, 5))
+        Catch ex As Exception
+            Temperature = Double.NaN
+        End Try
+    End Sub
+
+    Private Sub COM_port_DataReceived(ByVal sender As Object, e As IO.Ports.SerialDataReceivedEventArgs)
+        Dim str As String = CType(sender, IO.Ports.SerialPort).ReadExisting
+        For i As Integer = 0 To str.Length - 1
+            ReadBuffer &= str.Chars(i)
+        Next i
+    End Sub
+
+End Class
