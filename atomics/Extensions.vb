@@ -260,3 +260,40 @@ Module ListExtensions
     End Sub
 
 End Module
+
+Module DataGridViewExtensions
+
+    '''<summary>Create an ASCII table from the passed table.</summary>
+    <Extension()>
+    Public Function ASCIITable(ByRef dgv As DataGridView) As List(Of String)
+
+        'Get a list of all lines
+        Dim Lines As New List(Of List(Of String))
+        Dim EntryWidth As New List(Of Integer)
+        For LineIdx As Integer = 0 To dgv.RowCount - 1
+            Lines.Add(New List(Of String))
+            For ColIdx As Integer = 0 To dgv.ColumnCount - 1
+                Dim Item As Object = dgv.Item(ColIdx, LineIdx).Value
+                Dim ItemString As String = String.Empty
+                If IsNothing(Item) = False Then ItemString = Item.ToString
+                Lines(LineIdx).Add(ItemString)
+                If LineIdx = 0 Then EntryWidth.Add(ItemString.Length)
+                If ItemString.Length > EntryWidth(ColIdx) Then EntryWidth(ColIdx) = ItemString.Length
+            Next ColIdx
+        Next LineIdx
+
+        'Build the ASCII table
+        Dim RetVal As New List(Of String)
+        For Each Line As List(Of String) In Lines
+            Dim OneLine As String = "|"
+            For EntryIdx As Integer = 0 To Line.Count - 1
+                OneLine &= Line(EntryIdx).PadLeft(EntryWidth(EntryIdx)) & "|"
+            Next EntryIdx
+            RetVal.Add(OneLine)
+        Next Line
+
+        Return RetVal
+
+    End Function
+
+End Module
