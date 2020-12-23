@@ -212,7 +212,7 @@ Namespace AstroNET
                 'Add mono report
                 If MonoStatistics Then
                     Dim ChannelName As String = "Mono".PadRight(sSingleChannelStatistics_Int.ReportValueLength)
-                    RetVal(0) &= ChannelName & "| "
+                    RetVal(0) &= ChannelName & "|"
                     For LineIdx As Integer = 0 To MonoReport.Count - 1
                         RetVal(LineIdx + 1) &= MonoStatistics_Int.ValueOnly(MonoReport(LineIdx)) & "|"
                     Next LineIdx
@@ -224,7 +224,7 @@ Namespace AstroNET
                         For Idx2 As Integer = 0 To BayerStatistics_Int.GetUpperBound(1)
                             Dim ChannelName As String = (BayerChannelNames(ChannelIdx) & "[" & Idx1.ValRegIndep & ":" & Idx2.ValRegIndep & "]").PadRight(sSingleChannelStatistics_Int.ReportValueLength)
                             Dim BayerReport As List(Of String) = BayerStatistics_Int(Idx1, Idx2).StatisticsReport
-                            RetVal(0) &= (ChannelName & "| ")
+                            RetVal(0) &= ChannelName & " |"
                             For LineIdx As Integer = 0 To BayerReport.Count - 1
                                 RetVal(LineIdx + 1) &= BayerStatistics_Int(Idx1, Idx2).ValueOnly(BayerReport(LineIdx)) & "|"
                             Next LineIdx

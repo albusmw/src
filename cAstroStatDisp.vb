@@ -92,7 +92,7 @@ Public Class cAstroStatDisp
 
     End Class
 
-    Public Sub Plot(ByVal CaptureCount As UInt32, ByRef SingleStat As AstroNET.Statistics.sStatistics, ByRef LoopStat As AstroNET.Statistics.sStatistics)
+    Public Sub Plot(ByVal CaptureCount As Int32, ByRef SingleStat As AstroNET.Statistics.sStatistics, ByRef LoopStat As AstroNET.Statistics.sStatistics)
 
         Dim CurrentCurveWidth As Integer = 1
         Dim MeanCurveWidth As Integer = 2
