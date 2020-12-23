@@ -242,6 +242,47 @@ Public Class ImageFileFormatSpecific
 
     End Function
 
+    '''<summary>Return the filters for the save dialog.</summary>
+    Public Shared Function SaveImageFileFilters() As String
+        Dim RetVal As New List(Of String)
+        RetVal.Add("JPEG file (*.jpg)|*.jpg")
+        RetVal.Add("PNG file (*.png)|*.png")
+        Return Join(RetVal.ToArray, "|")
+    End Function
+
+    '''<summary>Save the content in the given format specified by the file name.</summary>
+    Public Shared Sub SaveImageFile(ByVal FileName As String, ByRef Content As Bitmap)
+
+        Dim Param As New Imaging.EncoderParameters
+        Dim Extension As String = System.IO.Path.GetExtension(FileName).ToUpper
+        Select Case Extension
+            Case ".JPG", ".JPEG"
+                Dim Encoder As Imaging.ImageCodecInfo = GetEncoder(Imaging.ImageFormat.Jpeg)
+                Dim EncoderParameters As New Imaging.EncoderParameters
+                EncoderParameters.Param(0) = New Imaging.EncoderParameter(Imaging.Encoder.Quality, CLng(InputBox("Quality [0..100]", "Quality", "90")))
+                Content.Save(FileName, Encoder, EncoderParameters)
+            Case ".PNG"
+                Dim Encoder As Imaging.ImageCodecInfo = GetEncoder(Imaging.ImageFormat.Png)
+                Dim EncoderParameters As New Imaging.EncoderParameters
+                EncoderParameters.Param(0) = New Imaging.EncoderParameter(Imaging.Encoder.Quality, CLng(InputBox("Quality [0..100]", "Quality", "90")))
+                EncoderParameters.Param(1) = New Imaging.EncoderParameter(Imaging.Encoder.Compression, Imaging.EncoderValue.CompressionLZW)
+                Content.Save(FileName, Encoder, EncoderParameters)
+        End Select
+
+    End Sub
+
+    '''<summary>Get the base codec info for the requested format.</summary>
+    '''<param name="RequestedFormat">Format requested.</param>
+    '''<returns>Codec or nothing if codes is not found.</returns>
+    Private Shared Function GetEncoder(ByVal RequestedFormat As Imaging.ImageFormat) As Imaging.ImageCodecInfo
+        Dim codes As Imaging.ImageCodecInfo() = Imaging.ImageCodecInfo.GetImageDecoders
+        For Each AvailableCodec As Imaging.ImageCodecInfo In codes
+            If AvailableCodec.FormatID = RequestedFormat.Guid Then Return AvailableCodec
+        Next AvailableCodec
+        Return Nothing
+    End Function
+
+
 End Class
 
 

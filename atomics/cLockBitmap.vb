@@ -13,13 +13,13 @@ Public Class cLockBitmap32Bit
 
     Public ReadOnly Property Width As Integer
         Get
-            If IsNothing(BitmapToProcess.Width) = False Then Return BitmapToProcess.Width Else Return -1
+            If IsNothing(BitmapToProcess) = False Then Return BitmapToProcess.Width Else Return -1
         End Get
     End Property
 
     Public ReadOnly Property Height As Integer
         Get
-            If IsNothing(BitmapToProcess.Height) = False Then Return BitmapToProcess.Height Else Return -1
+            If IsNothing(BitmapToProcess) = False Then Return BitmapToProcess.Height Else Return -1
         End Get
     End Property
 

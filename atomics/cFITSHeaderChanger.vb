@@ -23,6 +23,17 @@ Public Class cFITSHeaderChanger
 
     Public Event Log(ByVal Text As String)
 
+    '''<summary>Number of block to read in to get the complete header.</summary>
+    Public Shared ReadOnly Property ReadHeaderBlockCount() As Integer
+        Get
+            Return MyMaxHeaderCount
+        End Get
+    End Property
+    Private Shared MyMaxHeaderCount As Integer = 3
+
+    '''<summary>Number of block to read in to get the complete header.</summary>
+    Public Shared ReadOnly Property ReadHeaderByteCount() As Integer = ReadHeaderBlockCount * HeaderBlockSize
+
     Public ReadOnly Property HeaderElementsRead() As Integer
         Get
             Return MyHeaderElementsRead
@@ -64,73 +75,85 @@ Public Class cFITSHeaderChanger
         Return ("'" & Value & "'").PadRight(20)
     End Function
 
+    Public Shared Function ReadHeader(ByVal File As String) As List(Of cFITSHeaderParser.sHeaderElement)
+        Dim Dummy As Integer = -1
+        Return ReadHeader(File, Dummy)
+    End Function
+
     Public Shared Function ReadHeader(ByVal File As String, ByRef DataStartPos As Integer) As List(Of cFITSHeaderParser.sHeaderElement)
+        Dim RetNothing As New List(Of cFITSHeaderParser.sHeaderElement)
+        If System.IO.File.Exists(File) = True Then
+            Dim HeaderBytes(ReadHeaderByteCount - 1) As Byte
+            System.IO.File.OpenRead(File).Read(HeaderBytes, 0, HeaderBytes.Length)
+            Return ReadHeader(HeaderBytes, DataStartPos)
+        End If
+        Return RetNothing
+    End Function
+
+    Public Shared Function ReadHeader(ByVal HeaderBytes As Byte(), ByRef DataStartPos As Integer) As List(Of cFITSHeaderParser.sHeaderElement)
 
         Dim RetVal As New List(Of cFITSHeaderParser.sHeaderElement)
         Dim BytesRead As Integer = 0
         Dim FormatProvider As IFormatProvider = Globalization.CultureInfo.InvariantCulture
+        Dim EndFound As Boolean = False
 
-        If System.IO.File.Exists(File) = True Then
+        'Check if this is a FITS file
+        Dim MagicString As String = System.Text.ASCIIEncoding.ASCII.GetString(HeaderBytes, 0, 6)
+        If MagicString <> "SIMPLE" Then Return New List(Of cFITSHeaderParser.sHeaderElement)
 
-            'Open original file and create new list of header elements
-            Dim FITS_stream As System.IO.FileStream = System.IO.File.OpenRead(File)
+        Dim HeaderPtr As Integer = 0
+        Do
 
-            Do
+            'Get one header line which has 80 bytes
+            Dim SingleLine As String = System.Text.ASCIIEncoding.ASCII.GetString(HeaderBytes, HeaderPtr, HeaderElementLength)
+            HeaderPtr += HeaderElementLength
+            BytesRead += HeaderElementLength
 
-                'Get one header line which has 80 bytes
-                Dim HeaderBytes(HeaderElementLength - 1) As Byte
-                FITS_stream.Read(HeaderBytes, 0, HeaderBytes.Length)
-                Dim SingleLine As String = System.Text.ASCIIEncoding.ASCII.GetString(HeaderBytes)
-                BytesRead += HeaderElementLength
+            'Exit on END detected
+            If SingleLine.Trim.StartsWith("END") Then
+                EndFound = True
+                Exit Do
+            End If
 
-                'Exit on END detected
-                If SingleLine.Trim.StartsWith("END") Then
-                    Exit Do
+            'Process only non-empty files
+            If SingleLine.Trim.Length > 0 Then
+
+                'Get keyword, value and comment
+                Dim HeaderElement As cFITSHeaderParser.sHeaderElement
+                HeaderElement.Keyword = cFITSHeaderParser.GetKeywordEnum(SingleLine.Substring(0, 8))
+                Dim Value As String = SingleLine.Substring(9).Trim
+                HeaderElement.Value = Value
+                HeaderElement.Comment = String.Empty
+                If CStr(Value).Contains("/") Then
+                    Dim SepPos As Integer = CStr(Value).IndexOf("/")
+                    HeaderElement.Comment = CStr(Value).Substring(SepPos + 1).Trim
+                    Value = CStr(Value).Substring(0, SepPos).Trim
                 End If
-
-                'Process only non-empty files
-                If SingleLine.Trim.Length > 0 Then
-
-                    'Get keyword, value and comment
-                    Dim HeaderElement As cFITSHeaderParser.sHeaderElement
-                    HeaderElement.Keyword = cFITSHeaderParser.GetKeywordEnum(SingleLine.Substring(0, 8))
-                    Dim Value As String = SingleLine.Substring(9).Trim
-                    HeaderElement.Value = Value
-                    HeaderElement.Comment = String.Empty
-                    If CStr(Value).Contains("/") Then
-                        Dim SepPos As Integer = CStr(Value).IndexOf("/")
-                        HeaderElement.Comment = CStr(Value).Substring(SepPos + 1).Trim
-                        Value = CStr(Value).Substring(0, SepPos).Trim
-                    End If
-                    'Try to auto-detect the value
-                    If Value.StartsWith("'") And Value.EndsWith("'") Then
-                        'String
-                        If Value.Length > 2 Then HeaderElement.Value = Value.Substring(1, Value.Length - 2)
+                'Try to auto-detect the value
+                If Value.StartsWith("'") And Value.EndsWith("'") Then
+                    'String
+                    If Value.Length > 2 Then HeaderElement.Value = Value.Substring(1, Value.Length - 2)
+                Else
+                    Dim ValueAsInt As Integer = Integer.MinValue
+                    Dim ValueAsDouble As Double = Double.NaN
+                    If Integer.TryParse(Value, ValueAsInt) = True Then
+                        HeaderElement.Value = ValueAsInt
                     Else
-                        Dim ValueAsInt As Integer = Integer.MinValue
-                        Dim ValueAsDouble As Double = Double.NaN
-                        If Integer.TryParse(Value, ValueAsInt) = True Then
-                            HeaderElement.Value = ValueAsInt
-                        Else
-                            If Double.TryParse(Value, Globalization.NumberStyles.Float, FormatProvider, ValueAsDouble) = True Then
-                                HeaderElement.Value = ValueAsDouble
-                            End If
+                        If Double.TryParse(Value, Globalization.NumberStyles.Float, FormatProvider, ValueAsDouble) = True Then
+                            HeaderElement.Value = ValueAsDouble
                         End If
                     End If
-
-                    'Store final element as new header element
-                    RetVal.Add(HeaderElement)
-
                 End If
 
-                'End on stream end
-                If FITS_stream.Position = FITS_stream.Length Then Exit Do
+                'Store final element as new header element
+                RetVal.Add(HeaderElement)
 
-            Loop Until 1 = 0
+            End If
 
-            FITS_stream.Close()
+            'End on stream end
+            If HeaderPtr = HeaderBytes.Length - 1 Then Exit Do
 
-        End If
+        Loop Until 1 = 0
 
         DataStartPos = CInt(Math.Ceiling(BytesRead / HeaderBlockSize) * HeaderBlockSize)
         Return RetVal

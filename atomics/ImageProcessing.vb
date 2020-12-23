@@ -125,34 +125,43 @@ Public Class ImageProcessing
     ' VIGNETTE
     '=========================================================================================================================
 
-    ''' <summary>Calculate the intensity over the distance from the center of the image - no fixed resolution.</summary>
-    ''' <param name="FITSSumImage">Image to run calculation on.</param>
+    ''' <summary>Calculate the intensity over the distance from the center of the image.</summary>
+    ''' <param name="ImageData">Image to run calculation on.</param>
+    ''' <param name="Bins">Number of X axis steps to group - 0 for full resolution, -1 for integer resolution.</param>
     ''' <returns>Dictionary of center distance vs mean value.</returns>
     ''' <remarks>We start in the middle, move down and right and always take 4 pixel symmetrical to the middle.</remarks>
-    Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt16) As Dictionary(Of Double, Double)
+    Public Shared Function Vignette(ByRef ImageData(,) As UInt16) As Dictionary(Of Double, Double)
 
         Dim UInt4 As UInt32 = 4
         Dim BinSum As New Dictionary(Of Double, UInt64)
         Dim BinCount As New Dictionary(Of Double, UInt32)
 
+        'Pre-calculate the square distances
+        Dim DistSquare As New Dictionary(Of Integer, Double)
+        Dim DistIdx As Integer = 1
+        For CursorX As Integer = 0 To ImageData.GetUpperBound(0)
+            DistSquare.Add(DistIdx, (DistIdx - 0.5) * (DistIdx - 0.5))
+            DistIdx += 1
+        Next CursorX
+
         'Move over the complete image and sum
         Dim GroupDeltaX As Integer = 1 : Dim DistXIdx As Integer = 1
-        Dim DistX As Double = (DistXIdx - 0.5) * (DistXIdx - 0.5)
-        For CursorX As Integer = (FITSSumImage.GetUpperBound(0) \ 2) + 1 To FITSSumImage.GetUpperBound(0)
+        Dim DistX As Double = DistSquare(DistXIdx)
+        For CursorX As Integer = (ImageData.GetUpperBound(0) \ 2) + 1 To ImageData.GetUpperBound(0)
             Dim GroupDeltaY As Integer = 1 : Dim DistYIdx As Integer = 1
-            Dim DistY As Double = (DistYIdx - 0.5) * (DistYIdx - 0.5)
-            For CursorY As Integer = (FITSSumImage.GetUpperBound(1) \ 2) + 1 To FITSSumImage.GetUpperBound(1)
+            Dim DistY As Double = DistSquare(DistYIdx)
+            For CursorY As Integer = (ImageData.GetUpperBound(1) \ 2) + 1 To ImageData.GetUpperBound(1)
                 Dim CenterDistance As Double = (Math.Sqrt(DistX + DistY))                       'Distance from center in pixel
                 Dim SampleSum As UInt32 = 0
-                SampleSum += FITSSumImage(CursorX, CursorY)                                     'right down
-                SampleSum += FITSSumImage(CursorX, CursorY - GroupDeltaY)                       'right up
-                SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY)                       'left down
-                SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY - GroupDeltaY)         'left up
+                SampleSum += ImageData(CursorX, CursorY)                                        'right down
+                SampleSum += ImageData(CursorX, CursorY - GroupDeltaY)                          'right up
+                SampleSum += ImageData(CursorX - GroupDeltaX, CursorY)                          'left down
+                SampleSum += ImageData(CursorX - GroupDeltaX, CursorY - GroupDeltaY)            'left up
                 BinSum.AddTo(CenterDistance, SampleSum)
                 BinCount.AddTo(CenterDistance, UInt4)
-                GroupDeltaY += 2 : DistYIdx += 1 : DistY = (DistYIdx - 0.5) * (DistYIdx - 0.5)
+                GroupDeltaY += 2 : DistYIdx += 1 : DistY = DistSquare(DistYIdx)
             Next CursorY
-            GroupDeltaX += 2 : DistXIdx += 1 : DistX = (DistXIdx - 0.5) * (DistXIdx - 0.5)
+            GroupDeltaX += 2 : DistXIdx += 1 : DistX = DistSquare(DistXIdx)
         Next CursorX
 
         'Calculate the final output
@@ -165,123 +174,42 @@ Public Class ImageProcessing
     End Function
 
     ''' <summary>Calculate the intensity over the distance from the center of the image.</summary>
-    ''' <param name="FITSSumImage">Image to run calculation on.</param>
+    ''' <param name="ImageData">Image to run calculation on.</param>
     ''' <param name="Steps">Number of X axis steps to group - 0 for full resolution, -1 for integer resolution.</param>
     ''' <returns>Dictionary of center distance vs mean value.</returns>
     ''' <remarks>We start in the middle, move down and right and always take 4 pixel symmetrical to the middle.</remarks>
-    Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt16, ByVal Steps As Integer) As Dictionary(Of Double, Double)
+    Public Shared Function Vignette(ByRef ImageData(,) As UInt32) As Dictionary(Of Double, Double)
 
         Dim UInt4 As UInt32 = 4
         Dim BinSum As New Dictionary(Of Double, UInt64)
         Dim BinCount As New Dictionary(Of Double, UInt32)
 
-        'Clear
-        For Idx As Integer = 0 To Steps - 1
-            BinSum(Idx) = 0 : BinCount(Idx) = 0
-        Next Idx
-
-        'Move over the complete image and sum
-        Dim GroupDeltaX As Integer = 1 : Dim DistXIdx As Integer = 1
-        Dim DistX As Double = (DistXIdx - 0.5) * (DistXIdx - 0.5)
-        For CursorX As Integer = (FITSSumImage.GetUpperBound(0) \ 2) + 1 To FITSSumImage.GetUpperBound(0)
-            Dim GroupDeltaY As Integer = 1 : Dim DistYIdx As Integer = 1
-            Dim DistY As Double = (DistYIdx - 0.5) * (DistYIdx - 0.5)
-            For CursorY As Integer = (FITSSumImage.GetUpperBound(1) \ 2) + 1 To FITSSumImage.GetUpperBound(1)
-                Dim CenterDistance As Double = (Math.Sqrt(DistX + DistY))                       'Distance from center in pixel
-                Dim SampleSum As UInt32 = 0
-                SampleSum += FITSSumImage(CursorX, CursorY)                                     'right down
-                SampleSum += FITSSumImage(CursorX, CursorY - GroupDeltaY)                       'right up
-                SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY)                       'left down
-                SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY - GroupDeltaY)         'left up
-                BinSum.AddTo(CenterDistance, SampleSum)
-                BinCount.AddTo(CenterDistance, UInt4)
-                GroupDeltaY += 2 : DistYIdx += 1 : DistY = (DistYIdx - 0.5) * (DistYIdx - 0.5)
-            Next CursorY
-            GroupDeltaX += 2 : DistXIdx += 1 : DistX = (DistXIdx - 0.5) * (DistXIdx - 0.5)
+        'Pre-calculate the square distances
+        Dim DistSquare As New Dictionary(Of Integer, Double)
+        Dim DistIdx As Integer = 1
+        For CursorX As Integer = 0 To ImageData.GetUpperBound(0)
+            DistSquare.Add(DistIdx, (DistIdx - 0.5) * (DistIdx - 0.5))
+            DistIdx += 1
         Next CursorX
 
-        'Calculate the final output
-        Dim RetVal As New Dictionary(Of Double, Double)
-        For Each Distance As Double In BinSum.Keys
-            RetVal.Add(Distance, BinSum(Distance) / BinCount(Distance))
-        Next Distance
-        Return RetVal
-
-    End Function
-
-    ''' <summary>Calculate the intensity over the distance from the center of the image - no fixed resolution.</summary>
-    ''' <param name="FITSSumImage">Image to run calculation on.</param>
-    ''' <returns>Dictionary of center distance vs mean value.</returns>
-    ''' <remarks>We start in the middle, move down and right and always take 4 pixel symmetrical to the middle.</remarks>
-    Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt32) As Dictionary(Of Double, Double)
-
-        Dim UInt4 As UInt32 = 4
-        Dim BinSum As New Dictionary(Of Double, UInt64)
-        Dim BinCount As New Dictionary(Of Double, UInt32)
-
         'Move over the complete image and sum
         Dim GroupDeltaX As Integer = 1 : Dim DistXIdx As Integer = 1
-        Dim DistX As Double = (DistXIdx - 0.5) * (DistXIdx - 0.5)
-        For CursorX As Integer = (FITSSumImage.GetUpperBound(0) \ 2) + 1 To FITSSumImage.GetUpperBound(0)
+        Dim DistX As Double = DistSquare(DistXIdx)
+        For CursorX As Integer = (ImageData.GetUpperBound(0) \ 2) + 1 To ImageData.GetUpperBound(0)
             Dim GroupDeltaY As Integer = 1 : Dim DistYIdx As Integer = 1
-            Dim DistY As Double = (DistYIdx - 0.5) * (DistYIdx - 0.5)
-            For CursorY As Integer = (FITSSumImage.GetUpperBound(1) \ 2) + 1 To FITSSumImage.GetUpperBound(1)
+            Dim DistY As Double = DistSquare(DistYIdx)
+            For CursorY As Integer = (ImageData.GetUpperBound(1) \ 2) + 1 To ImageData.GetUpperBound(1)
                 Dim CenterDistance As Double = (Math.Sqrt(DistX + DistY))                       'Distance from center in pixel
                 Dim SampleSum As UInt32 = 0
-                SampleSum += FITSSumImage(CursorX, CursorY)                                     'right down
-                SampleSum += FITSSumImage(CursorX, CursorY - GroupDeltaY)                       'right up
-                SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY)                       'left down
-                SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY - GroupDeltaY)         'left up
+                SampleSum += ImageData(CursorX, CursorY)                                        'right down
+                SampleSum += ImageData(CursorX, CursorY - GroupDeltaY)                          'right up
+                SampleSum += ImageData(CursorX - GroupDeltaX, CursorY)                          'left down
+                SampleSum += ImageData(CursorX - GroupDeltaX, CursorY - GroupDeltaY)            'left up
                 BinSum.AddTo(CenterDistance, SampleSum)
                 BinCount.AddTo(CenterDistance, UInt4)
-                GroupDeltaY += 2 : DistYIdx += 1 : DistY = (DistYIdx - 0.5) * (DistYIdx - 0.5)
+                GroupDeltaY += 2 : DistYIdx += 1 : DistY = DistSquare(DistYIdx)
             Next CursorY
-            GroupDeltaX += 2 : DistXIdx += 1 : DistX = (DistXIdx - 0.5) * (DistXIdx - 0.5)
-        Next CursorX
-
-        'Calculate the final output
-        Dim RetVal As New Dictionary(Of Double, Double)
-        For Each Distance As Double In BinSum.Keys
-            RetVal.Add(Distance, BinSum(Distance) / BinCount(Distance))
-        Next Distance
-        Return RetVal
-
-    End Function
-
-    ''' <summary>Calculate the intensity over the distance from the center of the image.</summary>
-    ''' <param name="FITSSumImage">Image to run calculation on.</param>
-    ''' <param name="Steps">Number of X axis steps to group - 0 for full resolution, -1 for integer resolution.</param>
-    ''' <returns>Dictionary of center distance vs mean value.</returns>
-    ''' <remarks>We start in the middle, move down and right and always take 4 pixel symmetrical to the middle.</remarks>
-    Public Shared Function Vignette(ByRef FITSSumImage(,) As UInt32, ByVal Steps As Integer) As Dictionary(Of Double, Double)
-
-        Dim UInt4 As UInt32 = 4
-        Dim BinSum As New Dictionary(Of Double, UInt64)
-        Dim BinCount As New Dictionary(Of Double, UInt32)
-
-        'Clear
-        For Idx As Integer = 0 To Steps - 1
-            BinSum(Idx) = 0 : BinCount(Idx) = 0
-        Next Idx
-
-        'Move over the complete image and sum
-        Dim GroupDeltaX As Integer = 1 : Dim DistXIdx As Integer = 1
-        Dim DistX As Double = (DistXIdx - 0.5) * (DistXIdx - 0.5)
-        For CursorX As Integer = (FITSSumImage.GetUpperBound(0) \ 2) + 1 To FITSSumImage.GetUpperBound(0)
-            Dim GroupDeltaY As Integer = 1 : Dim DistYIdx As Integer = 1
-            Dim DistY As Double = (DistYIdx - 0.5) * (DistYIdx - 0.5)
-            For CursorY As Integer = (FITSSumImage.GetUpperBound(1) \ 2) + 1 To FITSSumImage.GetUpperBound(1)
-                Dim CenterDistance As Double = (Math.Sqrt(DistX + DistY))                       'Distance from center in pixel
-                Dim SampleSum As UInt32 = 0
-                SampleSum += FITSSumImage(CursorX, CursorY)                                     'right down
-                SampleSum += FITSSumImage(CursorX, CursorY - GroupDeltaY)                       'right up
-                SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY)                       'left down
-                SampleSum += FITSSumImage(CursorX - GroupDeltaX, CursorY - GroupDeltaY)         'left up
-                BinSum.AddTo(CenterDistance, SampleSum)
-                BinCount.AddTo(CenterDistance, UInt4)
-                GroupDeltaY += 2 : DistYIdx += 1 : DistY = (DistYIdx - 0.5) * (DistYIdx - 0.5)
-            Next CursorY
-            GroupDeltaX += 2 : DistXIdx += 1 : DistX = (DistXIdx - 0.5) * (DistXIdx - 0.5)
+            GroupDeltaX += 2 : DistXIdx += 1 : DistX = DistSquare(DistXIdx)
         Next CursorX
 
         'Calculate the final output
@@ -294,7 +222,8 @@ Public Class ImageProcessing
     End Function
 
     ''' <summary>Correct the vignette.</summary>
-    Public Shared Sub CorrectVignette(ByRef FITSSumImage(,) As UInt16, ByRef VignetteCorrection As Dictionary(Of Double, Double))
+    ''' <returns>Number of corrected pixel.</returns>
+    Public Shared Function CorrectVignette(ByRef FITSSumImage(,) As UInt16, ByRef VignetteCorrection As Dictionary(Of Double, Double)) As Integer
 
         Dim Corrected As Integer = 0
 
@@ -319,10 +248,13 @@ Public Class ImageProcessing
             GroupDeltaX += 2 : DistX += 1
         Next DeltaX
 
-    End Sub
+        Return Corrected
+
+    End Function
 
     ''' <summary>Correct the vignette.</summary>
-    Public Shared Sub CorrectVignette(ByRef FITSSumImage(,) As UInt32, ByRef VignetteCorrection As Dictionary(Of Double, Double))
+    ''' <returns>Number of corrected pixel.</returns>
+    Public Shared Function CorrectVignette(ByRef FITSSumImage(,) As UInt32, ByRef VignetteCorrection As Dictionary(Of Double, Double)) As Integer
 
         Dim Corrected As Integer = 0
 
@@ -347,7 +279,9 @@ Public Class ImageProcessing
             GroupDeltaX += 2 : DistX += 1
         Next DeltaX
 
-    End Sub
+        Return Corrected
+
+    End Function
 
     '=========================================================================================================================
     ' BINNING

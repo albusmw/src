@@ -544,6 +544,8 @@ Partial Public Class cIntelIPP
     End Function
 
     '''<summary>Try to get an instance to the latest available Intel IPP DLL.</summary>
+    '''<param name="Paths">Paths to include in the search.</param>
+    '''<param name="LoadError">Load error in case of no IPP found.</param>
     Public Shared Function SearchDLLToUse(ByVal Paths As String(), ByVal LoadError As String) As String
         Dim TestInstance As cIntelIPP = Nothing
         Try
@@ -920,6 +922,14 @@ Partial Public Class cIntelIPP
     End Function
 
     Public Function Copy(ByRef ArrayIn(,) As UInt16, ByRef ArrayOut() As Byte) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsCopy_16s", GetType(CallSignature.IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), Pinner.Pin(ArrayOut), ArrayIn.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    Public Function Copy(ByRef ArrayIn(,) As UInt16, ByRef ArrayOut(,) As UInt16) As IppStatus
         Dim RetVal As IppStatus = IppStatus.NoErr
         Dim Caller As System.Delegate = CallIPPS("ippsCopy_16s", GetType(CallSignature.IntPtr_IntPtr_Integer))
         Using Pinner As New cPinHandler

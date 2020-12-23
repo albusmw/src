@@ -62,28 +62,47 @@ Public Class cFITSReader
 
     Private FITSHeaderParser As cFITSHeaderParser = Nothing
 
+    '================================================================================================================================================================
+    ' Properties derived from FITSHeaderParser
+    '================================================================================================================================================================
+
+    Public ReadOnly Property BZERO() As Double
+        Get
+            If IsNothing(FITSHeaderParser) = True Then Return Double.NaN Else Return FITSHeaderParser.BZERO
+        End Get
+    End Property
+
+    Public ReadOnly Property BSCALE() As Double
+        Get
+            If IsNothing(FITSHeaderParser) = True Then Return Double.NaN Else Return FITSHeaderParser.BSCALE
+        End Get
+    End Property
+
     Public Sub New()
         IntelIPP = New cIntelIPP(System.IO.Path.Combine(IPPPath, "ipps.dll"), System.IO.Path.Combine(IPPPath, "ippvm.dll"), System.IO.Path.Combine(IPPPath, "ippi.dll"))
     End Sub
 
-    Public Sub ReadIn(ByVal FileName As String, ByRef ImageData(,) As Double)
-        ReadIn(FileName, True, ImageData, New System.Drawing.Point() {})
-    End Sub
+    '''<returns>0-based position of data start.</returns>
+    Public Function ReadIn(ByVal FileName As String, ByRef ImageData(,) As Double) As Integer
+        Return ReadIn(FileName, True, ImageData, New System.Drawing.Point() {})
+    End Function
 
     '''<summary>Read FITS data from the passed file.</summary>
     '''<param name="FileName">File name to load FITS data from.</param>
     '''<param name="UseBZeroScale">Use the BZERO and BSCALE value within the file for scaling - if OFF omit the data.</param>
     '''<param name="ImageData">Loaded image data processed by BZERO and BSCALE - if PointsToRead is passed, the matrix is 1xN where N is the number of entries in PointsToRead.</param>
-    Public Sub ReadIn(ByVal FileName As String, ByVal UseBZeroScale As Boolean, ByRef ImageData(,) As Double)
-        ReadIn(FileName, UseBZeroScale, ImageData, New System.Drawing.Point() {})
-    End Sub
+    '''<returns>0-based position of data start.</returns>
+    Public Function ReadIn(ByVal FileName As String, ByVal UseBZeroScale As Boolean, ByRef ImageData(,) As Double) As Integer
+        Return ReadIn(FileName, UseBZeroScale, ImageData, New System.Drawing.Point() {})
+    End Function
 
     '''<summary>Read FITS data from the passed file.</summary>
     '''<param name="FileName">File name to load FITS data from.</param>
     '''<param name="UseBZeroScale">Use the BZERO and BSCALE value within the file for scaling - if OFF omit the data.</param>
     '''<param name="ImageData">Loaded image data processed by BZERO and BSCALE - if PointsToRead is passed, the matrix is 1xN where N is the number of entries in PointsToRead.</param>
     '''<param name="PointsToRead">Vector of points to read on - pass an empty vector to read all values and generate a matrix for ImageData.</param>
-    Public Sub ReadIn(ByVal FileName As String, ByVal UseBZeroScale As Boolean, ByRef ImageData(,) As Double, ByVal PointsToRead As System.Drawing.Point())
+    '''<returns>0-based position of data start.</returns>
+    Public Function ReadIn(ByVal FileName As String, ByVal UseBZeroScale As Boolean, ByRef ImageData(,) As Double, ByVal PointsToRead As System.Drawing.Point()) As Integer
 
         'Read in header and get data start position
         Dim BaseIn As New System.IO.StreamReader(FileName)
@@ -94,7 +113,9 @@ Public Class cFITSReader
         'Read data content
         ReadDataContent(FileName, DataStartPos, ImageData, FITSHeaderParser.BitPix, UseBZeroScale, FITSHeaderParser.Width, FITSHeaderParser.Height, PointsToRead)
 
-    End Sub
+        Return DataStartPos
+
+    End Function
 
     '================================================================================================================================================================
     ' Read UInt8 data (data are read to an UInt16 matrix)
@@ -177,10 +198,6 @@ Public Class cFITSReader
     '''<param name="FileName">File name to load FITS data from.</param>
     '''<param name="DataStartPosToUse">OVerrided data start index (used e.g. to process NAXIS3>1 pictures).</param>
     '''<param name="UseIPP">Use the Intel IPP (if found) for processing.</param>
-    '''<param name="XOffset">0-based X start offset - use -1 to ignore.</param>
-    '''<param name="XWidth">Width [pixel] to read in.</param>
-    '''<param name="YOffset">0-based Y start offset - use -1 to ignore.</param>
-    '''<param name="YHeight">Height [pixel] to read in.</param>
     '''<remarks>Tested and works.</remarks>
     Public Function ReadInUInt16(ByVal FileName As String, ByVal DataStartPosToUse As Integer, ByVal UseIPP As Boolean, ByVal ForceDirect As Boolean) As UInt16(,)
         Return ReadInUInt16(FileName, DataStartPosToUse, UseIPP, -1, -1, -1, -1, ForceDirect)
@@ -261,12 +278,16 @@ Public Class cFITSReader
         Else
             'VB implementation
             Dim BytesPtr As Integer = 0
-            For H As Integer = 0 To ImageData.GetUpperBound(1)
-                For W As Integer = 0 To ImageData.GetUpperBound(0)
-                    ImageData(W, H) = CUShort(BitConverter.ToInt16({Bytes(BytesPtr + 1), Bytes(BytesPtr)}, 0) + FITSHeaderParser.BZERO)
-                    BytesPtr += BytePerPixel
-                Next W
-            Next H
+            Try
+                For H As Integer = 0 To ImageData.GetUpperBound(1)
+                    For W As Integer = 0 To ImageData.GetUpperBound(0)
+                        ImageData(W, H) = CUShort(BitConverter.ToInt16({Bytes(BytesPtr + 1), Bytes(BytesPtr)}, 0) + FITSHeaderParser.BZERO)
+                        BytesPtr += BytePerPixel
+                    Next W
+                Next H
+            Catch ex As Exception
+                'ERROR ...
+            End Try
         End If
 
         'Close data stream

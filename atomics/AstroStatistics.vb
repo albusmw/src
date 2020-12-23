@@ -309,6 +309,32 @@ Namespace AstroNET
                 Return MonoStatistics_Int.Max.Key
             End Function
 
+            '''<summary>Get the next value that is really below the given one.</summary>
+            Public Function MonochromHistogram_NextBelow(ByVal X As ADUFixed) As ADUFixed
+                Dim AllKeys As List(Of ADUFixed) = MonochromHistogram_Int.Keys.ToList
+                AllKeys.Sort()
+                For Idx As Integer = 0 To AllKeys.Count - 1
+                    If AllKeys(Idx) >= X Then
+                        If Idx > 0 Then
+                            Return AllKeys(Idx - 1)
+                        Else
+                            Return AllKeys(0)
+                        End If
+                    End If
+                Next Idx
+                Return AllKeys(0)
+            End Function
+
+            '''<summary>Get the next value that is really below the given one.</summary>
+            Public Function MonochromHistogram_NextAbove(ByVal X As ADUFixed) As ADUFixed
+                Dim AllKeys As List(Of ADUFixed) = MonochromHistogram_Int.Keys.ToList
+                AllKeys.Sort()
+                For Idx As Integer = 0 To AllKeys.Count - 1
+                    If AllKeys(Idx) > X Then Return AllKeys(Idx)
+                Next Idx
+                Return AllKeys(AllKeys.Count - 1)
+            End Function
+
         End Structure
 
         '''<summary>Statistic information of one channel (RGB or total).</summary>
@@ -371,7 +397,7 @@ Namespace AstroNET
             Public ReadOnly Property HistXDistMissing As Boolean
                 Get
                     If IsNothing(HistXDist) Then Return True
-                    If IsNothing(HistXDist.KeyList) Then Return True
+                    If IsNothing(HistXDist.Keys) Then Return True
                     If HistXDist.Count = 0 Then Return True
                     Return False
                 End Get
@@ -406,8 +432,8 @@ Namespace AstroNET
                     RetVal.Add("ADU step size min", Nothing)
                     RetVal.Add("ADU different step", Nothing)
                 Else
-                    RetVal.Add("ADU step size min", HistXDist.KeyList(0))
-                    RetVal.Add("ADU different step", HistXDist.KeyList.Count)
+                    RetVal.Add("ADU step size min", HistXDist.Keys(0))
+                    RetVal.Add("ADU different step", HistXDist.Keys.Count)
                 End If
                 RetVal.Add("Min value", Min.Key)
                 RetVal.Add("Min value #", Min.Value)
@@ -440,8 +466,8 @@ Namespace AstroNET
                     RetVal.Add("ADU step size min : " & NotPresent.PadLeft(ReportValueLength))
                     RetVal.Add("ADU different step: " & NotPresent.PadLeft(ReportValueLength))
                 Else
-                    RetVal.Add("ADU step size min : " & Format(HistXDist.KeyList(0), "####0").ToString.Trim.PadLeft(ReportValueLength))
-                    RetVal.Add("ADU different step: " & Format(HistXDist.KeyList.Count, "####0").ToString.Trim.PadLeft(ReportValueLength))
+                    RetVal.Add("ADU step size min : " & Format(HistXDist.Keys(0), "####0").ToString.Trim.PadLeft(ReportValueLength))
+                    RetVal.Add("ADU different step: " & Format(HistXDist.Keys.Count, "####0").ToString.Trim.PadLeft(ReportValueLength))
                 End If
                 RetVal.Add("Min value         : " & (Min.Key.ValRegIndep & " (" & Min.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
                 RetVal.Add("Modus value       : " & (Modus.Key.ValRegIndep & " (" & Modus.Value.ValRegIndep & "x)").PadLeft(ReportValueLength))
@@ -531,7 +557,7 @@ Namespace AstroNET
             Public Function StatisticsReport() As List(Of String)
                 Dim NotPresent As String = New String("-"c, ReportValueLength)
                 Dim RetVal As New List(Of String)
-                Dim HistXDist_keys As List(Of Single) = HistXDist.KeyList
+                Dim HistXDist_keys As New List(Of Single)(HistXDist.Keys)
                 Dim TotalPixel As String = ((Samples / 1000000).ValRegIndep("0.0") & "M")
                 If Samples < 1000000 Then TotalPixel = ((Samples / 1000).ValRegIndep("0.0") & "k")
                 RetVal.Add("Dimensions        : " & (Width.ValRegIndep & "x" & Height.ValRegIndep).PadLeft(ReportValueLength))
@@ -684,7 +710,7 @@ Namespace AstroNET
             If Histogram.Count = 0 Then Return Nothing
 
             Dim RetVal As sSingleChannelStatistics_Int = sSingleChannelStatistics_Int.InitForShort()
-            Dim AllADUValues As List(Of ADUFixed) = Histogram.KeyList
+            Dim AllADUValues As New List(Of ADUFixed)(Histogram.Keys)
             AllADUValues.Sort()
 
             'Count number of samples
@@ -769,7 +795,7 @@ Namespace AstroNET
             If IsNothing(Histogram) = True Then Return Nothing
 
             Dim RetVal As sSingleChannelStatistics_Float32 = sSingleChannelStatistics_Float32.Init()
-            Dim AllADUValues As List(Of Single) = Histogram.KeyList
+            Dim AllADUValues As New List(Of Single)(Histogram.Keys)
             AllADUValues.Sort()
 
             'Count number of samples
@@ -835,7 +861,7 @@ Namespace AstroNET
         Public Shared Function GetQuantizationHisto(ByRef Histo As Dictionary(Of ADUFixed, ADUCount)) As Dictionary(Of Long, UInt64)
             Dim RetVal As New Dictionary(Of Long, UInt64)
             Dim LastHistX As ADUFixed = Int64.MaxValue
-            For Each HistoX As ADUFixed In Histo.KeyList
+            For Each HistoX As ADUFixed In Histo.Keys
                 If LastHistX <> ADUFixed.MaxValue Then
                     Dim Distance As Long = CType(HistoX - LastHistX, Long)
                     RetVal.AddTo(Distance, UInt64_1)
@@ -850,7 +876,7 @@ Namespace AstroNET
         Public Shared Function GetQuantizationHisto(ByRef Histo As Dictionary(Of Single, ADUCount)) As Dictionary(Of Single, UInt64)
             Dim RetVal As New Dictionary(Of Single, UInt64)
             Dim LastHistX As Single = Single.NaN
-            For Each HistoX As Single In Histo.KeyList
+            For Each HistoX As Single In Histo.Keys
                 If Single.IsNaN(LastHistX) = False Then
                     Dim Distance As Single = HistoX - LastHistX
                     RetVal.AddTo(Distance, 1)

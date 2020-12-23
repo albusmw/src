@@ -945,7 +945,7 @@ Public Class cFITSWriter
     '''<remarks>Elements that are already in the Header list and are also in the CustomHeaderElements list are NOT added!</remarks>
     Private Shared Sub AddCustomHeaders(ByRef Header As Dictionary(Of eFITSKeywords, Object), ByRef CustomHeaderElements As Dictionary(Of eFITSKeywords, Object))
         If IsNothing(CustomHeaderElements) = True Then Exit Sub
-        For Each Keyword As eFITSKeywords In CustomHeaderElements.KeyList
+        For Each Keyword As eFITSKeywords In CustomHeaderElements.Keys
             If Header.ContainsKey(Keyword) = True Then
                 Header(Keyword) = CustomHeaderElements(Keyword)
             Else
@@ -1003,9 +1003,9 @@ Public Class cFITSWriter
             ValAsString = cFITSKeywords.AsString(Card.Value)
         End If
         If Comment.Length > 0 Then
-            RetVal = (FITSKeyword.GetKeyword(Card.Key)(0).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength) & " / " & Comment).PadRight(HeaderElementLength)
+            RetVal = (FITSKeyword.GetKeywords(Card.Key)(0).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength) & " / " & Comment).PadRight(HeaderElementLength)
         Else
-            RetVal = (FITSKeyword.GetKeyword(Card.Key)(0).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength)).PadRight(HeaderElementLength)
+            RetVal = (FITSKeyword.GetKeywords(Card.Key)(0).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength)).PadRight(HeaderElementLength)
         End If
         If RetVal.Length > HeaderElementLength Then RetVal = RetVal.Substring(0, HeaderElementLength)
         Return RetVal

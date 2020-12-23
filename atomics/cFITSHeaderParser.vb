@@ -104,12 +104,13 @@ Public Class cFITSHeaderParser
             Else
                 If UpdateExistingElement = True Then AllCards(FoundIdx) = Card
             End If
+            Dim ValString As String = CStr(Card.Value)
             Select Case Card.Keyword
-                Case eFITSKeywords.BITPIX : MyProps.BitPix = CInt(Card.Value)
-                Case eFITSKeywords.NAXIS : MyProps.NAXIS = CInt(Card.Value)
-                Case eFITSKeywords.NAXIS1 : MyProps.Width = CInt(Card.Value)
-                Case eFITSKeywords.NAXIS2 : MyProps.Height = CInt(Card.Value)
-                Case eFITSKeywords.NAXIS3 : MyProps.NAXIS3 = CInt(Card.Value)
+                Case eFITSKeywords.BITPIX : If Not Integer.TryParse(ValString, MyProps.BitPix) Then MyProps.BitPix = -1
+                Case eFITSKeywords.NAXIS : If Not Integer.TryParse(ValString, MyProps.NAXIS) Then MyProps.NAXIS = -1
+                Case eFITSKeywords.NAXIS1 : If Not Integer.TryParse(ValString, MyProps.Width) Then MyProps.Width = -1
+                Case eFITSKeywords.NAXIS2 : If Not Integer.TryParse(ValString, MyProps.Height) Then MyProps.Height = -1
+                Case eFITSKeywords.NAXIS3 : If Not Integer.TryParse(ValString, MyProps.NAXIS3) Then MyProps.NAXIS3 = -1
                 Case eFITSKeywords.BZERO : MyProps.BZERO = Val(Card.Value)
                 Case eFITSKeywords.BSCALE : MyProps.BSCALE = Val(Card.Value)
             End Select
@@ -190,11 +191,11 @@ Public Class cFITSHeaderParser
     '''<summary>Try to translate the string in the enum.</summary>
     Public Shared Function GetKeywordEnum(ByVal KeyWordString As String) As eFITSKeywords
         For Each EnumKey As eFITSKeywords In [Enum].GetValues(GetType(eFITSKeywords))
-            For Each Keyword As String In FITSKeyword.GetKeyword(EnumKey)
+            For Each Keyword As String In FITSKeyword.GetKeywords(EnumKey)
                 If Keyword.ToString.ToUpper = KeyWordString.ToUpper.Trim Then Return EnumKey
             Next Keyword
         Next EnumKey
-            Return Nothing
+        Return eFITSKeywords.UNKNOWN
     End Function
 
 End Class

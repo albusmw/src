@@ -22,10 +22,15 @@ Public Class FITSKeyword
         End Get
     End Property
     Private MyKeywords As List(Of String)
-    '''<summary>The keyword string associated with the given keyword(s).</summary>
-    Public Shared Function GetKeyword(ByRef Element As eFITSKeywords) As String()
+    '''<summary>The keyword string(s) associated with the given keyword.</summary>
+    Public Shared Function GetKeywords(ByRef Element As eFITSKeywords) As String()
         Dim attributes As FITSKeyword() = CType(Element.GetType.GetField(Element.ToString).GetCustomAttributes(GetType(FITSKeyword), False), FITSKeyword())
         If attributes.Length > 0 Then Return attributes(0).Keywords.ToArray Else Return New String() {}
+    End Function
+    '''<summary>The (common) keyword string associated with the given keyword.</summary>
+    Public Shared Function KeywordString(ByRef Element As eFITSKeywords) As String
+        Dim attributes As FITSKeyword() = CType(Element.GetType.GetField(Element.ToString).GetCustomAttributes(GetType(FITSKeyword), False), FITSKeyword())
+        If attributes.Length > 0 Then Return attributes(0).Keywords(0) Else Return String.Empty
     End Function
 End Class
 '================================================================================
@@ -78,7 +83,7 @@ Public Enum eFITSKeywords
     <FITSComment("")>
     [BAYERPAT]
 
-    '''<summary>8 unsigned int, 16 & 32 int, -32 & -64 real.</summary>
+    '''<summary>8 unsigned int, 16 and 32 int, -32 and -64 real.</summary>
     <FITSKeyword("BITPIX")>
     <FITSComment("8 unsigned int, 16 & 32 int, -32 & -64 real")>
     [BITPIX]
@@ -151,22 +156,22 @@ Public Enum eFITSKeywords
     '''<summary>The value field shall contain a floating point number, giving the value Of the coordinate specified by the CTYPEn keyword at the reference point CRPIXn. Units must follow the prescriptions Of section 5.3 of the FITS Standard.</summary>
     '''<remarks>Right Ascension at CRPIX1,CRPIX2 for EQUINOX. </remarks>
     <FITSKeyword("CRVAL1")>
-    <FITSComment("")>
+    <FITSComment("Right Ascension at CRPIX1,CRPIX2 for EQUINOX")>
     [CRVAL1]
 
     '''<summary>The value field shall contain a floating point number, giving the value Of the coordinate specified by the CTYPEn keyword at the reference point CRPIXn. Units must follow the prescriptions Of section 5.3 of the FITS Standard.</summary>
     '''<remarks> Declination at CRPIX1,CRPIX2 for EQUINOX.</remarks>
     <FITSKeyword("CRVAL2")>
-    <FITSComment("")>
+    <FITSComment("Declination at CRPIX1,CRPIX2 for EQUINOX")>
     [CRVAL2]
 
-    '''<summary>Projection type for axis 1. Always set to use the SIN (orthographic) projection; For definition, see Calabretta & Greisen, 2002</summary>
+    '''<summary>Projection type for axis 1. Always set to use the SIN (orthographic) projection; For definition, see Calabretta and Greisen, 2002</summary>
     '''<example>'RA---SIN'</example>
     <FITSKeyword("CTYPE1")>
     <FITSComment("Projection type for axis 1.")>
     [CTYPE1]
 
-    '''<summary>Projection type for axis 1. Always set to use the SIN (orthographic) projection; For definition, see Calabretta & Greisen, 2002</summary>
+    '''<summary>Projection type for axis 1. Always set to use the SIN (orthographic) projection; For definition, see Calabretta and Greisen, 2002</summary>
     '''<example>'DEC--SIN'</example>
     <FITSKeyword("CTYPE2")>
     <FITSComment("Projection type for axis 2.")>
@@ -310,7 +315,7 @@ Public Enum eFITSKeywords
 
     '''<summary>The value field shall contain a character string identifying the organization or institution responsible for creating the FITS file.</summary>
     <FITSKeyword("ORIGIN")>
-    <FITSComment("")>
+    <FITSComment("organization or institution created the FITS file")>
     [ORIGIN]
 
     '''<summary>Pixel size [um] along axis 1.</summary>
@@ -335,7 +340,7 @@ Public Enum eFITSKeywords
 
     '''<summary>The value field shall contain a character string giving the name, And optionally, the version of the program that originally created the current FITS HDU. This keyword Is synonymous With the CREATOR keyword.  Example 'TASKNAME V1.2.3'.</summary>
     <FITSKeyword("PROGRAM")>
-    <FITSComment("")>
+    <FITSComment("Program that originally created the current FITS HDU")>
     [PROGRAM]
 
     '''<summary>Pixel scale at CRPIX1,CRPIX2 for axis1.</summary>
@@ -431,7 +436,7 @@ End Enum
 Public Class cFITSKey
     Default Public ReadOnly Property Key(ByVal Element As eFITSKeywords) As String()
         Get
-            Return FITSKeyword.GetKeyword(Element)
+            Return FITSKeyword.GetKeywords(Element)
         End Get
     End Property
     Public ReadOnly Property Comment(ByVal Element As eFITSKeywords) As String
@@ -443,7 +448,7 @@ End Class
 
 Public Class cFITSKeywords
 
-    '''<summary>Describes which data type a certain keyword has.</summary>
+    '<summary>Describes which data type a certain keyword has.</summary>
     'Public Shared Function GetDataType(ByVal Keyword As eFITSKeywords) As String
     '    'Set the correct data type
     '    Select Case Keyword

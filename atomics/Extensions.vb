@@ -201,17 +201,10 @@ Module DirectoryExtension
         End If
     End Sub
 
-    '''<summary>Get a list of all keys in the dictionary passed.</summary>
+    ''''<summary>Get a list of all keys in the dictionary passed.</summary>
     <Extension()>
-    Public Function KeyList(Of T1, T2)(ByRef Dict As Dictionary(Of T1, T2)) As List(Of T1)
-        If IsNothing(Dict) = True Then Return Nothing
-        Return New List(Of T1)(Dict.Keys)
-    End Function
-
-    '''<summary>Get a list of all values in the dictionary passed.</summary>
-    <Extension()>
-    Public Function ValueList(Of T1, T2)(ByRef Dict As Dictionary(Of T1, T2)) As List(Of T2)
-        Return New List(Of T2)(Dict.Values)
+    Public Function ToDouble(ByRef Keys As Dictionary(Of Long, ULong).KeyCollection) As Double()
+        Return Keys.ToDouble
     End Function
 
     '''<summary>Sort the dictionary passed.</summary>
@@ -228,7 +221,15 @@ Module DirectoryExtension
 
     '''<summary>Sort the dictionary passed.</summary>
     <Extension()>
-    Private Function SortDictionary(Of T1, T2)(ByRef Hist As Dictionary(Of T1, T2), ByVal Reverse As Boolean) As Dictionary(Of T1, T2)
+    Public Function SortDictionary(Of T1, T2)(ByRef Hist As Dictionary(Of T1, T2), ByVal Reverse As Boolean) As Dictionary(Of T1, T2)
+        Dim DontCare1 As T1
+        Dim DontCare2 As T1
+        Return SortDictionary(Hist, Reverse, DontCare1, DontCare2)
+    End Function
+
+    '''<summary>Sort the dictionary passed.</summary>
+    <Extension()>
+    Public Function SortDictionary(Of T1, T2)(ByRef Hist As Dictionary(Of T1, T2), ByVal Reverse As Boolean, ByRef Min As T1, ByRef Max As T1) As Dictionary(Of T1, T2)
 
         'Generate a list
         Dim KeyList As New List(Of T1)
@@ -237,6 +238,10 @@ Module DirectoryExtension
         Next Entry
         'Sort keys
         KeyList.Sort()
+        If KeyList.Count > 0 Then
+            Min = KeyList(0)
+            Max = KeyList(KeyList.Count - 1)
+        End If
         If Reverse Then KeyList.Reverse()
         'Re-generate dictionary
         Dim RetVal As New Dictionary(Of T1, T2)
