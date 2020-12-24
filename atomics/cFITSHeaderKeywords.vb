@@ -78,6 +78,16 @@ Public Enum eFITSKeywords
     <FITSComment("")>
     [AUTHOR]
 
+    '''<summary>.</summary>
+    <FITSKeyword("BAYOFFX")>
+    <FITSComment("")>
+    [BAYOFFX]
+
+    '''<summary>.</summary>
+    <FITSKeyword("BAYOFFY")>
+    <FITSComment("")>
+    [BAYOFFY]
+
     '''<summary>If present the image has a valid Bayer color pattern.</summary>
     <FITSKeyword("BAYERPAT")>
     <FITSComment("")>
@@ -87,6 +97,11 @@ Public Enum eFITSKeywords
     <FITSKeyword("BITPIX")>
     <FITSComment("8 unsigned int, 16 & 32 int, -32 & -64 real")>
     [BITPIX]
+
+    '''<summary></summary>
+    <FITSKeyword("BLKLEVEL")>
+    <FITSComment("??????")>
+    [BLKLEVEL]
 
     '''<summary>Configured BRIGHTNESS value of the camera.</summary>
     <FITSKeyword("BRIGHTN")>
@@ -126,6 +141,11 @@ Public Enum eFITSKeywords
     <FITSKeyword("COLORTYP")>
     <FITSComment("")>
     [COLORTYP]
+
+    '''<summary>.</summary>
+    <FITSKeyword("COMMENT")>
+    <FITSComment("")>
+    [COMMENT]
 
     '''<summary>This keyword is used to indicate a rotation from a standard coordinate system described by the CTYPEn To a different coordinate system in which the values in the array are actually expressed. Rules For such rotations are Not further specified in the Standard; the rotation should be explained In comments. The value field shall contain a floating point number giving the rotation angle In degrees between axis n And the direction implied by the coordinate system defined by CTYPEn.</summary>
     '''<remarks>UNITS: degrees</remarks>
@@ -178,9 +198,14 @@ Public Enum eFITSKeywords
     [CTYPE2]
 
     '''<summary>Used to color encoding.</summary>
-    <FITSKeyword("[CTYPE3]")>
+    <FITSKeyword("CTYPE3")>
     <FITSComment("Used to color encoding.")>
     [CTYPE3]
+
+    '''<summary>.</summary>
+    <FITSKeyword({"DATE"})>
+    <FITSComment("")>
+    [DATE]
 
     '''<summary>The value field shall contain a character string that gives the date on which the observation ended, format 'yyyy-mm-dd', or 'yyyy-mm-ddThh:mm:ss.sss'.</summary>
     <FITSKeyword({"DATE_END", "DATE-END"})>
@@ -401,12 +426,12 @@ Public Enum eFITSKeywords
     [TELSCALE]
 
     '''<summary>The value field shall contain a character string that gives the time at which the observation ended, format 'hh:mm:ss.sss'.</summary>
-    <FITSKeyword("TIME_END")>
+    <FITSKeyword({"TIME_END", "TIME-END"})>
     <FITSComment("")>
     [TIME_END]
 
     ''''<summary>The value field shall contain a character string that gives the time at which the observation started, format 'hh:mm:ss.sss'.</summary>
-    <FITSKeyword("TIME_OBS")>
+    <FITSKeyword({"TIME_OBS", "TIME-OBS"})>
     <FITSComment("")>
     [TIME_OBS]
 
@@ -429,6 +454,117 @@ Public Enum eFITSKeywords
     <FITSKeyword("YPIXSZ")>
     <FITSComment("Pixel Height in microns (after binning)")>
     [YPIXSZ]
+
+    '=========================================================================================================
+
+    <FITSKeyword("EXPOINUS")>
+    [EXPOINUS]
+
+    <FITSKeyword("SWOWNER")>
+    [SWOWNER]
+
+    <FITSKeyword("DATAMIN")>
+    [DATAMIN]
+
+    <FITSKeyword("DATAMAX")>
+    [DATAMAX]
+
+    <FITSKeyword("TRUDEPTH")>
+    [TRUDEPTH]
+
+    <FITSKeyword("BITSHIFT")>
+    [BITSHIFT]
+
+    <FITSKeyword("SUBEXP")>
+    [SUBEXP]
+
+    <FITSKeyword("XORGSUBF")>
+    [XORGSUBF]
+
+    <FITSKeyword("YORGSUBF")>
+    [YORGSUBF]
+
+    <FITSKeyword("FOCALLEN")>
+    [FOCALLEN]
+
+    <FITSKeyword("APTDIA")>
+    [APTDIA]
+
+    <FITSKeyword("APTAREA")>
+    [APTAREA]
+
+    <FITSKeyword("CBLACK")>
+    [CBLACK]
+
+    <FITSKeyword("CWHITE")>
+    [CWHITE]
+
+    <FITSKeyword("SNAPSHOT")>
+    [SNAPSHOT]
+
+    <FITSKeyword("RESMODE")>
+    [RESMODE]
+
+    <FITSKeyword("PEDESTAL")>
+    [PEDESTAL]
+
+    <FITSKeyword("SBSTDVER")>
+    [SBSTDVER]
+
+    <FITSKeyword("SWACQUIR")>
+    [SWACQUIR]
+
+    <FITSKeyword("EXPSTATE")>
+    [EXPSTATE]
+
+    <FITSKeyword("RESPONSE")>
+    [RESPONSE]
+
+    <FITSKeyword("NOTE")>
+    [NOTE]
+
+    <FITSKeyword("TRAKTIME")>
+    [TRAKTIME]
+
+    <FITSKeyword("SWMODIFY")>
+    [SWMODIFY]
+
+    <FITSKeyword("HISTORY")>
+    [HISTORY]
+
+    <FITSKeyword("EXPOSURE")>
+    [EXPOSURE]
+
+    <FITSKeyword("CREATOR")>
+    [CREATOR]
+
+    <FITSKeyword("CCDXBIN")>
+    [CCDXBIN]
+
+    <FITSKeyword("CCDYBIN")>
+    [CCDYBIN]
+
+    <FITSKeyword("OBJCTRA")>
+    [OBJCTRA]
+
+    <FITSKeyword("OBJCTDEC")>
+    [OBJCTDEC]
+
+    <FITSKeyword("SCALE")>
+    [SCALE]
+
+    <FITSKeyword("PIXSCALE")>
+    [PIXSCALE]
+
+    <FITSKeyword("TIME")>
+    [TIME]
+
+    <FITSKeyword("BLANK")>
+    [BLANK]
+
+    <FITSKeyword("SOFTWARE")>
+    [SOFTWARE]
+
 
 End Enum
 

@@ -11,6 +11,9 @@ Public Class cFITSHeaderChanger
     '''<summary>Number of header elements per header block.</summary>
     Public Shared ReadOnly HeaderElements As Integer = HeaderBlockSize \ HeaderElementLength
 
+    '''<summary>List of all keywords that where not recognized during parsing.</summary>
+    Public Shared UnknownKeywords As New List(Of String)
+
     '''<summary>Search a specific keyword in the passed list of header elements.</summary>
     '''<param name="HeaderElements">Header elements.</param>
     '''<param name="KeyWordToSearch">Keyword to search for.</param>
@@ -75,22 +78,26 @@ Public Class cFITSHeaderChanger
         Return ("'" & Value & "'").PadRight(20)
     End Function
 
-    Public Shared Function ReadHeader(ByVal File As String) As List(Of cFITSHeaderParser.sHeaderElement)
+    Public Shared Function ParseHeader(ByVal File As String) As List(Of cFITSHeaderParser.sHeaderElement)
         Dim Dummy As Integer = -1
-        Return ReadHeader(File, Dummy)
+        Return ParseHeader(File, Dummy)
     End Function
 
-    Public Shared Function ReadHeader(ByVal File As String, ByRef DataStartPos As Integer) As List(Of cFITSHeaderParser.sHeaderElement)
+    Public Shared Function ParseHeader(ByVal File As String, ByRef DataStartPos As Integer) As List(Of cFITSHeaderParser.sHeaderElement)
         Dim RetNothing As New List(Of cFITSHeaderParser.sHeaderElement)
         If System.IO.File.Exists(File) = True Then
             Dim HeaderBytes(ReadHeaderByteCount - 1) As Byte
             System.IO.File.OpenRead(File).Read(HeaderBytes, 0, HeaderBytes.Length)
-            Return ReadHeader(HeaderBytes, DataStartPos)
+            Return ParseHeader(HeaderBytes, DataStartPos)
         End If
         Return RetNothing
     End Function
 
-    Public Shared Function ReadHeader(ByVal HeaderBytes As Byte(), ByRef DataStartPos As Integer) As List(Of cFITSHeaderParser.sHeaderElement)
+    '''<summary>Parse the given header.</summary>
+    '''<param name="HeaderBytes">Header bytes read from the file.</param>
+    '''<param name="DataStartPos">Return value - data start position relative to file start.</param>
+    '''<returns>List of header elements.</returns>
+    Public Shared Function ParseHeader(ByVal HeaderBytes As Byte(), ByRef DataStartPos As Integer) As List(Of cFITSHeaderParser.sHeaderElement)
 
         Dim RetVal As New List(Of cFITSHeaderParser.sHeaderElement)
         Dim BytesRead As Integer = 0
@@ -120,7 +127,11 @@ Public Class cFITSHeaderChanger
 
                 'Get keyword, value and comment
                 Dim HeaderElement As cFITSHeaderParser.sHeaderElement
-                HeaderElement.Keyword = cFITSHeaderParser.GetKeywordEnum(SingleLine.Substring(0, 8))
+                Dim KeywordString As String = SingleLine.Substring(0, 8)
+                HeaderElement.Keyword = cFITSHeaderParser.GetKeywordEnum(KeywordString)
+                If HeaderElement.Keyword = eFITSKeywords.UNKNOWN Then
+                    If Not UnknownKeywords.Contains(KeywordString) Then UnknownKeywords.Add(KeywordString)
+                End If
                 Dim Value As String = SingleLine.Substring(9).Trim
                 HeaderElement.Value = Value
                 HeaderElement.Comment = String.Empty
