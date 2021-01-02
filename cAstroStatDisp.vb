@@ -12,32 +12,40 @@ Public Class cAstroStatDisp
 
     Public Class cProp
 
-        <ComponentModel.Category("1. Generic")>
-        <ComponentModel.DisplayName("   d) Bayer pattern")>
-        <ComponentModel.Description("Bayer pattern")>
-        <ComponentModel.DefaultValue("RGGB")>
-        Public Property BayerPattern As String = "RGGB"
+        Const Indent As String = "         "
 
         <ComponentModel.Category("2. Plot")>
-        <ComponentModel.DisplayName("   a) Plot single statistics")>
+        <ComponentModel.DisplayName(Indent & "1. Plot single statistics")>
         <ComponentModel.DefaultValue(True)>
         <ComponentModel.TypeConverter(GetType(ComponentModelEx.BooleanPropertyConverter_YesNo))>
         Public Property PlotSingleStatistics As Boolean = True
 
         <ComponentModel.Category("2. Plot")>
-        <ComponentModel.DisplayName("   b) Plot mean statistics")>
+        <ComponentModel.DisplayName(Indent & "2. Plot mean statistics")>
         <ComponentModel.DefaultValue(True)>
         <ComponentModel.TypeConverter(GetType(ComponentModelEx.BooleanPropertyConverter_YesNo))>
         Public Property PlotMeanStatistics As Boolean = True
 
         <ComponentModel.Category("2. Plot")>
-        <ComponentModel.DisplayName("   c) Plot statistics - Mono")>
+        <ComponentModel.DisplayName(Indent & "3. Plot statistics - Mono")>
         <ComponentModel.DefaultValue(True)>
         <ComponentModel.TypeConverter(GetType(ComponentModelEx.BooleanPropertyConverter_YesNo))>
         Public Property PlotStatisticsMono As Boolean = True
 
         <ComponentModel.Category("2. Plot")>
-        <ComponentModel.DisplayName("   d) Plot limits fixed")>
+        <ComponentModel.DisplayName(Indent & "4. Plot statistics - Color")>
+        <ComponentModel.DefaultValue(True)>
+        <ComponentModel.TypeConverter(GetType(ComponentModelEx.BooleanPropertyConverter_YesNo))>
+        Public Property PlotStatisticsColor As Boolean = True
+
+        <ComponentModel.Category("1. Generic")>
+        <ComponentModel.DisplayName(Indent & "5. Bayer pattern")>
+        <ComponentModel.Description("Bayer pattern")>
+        <ComponentModel.DefaultValue("RGGB")>
+        Public Property BayerPattern As String = "RGGB"
+
+        <ComponentModel.Category("2. Plot")>
+        <ComponentModel.DisplayName(Indent & "6. Plot limits fixed")>
         <ComponentModel.Description("True to auto-scale on min and max ADU, false to scale on data min and max")>
         <ComponentModel.DefaultValue(eXAxisScalingMode.Auto)>
         <ComponentModel.TypeConverter(GetType(ComponentModelEx.EnumDesciptionConverter))>
@@ -101,7 +109,7 @@ Public Class cAstroStatDisp
         If Prop.PlotMeanStatistics = True Or Prop.PlotSingleStatistics = True Then
             'Mean statistics
             If CaptureCount > 1 And LoopStat.Count > 1 And Prop.PlotMeanStatistics = True Then
-                If IsNothing(LoopStat.BayerHistograms_Int) = False Then
+                If IsNothing(LoopStat.BayerHistograms_Int) = False And Prop.PlotStatisticsColor = True Then
                     Plotter.PlotXvsY(Prop.BayerPatternName(0) & "[0,0] mean", LoopStat.BayerHistograms_Int(0, 0), LoopStat.Count, New cZEDGraphService.sGraphStyle(System.Drawing.Color.Red, Prop.CurveMode, MeanCurveWidth))
                     Plotter.PlotXvsY(Prop.BayerPatternName(0) & "[0,1] mean", LoopStat.BayerHistograms_Int(0, 1), LoopStat.Count, New cZEDGraphService.sGraphStyle(System.Drawing.Color.LightGreen, Prop.CurveMode, MeanCurveWidth))
                     Plotter.PlotXvsY(Prop.BayerPatternName(0) & "[1,0] mean", LoopStat.BayerHistograms_Int(1, 0), LoopStat.Count, New cZEDGraphService.sGraphStyle(System.Drawing.Color.DarkGreen, Prop.CurveMode, MeanCurveWidth))
@@ -113,10 +121,12 @@ Public Class cAstroStatDisp
             End If
             'Current statistics
             If Prop.PlotSingleStatistics = True And IsNothing(SingleStat.BayerHistograms_Int) = False Then
-                Plotter.PlotXvsY(Prop.BayerPatternName(0) & "[0,0]", SingleStat.BayerHistograms_Int(0, 0), 1, New cZEDGraphService.sGraphStyle(System.Drawing.Color.Red, Prop.CurveMode, CurrentCurveWidth))
-                Plotter.PlotXvsY(Prop.BayerPatternName(1) & "[0,1]", SingleStat.BayerHistograms_Int(0, 1), 1, New cZEDGraphService.sGraphStyle(System.Drawing.Color.LightGreen, Prop.CurveMode, CurrentCurveWidth))
-                Plotter.PlotXvsY(Prop.BayerPatternName(2) & "[1,0]", SingleStat.BayerHistograms_Int(1, 0), 1, New cZEDGraphService.sGraphStyle(System.Drawing.Color.DarkGreen, Prop.CurveMode, CurrentCurveWidth))
-                Plotter.PlotXvsY(Prop.BayerPatternName(3) & "[1,1]", SingleStat.BayerHistograms_Int(1, 1), 1, New cZEDGraphService.sGraphStyle(System.Drawing.Color.Blue, Prop.CurveMode, CurrentCurveWidth))
+                If IsNothing(SingleStat.BayerHistograms_Int) = False And Prop.PlotStatisticsColor = True Then
+                    Plotter.PlotXvsY(Prop.BayerPatternName(0) & "[0,0]", SingleStat.BayerHistograms_Int(0, 0), 1, New cZEDGraphService.sGraphStyle(System.Drawing.Color.Red, Prop.CurveMode, CurrentCurveWidth))
+                    Plotter.PlotXvsY(Prop.BayerPatternName(1) & "[0,1]", SingleStat.BayerHistograms_Int(0, 1), 1, New cZEDGraphService.sGraphStyle(System.Drawing.Color.LightGreen, Prop.CurveMode, CurrentCurveWidth))
+                    Plotter.PlotXvsY(Prop.BayerPatternName(2) & "[1,0]", SingleStat.BayerHistograms_Int(1, 0), 1, New cZEDGraphService.sGraphStyle(System.Drawing.Color.DarkGreen, Prop.CurveMode, CurrentCurveWidth))
+                    Plotter.PlotXvsY(Prop.BayerPatternName(3) & "[1,1]", SingleStat.BayerHistograms_Int(1, 1), 1, New cZEDGraphService.sGraphStyle(System.Drawing.Color.Blue, Prop.CurveMode, CurrentCurveWidth))
+                End If
                 If IsNothing(SingleStat.MonochromHistogram_Int) = False And Prop.PlotStatisticsMono = True Then
                     Plotter.PlotXvsY("Mono", SingleStat.MonochromHistogram_Int, 1, New cZEDGraphService.sGraphStyle(System.Drawing.Color.Black, Prop.CurveMode, CurrentCurveWidth))
                 End If

@@ -310,4 +310,36 @@ Public Class ImageProcessing
         Return RetVal
     End Function
 
+    '=========================================================================================================================
+    ' BRIGHT STAR DETECT
+    '=========================================================================================================================
+
+    '''<summary>Detect the center of the bright star.</summary>
+    Public Shared Function BrightStarDetect(ByRef Data(,) As UInt16, ByVal MedianSize As Integer, ByVal BinningFactor As Integer) As Point
+
+        '1.) Coarse hot pixel removal
+        cOpenCvSharp.MedianBlur(Data, MedianSize)
+
+        '2.) Binning
+        Dim Binned(,) As UInt32 = Binning(Data, BinningFactor)
+
+        '3.) Find peak
+        Dim Peak As UInt32 = 0
+        Dim RetVal As New Point(0, 0)
+        For Idx1 As Integer = 0 To Binned.GetUpperBound(0)
+            For Idx2 As Integer = 0 To Binned.GetUpperBound(1)
+                If Binned(Idx1, Idx2) > Peak Then
+                    Peak = Binned(Idx1, Idx2)
+                    RetVal = New Point(Idx1, Idx2)
+                End If
+            Next Idx2
+        Next Idx1
+
+        '4.) Correct with binning
+        RetVal = New Point((RetVal.X * (BinningFactor \ 2)) + 1, (RetVal.Y * (BinningFactor \ 2)) + 1)
+
+        Return RetVal
+
+    End Function
+
 End Class
