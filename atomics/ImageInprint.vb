@@ -20,16 +20,19 @@ Public Class ImageInprint
     ''' <param name="BitmapValues">Bitmap data to manipulate.</param>
     Public Shared Sub Mono8BitText(ByRef BitmapToCreate As Bitmap, ByRef BitmapValues() As Byte, ByVal InprintParams As sInprintParams)
 
-        Dim IP1 As Bitmap = DrawText(InprintParams.TextToPrint, InprintParams.TextSize)
+        Dim TestAsBitmap As Bitmap = DrawText(InprintParams.TextToPrint, InprintParams.TextSize)
         Dim NoText As Color = Color.FromArgb(0, 0, 0, 0)
-        Dim StartX As Integer = 0 : If InprintParams.PrintRight = True Then StartX = BitmapToCreate.Width - IP1.Width - 1
+        Dim NoTextColor As Byte = 0
+        Dim StartX As Integer = 0 : If InprintParams.PrintRight = True Then StartX = BitmapToCreate.Width - TestAsBitmap.Width - 1
         Dim StartY As Integer = 0
         Dim IP1_X As Integer = 0
-        For ScanX As Integer = StartX To StartX + IP1.Width - 1
+        For ScanX As Integer = StartX To StartX + TestAsBitmap.Width - 1
             Dim IP1_Y As Integer = 0
-            For ScanY As Integer = StartY To StartY + IP1.Height - 1
-                If IP1.GetPixel(IP1_X, IP1_Y) <> NoText Then
-                    BitmapValues(ScanX + (ScanY * BitmapToCreate.Width)) = InprintParams.PixelValue
+            For ScanY As Integer = StartY To StartY + TestAsBitmap.Height - 1
+                If TestAsBitmap.GetPixel(IP1_X, IP1_Y) <> NoText Then
+                    BitmapValues(ScanX + (ScanY * BitmapToCreate.Width)) = InprintParams.PixelValue     'pixel contains text color -> set in image
+                Else
+                    BitmapValues(ScanX + (ScanY * BitmapToCreate.Width)) = NoTextColor                  'pixel contains no text color -> make black (to get contrast)
                 End If
                 IP1_Y += 1
             Next ScanY
