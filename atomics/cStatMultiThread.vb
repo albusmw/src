@@ -410,6 +410,8 @@ Public Class cStatMultiThread_Float32
             Next IdxY
         Next IdxX
 
+        'Sort dictionary and return "done"
+        StateObj.HistDataBayer = StateObj.HistDataBayer.SortDictionary
         StateObj.Done = True
 
     End Sub

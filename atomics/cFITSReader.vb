@@ -5,7 +5,7 @@ Option Strict On
 Public Class cFITSReader
 
     '''<summary>Length of one header element.</summary>
-    Const HeaderElementLength As Integer = 80
+    Public Const HeaderElementLength As Integer = 80
     '''<summary>Length of a header block - FITS files may contain an integer size of header blocks.</summary>
     Const HeaderBlockSize As Integer = 2880
 
