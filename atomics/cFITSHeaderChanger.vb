@@ -166,7 +166,11 @@ Public Class cFITSHeaderChanger
 
         Loop Until 1 = 0
 
-        DataStartPos = CInt(Math.Ceiling(BytesRead / HeaderBlockSize) * HeaderBlockSize)
+        If EndFound = True Then
+            DataStartPos = CInt(Math.Ceiling(BytesRead / HeaderBlockSize) * HeaderBlockSize)
+        Else
+            DataStartPos = -1                                                                   'END was not detected -> data start unknown ...
+        End If
         Return RetVal
 
     End Function
