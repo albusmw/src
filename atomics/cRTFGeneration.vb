@@ -1,56 +1,56 @@
 Option Explicit On
 Option Strict On
 
-Namespace Atomic
+Namespace Ato
 
-  '''<summary>This class is used to generate Richt Text Font (RTF) output.</summary>
-  Public Class cRTFGenerator
+    '''<summary>This class is used to generate Richt Text Font (RTF) output.</summary>
+    Public Class cRTFGenerator
 
-    '''<summary>Structure containing all information to generate an RTF font object.</summary>
-    Public Structure sRTFFontCode
+        '''<summary>Structure containing all information to generate an RTF font object.</summary>
+        Public Structure sRTFFontCode
 
-      Public FontSize As Integer
-      Public Bold As Boolean
-      Public Italic As Boolean
-      Public Underline As Boolean
-      Public Alignment As eTextAlignment
+            Public FontSize As Integer
+            Public Bold As Boolean
+            Public Italic As Boolean
+            Public Underline As Boolean
+            Public Alignment As eTextAlignment
 
-      Public Sub New(ByVal FontSize As Integer, ByVal Bold As Boolean, ByVal Italic As Boolean, ByVal Underline As Boolean, ByVal Alignment As eTextAlignment)
-        Me.FontSize = FontSize
-        Me.Bold = Bold
-        Me.Italic = Italic
-        Me.Underline = Underline
-        Me.Alignment = Alignment
-      End Sub
+            Public Sub New(ByVal FontSize As Integer, ByVal Bold As Boolean, ByVal Italic As Boolean, ByVal Underline As Boolean, ByVal Alignment As eTextAlignment)
+                Me.FontSize = FontSize
+                Me.Bold = Bold
+                Me.Italic = Italic
+                Me.Underline = Underline
+                Me.Alignment = Alignment
+            End Sub
 
-      Public Function BuildRTFCodeForFontAndAlignment() As String
+            Public Function BuildRTFCodeForFontAndAlignment() As String
 
-        Dim RetVal As String = String.Empty
+                Dim RetVal As String = String.Empty
 
-        'Generate format code
-        RetVal &= "\fs" & (FontSize * 2)
-        If Bold = True Then RetVal &= "\b"
-        If Italic = True Then RetVal &= "\i"
-        If Underline = True Then RetVal &= "\ul"
-        Select Case Alignment
-          Case eTextAlignment.Left : RetVal &= "\ql"
-          Case eTextAlignment.Right : RetVal &= "\qr"
-          Case eTextAlignment.Middle : RetVal &= "\qc"
-        End Select
+                'Generate format code
+                RetVal &= "\fs" & (FontSize * 2)
+                If Bold = True Then RetVal &= "\b"
+                If Italic = True Then RetVal &= "\i"
+                If Underline = True Then RetVal &= "\ul"
+                Select Case Alignment
+                    Case eTextAlignment.Left : RetVal &= "\ql"
+                    Case eTextAlignment.Right : RetVal &= "\qr"
+                    Case eTextAlignment.Middle : RetVal &= "\qc"
+                End Select
 
-        Return RetVal
+                Return RetVal
 
-      End Function
+            End Function
 
-    End Structure
+        End Structure
 
-    '''<summary>Timer to fire RTF refresh events.</summary>
-    Private WithEvents RefreshTimer As New System.Windows.Forms.Timer
-    '''<summary>Flag indicating that the next RefreshTimer tick must trigger a RTF refresh.</summary>
-    Private RefreshRequired As Boolean = False
+        '''<summary>Timer to fire RTF refresh events.</summary>
+        Private WithEvents RefreshTimer As New System.Windows.Forms.Timer
+        '''<summary>Flag indicating that the next RefreshTimer tick must trigger a RTF refresh.</summary>
+        Private RefreshRequired As Boolean = False
 
-    '''<summary>Buffer that contains the RTF text to display.</summary>
-    Private RTFText As New System.Text.StringBuilder
+        '''<summary>Buffer that contains the RTF text to display.</summary>
+        Private RTFText As New System.Text.StringBuilder
         '''<summary>List of available RTF text / background colors.</summary>
         Private Colors As Dictionary(Of Drawing.Color, Integer)
         '''<summary>Color table in the RTF document.</summary>
@@ -136,6 +136,10 @@ Namespace Atomic
         '''<param name="RTFTextBox">RichTextBox to attach to.</param>
         Public Sub AttachToControl(ByRef RTFTextBox As Windows.Forms.RichTextBox)
             MyRTFBox = RTFTextBox
+            If AutoRefreshInterval > 0 Then
+                RefreshTimer.Interval = AutoRefreshInterval
+                RefreshTimer.Enabled = True
+            End If
         End Sub
         Private MyRTFBox As Windows.Forms.RichTextBox
 
@@ -156,7 +160,9 @@ Namespace Atomic
         Public Sub RTFInit(ByVal NewDefaultFontName As String, ByVal NewDefaultFontSize As Integer)
             DefaultFontName = NewDefaultFontName
             DefaultFontSize = NewDefaultFontSize
-            MyRTFBox.Rtf = "{" + FormatHeader + ColorRTF + "}"
+            If IsNothing(MyRTFBox) = False Then
+                MyRTFBox.Rtf = "{" + FormatHeader + ColorRTF + "}"
+            End If
             If AutoRefresh = True Then RefreshRequired = True
         End Sub
 
@@ -199,7 +205,7 @@ Namespace Atomic
                 FormatCode &= "\cf" & (AddColor(ForeColor) + 1).ToString.Trim
             End If
             If ApplyBackColor Then
-                FormatCode &= "\highlight" & (AddColor(ForeColor) + 1).ToString.Trim
+                FormatCode &= "\highlight" & (AddColor(BackColor) + 1).ToString.Trim
             End If
 
             'Set font
@@ -249,12 +255,10 @@ Namespace Atomic
         '''<param name="NewLine">Move to a new line after the command.</param>
         Private Sub AddToRTF(ByVal Text As String, ByVal FormatCode As String, ByVal NewLine As Boolean)
             If IsNothing(Text) = False Then
-                With MyRTFBox
-                    Text = Text.Replace("\", "\\")
-                    If NewLine = True Then Text &= "\par"
-                    RTFText.Append("{" + FormatCode + " " + Text + "}")
-                    If AutoRefresh Then RefreshRequired = True
-                End With
+                Text = Text.Replace("\", "\\").Replace("°", "\'b0")
+                If NewLine = True Then Text &= "\par"
+                RTFText.Append("{" + FormatCode + " " + Text + "}")
+                If AutoRefresh Then RefreshRequired = True
             End If
         End Sub
 
@@ -295,17 +299,13 @@ Namespace Atomic
 
         Public Sub New()
             Colors = New Dictionary(Of Drawing.Color, Integer)
-            If AutoRefreshInterval > 0 Then
-                RefreshTimer.Interval = AutoRefreshInterval
-                RefreshTimer.Enabled = True
-            End If
         End Sub
 
-    Private Sub RefreshTimer_Tick(sender As Object, e As System.EventArgs) Handles RefreshTimer.Tick
-      If RefreshRequired Then RefreshRTF()
-      RefreshRequired = False
-    End Sub
+        Private Sub RefreshTimer_Tick(sender As Object, e As System.EventArgs) Handles RefreshTimer.Tick
+            If RefreshRequired Then RefreshRTF()
+            RefreshRequired = False
+        End Sub
 
-  End Class
+    End Class
 
 End Namespace
