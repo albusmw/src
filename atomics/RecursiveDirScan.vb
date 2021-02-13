@@ -42,25 +42,35 @@ Namespace Ato
 
         Public Sub Scan(ByVal Filter As String)
             AllFiles.Clear()
-            InnerScanner(MyRootDirectory, Filter, Integer.MaxValue)
+            InnerScanner(MyRootDirectory, "*", Filter, Integer.MaxValue)
         End Sub
 
         Public Sub Scan(ByVal Filter As String, ByVal MaxDepth As Integer)
             AllFiles.Clear()
-            InnerScanner(MyRootDirectory, Filter, MaxDepth)
+            InnerScanner(MyRootDirectory, "*", Filter, MaxDepth)
         End Sub
 
-        Private Sub InnerScanner(ByVal Root As String, ByVal Filter As String, ByVal MaxDepth As Integer)
+        Public Sub Scan(ByVal DirFilter As String, ByVal FileFilter As String)
+            AllFiles.Clear()
+            InnerScanner(MyRootDirectory, DirFilter, FileFilter, Integer.MaxValue)
+        End Sub
+
+        Public Sub Scan(ByVal Root As String, ByVal DirFilter As String, ByVal FileFilter As String)
+            AllFiles.Clear()
+            InnerScanner(Root, DirFilter, FileFilter, Integer.MaxValue)
+        End Sub
+
+        Private Sub InnerScanner(ByVal Root As String, ByVal DirFilter As String, ByVal FileFilter As String, ByVal MaxDepth As Integer)
 
             'Scan files
-            For Each File As String In System.IO.Directory.GetFiles(Root, Filter)
+            For Each File As String In System.IO.Directory.GetFiles(Root, FileFilter)
                 If ValidFile(File) = True Then NewFile(File)
             Next File
 
             'Scan directories
             If MaxDepth > 0 Then
-                For Each Directory As String In System.IO.Directory.GetDirectories(Root)
-                    InnerScanner(Directory, Filter, MaxDepth - 1)
+                For Each Directory As String In System.IO.Directory.GetDirectories(Root, DirFilter)
+                    InnerScanner(Directory, DirFilter, FileFilter, MaxDepth - 1)
                 Next Directory
             End If
 

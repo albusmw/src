@@ -62,6 +62,10 @@ Public Class cZEDGraphForm
         Return zgcMain
     End Function
 
+    Public Sub MakeYAxisLog()
+        GetGraphControl.GraphPane.YAxis.Type = ZedGraph.AxisType.Log
+    End Sub
+
     '''<summary>Plot data.</summary>
     Public Function PlotData(ByVal PlotName As String, ByVal Data() As Long, ByVal ColorToUse As Drawing.Color) As ZedGraph.ZedGraphControl
         Init()

@@ -162,7 +162,7 @@ Public Class cFITSHeaderChanger
             End If
 
             'End on stream end
-            If HeaderPtr = HeaderBytes.Length - 1 Then Exit Do
+            If HeaderPtr = HeaderBytes.Length Then Exit Do
 
         Loop Until 1 = 0
 

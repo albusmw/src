@@ -46,12 +46,12 @@ Public Class cZEDGraphService
             ColorList.Add(Drawing.Color.Magenta)
             ColorList.Add(Drawing.Color.Orange)
 
-            ColorList.Add(Drawing.Color.DarkRed)
-            ColorList.Add(Drawing.Color.DarkGreen)
-            ColorList.Add(Drawing.Color.DarkBlue)
-            ColorList.Add(Drawing.Color.DarkCyan)
-            ColorList.Add(Drawing.Color.DarkMagenta)
-            ColorList.Add(Drawing.Color.DarkOrange)
+            ColorList.Add(Drawing.Color.Yellow)
+            ColorList.Add(Drawing.Color.Orange)
+            ColorList.Add(Drawing.Color.LimeGreen)
+            ColorList.Add(Drawing.Color.Violet)
+            ColorList.Add(Drawing.Color.Orchid)
+            ColorList.Add(Drawing.Color.Pink)
 
             LineStylePtr = 0
             LineStyleList = New List(Of Drawing.Drawing2D.DashStyle)
@@ -60,6 +60,13 @@ Public Class cZEDGraphService
             LineStyleList.Add(Drawing.Drawing2D.DashStyle.Dash)
 
         End Sub
+
+        '''<summary>Switch to the next color and return it.</summary>
+        Public Function GetNextColor() As Drawing.Color
+            ColorPtr += 1
+            If ColorPtr > ColorList.Count - 1 Then ColorPtr = 0
+            Return ColorList(ColorPtr)
+        End Function
 
         Public Function GetNextStyle(ByVal CurveMode As eCurveMode) As sGraphStyle
             ColorPtr += 1
