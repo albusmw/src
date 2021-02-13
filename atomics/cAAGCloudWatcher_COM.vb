@@ -1,20 +1,22 @@
 Option Explicit On
 Option Strict On
 
-'''<summary>Class for direct SQM access.</summary>
-Public Class cSQM_COM
+'==================================================================================
+' NOT FINISHED !!!!!
+'==================================================================================
 
-    'C:\Users\albusmw\Dropbox\Astro\Unterlagen Ausrüstung\SQM-LU_Users_manual.pdf
+'''<summary>Class for direct AAG Cloud Watcher access.</summary>
+'''<see cref="https://lunaticoastro.com/aag-cloud-watcher/moreinfo/"/>
+Public Class cAAGCloudWatcher_COM
 
     Dim COM_port As IO.Ports.SerialPort
     Dim ReadBuffer As String = String.Empty
     Dim StopChars As String = Chr(13) & Chr(10)
 
-    '''<summary>Supported SQM commands.</summary>
-    '''<remarks>Taken from C:\Users\albusmw\Dropbox\Astro\Unterlagen Ausrüstung\Baader AllSky\Allsky Dome.pdf</remarks>
-    Public Class SQMCommand
+    '''<summary>Supported commands.</summary>
+    Public Class Commands
         '''<summary>All Segments will be opened.</summary>
-        Public Shared ReadOnly Property [ReadingRequest] As String = "rx"
+        Public Shared ReadOnly Property [InternalName] As String = "A!"
     End Class
 
     Public Sub Init(ByVal SerialPort As String)
@@ -27,7 +29,7 @@ Public Class cSQM_COM
         End If
 
         If InitCOMNow Then
-            COM_port = New IO.Ports.SerialPort(SerialPort, 115200, IO.Ports.Parity.None, 8, IO.Ports.StopBits.One)
+            COM_port = New IO.Ports.SerialPort(SerialPort, 9600, IO.Ports.Parity.None, 8, IO.Ports.StopBits.One)
             COM_port.ReadTimeout = 1000
             COM_port.Handshake = IO.Ports.Handshake.None
             AddHandler COM_port.DataReceived, New IO.Ports.SerialDataReceivedEventHandler(AddressOf COM_port_DataReceived)
@@ -42,14 +44,13 @@ Public Class cSQM_COM
 
     '''<summary>Send command to dome.</summary>
     '''<param name="command">Command to send.</param>
-    '''<remarks>Taken from Baader driver.</remarks>
     Public Function GetAnswer(ByVal command As String) As String
         ReadBuffer = String.Empty
         If COM_port.IsOpen Then
-            COM_port.Write(command & StopChars)
+            COM_port.Write(command)
             Do
                 System.Threading.Thread.Sleep(10)
-            Loop Until ReadBuffer.EndsWith(StopChars)
+            Loop Until ReadBuffer.Length >= 15
             Return ReadBuffer.Substring(0, ReadBuffer.Length - StopChars.Length)
         Else
             Return Nothing

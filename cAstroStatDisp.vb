@@ -12,54 +12,56 @@ Public Class cAstroStatDisp
 
     Public Class cProp
 
+        Const Cat_Plot As String = "1. Plot"
+        Const Cat_Text As String = "2. Text"
         Const Indent As String = "         "
 
-        <ComponentModel.Category("2. Plot")>
+        <ComponentModel.Category(Cat_Plot)>
         <ComponentModel.DisplayName(Indent & "1. Plot single statistics")>
         <ComponentModel.DefaultValue(True)>
         <ComponentModel.TypeConverter(GetType(ComponentModelEx.BooleanPropertyConverter_YesNo))>
         Public Property PlotSingleStatistics As Boolean = True
 
-        <ComponentModel.Category("2. Plot")>
+        <ComponentModel.Category(Cat_Plot)>
         <ComponentModel.DisplayName(Indent & "2. Plot mean statistics")>
         <ComponentModel.DefaultValue(True)>
         <ComponentModel.TypeConverter(GetType(ComponentModelEx.BooleanPropertyConverter_YesNo))>
         Public Property PlotMeanStatistics As Boolean = True
 
-        <ComponentModel.Category("2. Plot")>
+        <ComponentModel.Category(Cat_Plot)>
         <ComponentModel.DisplayName(Indent & "3. Plot statistics - Mono")>
         <ComponentModel.DefaultValue(True)>
         <ComponentModel.TypeConverter(GetType(ComponentModelEx.BooleanPropertyConverter_YesNo))>
         Public Property PlotStatisticsMono As Boolean = True
 
-        <ComponentModel.Category("2. Plot")>
+        <ComponentModel.Category(Cat_Plot)>
         <ComponentModel.DisplayName(Indent & "4. Plot statistics - Color")>
         <ComponentModel.DefaultValue(True)>
         <ComponentModel.TypeConverter(GetType(ComponentModelEx.BooleanPropertyConverter_YesNo))>
         Public Property PlotStatisticsColor As Boolean = True
 
-        <ComponentModel.Category("1. Generic")>
+        <ComponentModel.Category(Cat_Plot)>
         <ComponentModel.DisplayName(Indent & "5. Bayer pattern")>
         <ComponentModel.Description("Bayer pattern")>
         <ComponentModel.DefaultValue("RGGB")>
         Public Property BayerPattern As String = "RGGB"
 
-        <ComponentModel.Category("2. Plot")>
+        <ComponentModel.Category(Cat_Plot)>
         <ComponentModel.DisplayName(Indent & "6. Plot limits fixed")>
         <ComponentModel.Description("True to auto-scale on min and max ADU, false to scale on data min and max")>
         <ComponentModel.DefaultValue(eXAxisScalingMode.Auto)>
         <ComponentModel.TypeConverter(GetType(ComponentModelEx.EnumDesciptionConverter))>
         Public Property PlotLimitMode As eXAxisScalingMode = eXAxisScalingMode.Auto
 
-        <ComponentModel.Category("2. Plot")>
-        <ComponentModel.DisplayName("   e) Curve mode")>
+        <ComponentModel.Category(Cat_Plot)>
+        <ComponentModel.DisplayName(Indent & "7. Curve mode")>
         <ComponentModel.Description("True to auto-scale on min and max ADU, false to scale on data min and max")>
         <ComponentModel.DefaultValue(cZEDGraphService.eCurveMode.LinesAndPoints)>
         <ComponentModel.TypeConverter(GetType(ComponentModelEx.EnumDesciptionConverter))>
         Public Property CurveMode As cZEDGraphService.eCurveMode = cZEDGraphService.eCurveMode.LinesAndPoints
 
-        <ComponentModel.Category("3. Text")>
-        <ComponentModel.DisplayName("   a) Single statistics log")>
+        <ComponentModel.Category(Cat_Text)>
+        <ComponentModel.DisplayName(Indent & "1. Single statistics log")>
         <ComponentModel.Description("Clear statistics log on every measurement")>
         <ComponentModel.DefaultValue(True)>
         <ComponentModel.TypeConverter(GetType(ComponentModelEx.BooleanPropertyConverter_YesNo))>
