@@ -83,22 +83,6 @@ Module StringExtension
         Return Value.ToString(Globalization.CultureInfo.InvariantCulture).Trim
     End Function
 
-    <Extension()>
-    Public Function ValRegIndep(ByVal Value As Date) As String
-        Return Format(Value, "yyyy-MM-ddTHH:mm:ss")
-    End Function
-
-    <Extension()>
-    Public Function ValRegIndep(ByVal Value As TimeSpan) As String
-        Dim Total As Double = Value.TotalSeconds / 3600
-        Dim Hours As Long = CLng(Math.Floor(Total))
-        Total = (Total - Hours) * 60
-        Dim Minutes As Long = CLng(Math.Floor(Total))
-        Total = (Total - Minutes) * 60
-        Dim Seconds As Long = CLng(Math.Floor(Total))
-        Return Format(Hours, "0").Trim & ":" & Format(Minutes, "00").Trim & ":" & Format(Seconds, "00").Trim
-    End Function
-
 End Module
 
 Module DoubleExtension
@@ -348,6 +332,45 @@ Module DataGridViewExtensions
 
         Return RetVal
 
+    End Function
+
+End Module
+
+Module DateTimeExtension
+
+    '''<summary>Format the passed date to form a folder or file name part.</summary>
+    <Extension()>
+    Public Function ForFileSystem(ByVal Value As DateTime) As String
+        Return Format(Value, "yyyy_MM_dd_HH_mm_ss")
+    End Function
+
+    '''<summary>Format the passed date for logging purpose (no date, 1/100 seconds).</summary>
+    <Extension()>
+    Public Function ForLogging(ByVal Value As DateTime) As String
+        Return Format(Value, "HH.mm.ss:fff")
+    End Function
+
+    '''<summary>Format the passed date as ISO9660 format.</summary>
+    '''<see cref="https://wiki.osdev.org/ISO_9660#Date.2Ftime_format"/>
+    <Extension()>
+    Public Function AsISO9660(ByVal Value As Date) As String
+        Return Format(Value, "yyyyMMddHHmmssff")
+    End Function
+
+    <Extension()>
+    Public Function ValRegIndep(ByVal Value As Date) As String
+        Return Format(Value, "yyyy-MM-ddTHH:mm:ss")
+    End Function
+
+    <Extension()>
+    Public Function ValRegIndep(ByVal Value As TimeSpan) As String
+        Dim Total As Double = Value.TotalSeconds / 3600
+        Dim Hours As Long = CLng(Math.Floor(Total))
+        Total = (Total - Hours) * 60
+        Dim Minutes As Long = CLng(Math.Floor(Total))
+        Total = (Total - Minutes) * 60
+        Dim Seconds As Long = CLng(Math.Floor(Total))
+        Return Format(Hours, "0").Trim & ":" & Format(Minutes, "00").Trim & ":" & Format(Seconds, "00").Trim
     End Function
 
 End Module

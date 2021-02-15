@@ -66,17 +66,28 @@ End Class
 '''<see cref="https://heasarc.gsfc.nasa.gov/docs/fcg/common_dict.html"/>
 '''<see cref="https://diffractionlimited.com/help/maximdl/FITS_File_Header_Definitions.htm"/>
 '''<see cref="http://eso-python.github.io/ESOPythonTutorials/FITS-images.html"/>
+'''<see cref="https://lco.global/documentation/data/fits-headers/"/>
 Public Enum eFITSKeywords
 
     '''<summary>Enum value is unknown.</summary>
-    <FITSKeyword("[UNKNOWN")>
+    <FITSKeyword("[UNKNOWN]")>
     <FITSComment("")>
     [UNKNOWN]
+
+    '''<summary>Altitude axis position.</summary>
+    <FITSKeyword("ALTITUDE")>
+    <FITSComment("Altitude axis position.")>
+    [ALTITUDE]
 
     '''<summary>The value field shall contain a character string identifying who compiled the information In the data associated With the header. This keyword Is appropriate When the data originate In a published paper Or are compiled from many sources.</summary>
     <FITSKeyword("AUTHOR")>
     <FITSComment("")>
     [AUTHOR]
+
+    '''<summary>Altitude axis position.</summary>
+    <FITSKeyword("AZIMUTH")>
+    <FITSComment("Azimuth axis position.")>
+    [AZIMUTH]
 
     '''<summary>.</summary>
     <FITSKeyword("BAYOFFX")>
@@ -288,11 +299,6 @@ Public Enum eFITSKeywords
     <FITSComment("")>
     [INSTRUME]
 
-    '''<summary>The value field shall contain a floating point number giving the geographic latitude from which the observation was made in units of degrees.</summary>
-    <FITSKeyword("LATITUDE")>
-    <FITSComment("Geographic latitude from which the observation was made - degree")>
-    [LATITUDE]
-
     '''<summary>Primary HDU - Number of data axes. Always = 2 for two-dimensional images.</summary>
     <FITSKeyword("NAXIS")>
     <FITSComment("number of axes")>
@@ -399,6 +405,18 @@ Public Enum eFITSKeywords
     <FITSKeyword("SIMPLE")>
     <FITSComment("")>
     [SIMPLE]
+
+    '''<summary>The value field shall contain a floating point number giving the geographic latitude from which the observation was made in units of degrees.</summary>
+    '''<see cref="https://diffractionlimited.com/help/maximdl/FITS_File_Header_Definitions.htm"/>
+    <FITSKeyword("SITELAT")>
+    <FITSComment("Geographic latitude from which the observation was made - degree")>
+    [SITELAT]
+
+    '''<summary>The value field shall contain a floating point number giving the geographic longitude from which the observation was made in units of degrees.</summary>
+    '''<see cref="https://diffractionlimited.com/help/maximdl/FITS_File_Header_Definitions.htm"/>
+    <FITSKeyword("SITELONG")>
+    <FITSComment("Geographic longitude from which the observation was made - degree")>
+    [SITELONG]
 
     '''<summary></summary>
     <FITSKeyword("SWCREATE")>

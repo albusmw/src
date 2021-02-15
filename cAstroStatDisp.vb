@@ -14,7 +14,7 @@ Public Class cAstroStatDisp
 
         Const Cat_Plot As String = "1. Plot"
         Const Cat_Text As String = "2. Text"
-        Const Indent As String = "         "
+        Const Indent As String = "  "
 
         <ComponentModel.Category(Cat_Plot)>
         <ComponentModel.DisplayName(Indent & "1. Plot single statistics")>
