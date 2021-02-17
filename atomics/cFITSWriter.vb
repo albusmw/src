@@ -46,17 +46,6 @@ Public Class cFITSWriter
         [Double] = -64
     End Enum
 
-    '''<summary>Length of one header element.</summary>
-    Public Shared Property HeaderElementLength As Integer = 80
-    '''<summary>Length of a header block - FITS files may contain an integer size of header blocks.</summary>
-    Public Shared Property HeaderBlockSize As Integer = 2880
-    '''<summary>Length of the keyword entry.</summary>
-    Public Shared Property KeywordLength As Integer = 8
-    '''<summary>Length of the value entry.</summary>
-    Public Shared Property ValueLength As Integer = 20
-    '''<summary>Number of header elements per header block.</summary>
-    Public Shared ReadOnly HeaderElements As Integer = HeaderBlockSize \ HeaderElementLength
-
     '================================================================================================
     ' Byte
     '================================================================================================
@@ -963,11 +952,11 @@ Public Class cFITSWriter
             HeaderStringContent.Add(FITSCardString)
             ElementLength.Add(FITSCardString.Length)
         Next Entry
-        HeaderStringContent.Add("END".PadRight(HeaderElementLength))
-        If Header.Count Mod HeaderElements <> 0 Then
+        HeaderStringContent.Add("END".PadRight(FITSSpec.HeaderElementLength))
+        If Header.Count Mod FITSSpec.HeaderElements <> 0 Then
             Do
-                HeaderStringContent.Add(New String(" "c, HeaderElementLength))
-            Loop Until HeaderStringContent.Count Mod HeaderElements = 0
+                HeaderStringContent.Add(New String(" "c, FITSSpec.HeaderElementLength))
+            Loop Until HeaderStringContent.Count Mod FITSSpec.HeaderElements = 0
         End If
         Return Join(HeaderStringContent.ToArray, String.Empty)
     End Function
@@ -984,7 +973,7 @@ Public Class cFITSWriter
 
     '''<summary>Format the header according to the FITS standards.</summary>
     Private Shared Function FormatHeader(ByVal Keyword As String, ByVal Value As String, ByVal Comment As String) As String()
-        If Keyword.Length > KeywordLength Then Keyword = Keyword.Substring(0, KeywordLength)
+        If Keyword.Length > FITSSpec.HeaderKeywordLength Then Keyword = Keyword.Substring(0, FITSSpec.HeaderKeywordLength)
         If String.IsNullOrEmpty(Comment) = True Then
             Return New String() {Keyword, Value}
         Else
@@ -1000,14 +989,14 @@ Public Class cFITSWriter
         If Card.Key = eFITSKeywords.SIMPLE Then
             ValAsString = "T"
         Else
-            ValAsString = cFITSKeywords.AsString(Card.Value)
+            ValAsString = cFITSType.AsString(Card.Value)
         End If
         If Comment.Length > 0 Then
-            RetVal = (FITSKeyword.GetKeywords(Card.Key)(0).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength) & " / " & Comment).PadRight(HeaderElementLength)
+            RetVal = (FITSKeyword.GetKeywords(Card.Key)(0).Trim.PadRight(FITSSpec.HeaderKeywordLength) & FITSSpec.HeaderEqualString & ValAsString.Trim.PadLeft(FITSSpec.HeaderValueLength) & " / " & Comment).PadRight(FITSSpec.HeaderElementLength)
         Else
-            RetVal = (FITSKeyword.GetKeywords(Card.Key)(0).Trim.PadRight(KeywordLength) & "= " & ValAsString.Trim.PadLeft(ValueLength)).PadRight(HeaderElementLength)
+            RetVal = (FITSKeyword.GetKeywords(Card.Key)(0).Trim.PadRight(FITSSpec.HeaderKeywordLength) & FITSSpec.HeaderEqualString & ValAsString.Trim.PadLeft(FITSSpec.HeaderValueLength)).PadRight(FITSSpec.HeaderElementLength)
         End If
-        If RetVal.Length > HeaderElementLength Then RetVal = RetVal.Substring(0, HeaderElementLength)
+        If RetVal.Length > FITSSpec.HeaderElementLength Then RetVal = RetVal.Substring(0, FITSSpec.HeaderElementLength)
         Return RetVal
     End Function
 

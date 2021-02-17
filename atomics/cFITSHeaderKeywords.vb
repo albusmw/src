@@ -1,6 +1,40 @@
 Option Explicit On
 Option Strict On
 
+'''<summary>Specific FITS parameters.</summary>
+Public Class FITSSpec
+    '''<summary>Length of one header element.</summary>
+    Public Const HeaderElementLength As Integer = 80
+    '''<summary>Length of a header block - FITS files may contain an integer size of header blocks.</summary>
+    Public Const HeaderBlockSize As Integer = 2880
+    '''<summary>Number of header elements per header block.</summary>
+    Public Const HeaderElements As Integer = 36  'HeaderBlockSize \ HeaderElementLength
+    '''<summary>Length of a keyword (without "=").</summary>
+    Public Const HeaderKeywordLength As Integer = 8
+    '''<summary>Keyword-value separator - always equal sign followed by a space.</summary>
+    Public Const HeaderEqualString As String = "= "
+    '''<summary>Typical value length, taken from a MAXIM file; a space and a \ sign may follow for a comment.</summary>
+    Public Const HeaderValueLength As Integer = 20
+    '''<summary>ASCII code for a space sign.</summary>
+    Public Const HeaderSpaceCode As Byte = 32
+    '''<summary>Ensure that the given card has the correct length.</summary>
+    Public Shared Function EnsureCorrectLength(ByVal NewCard As String) As String
+        If NewCard.Length > FITSSpec.HeaderElementLength Then
+            Return NewCard.Substring(0, FITSSpec.HeaderElementLength)
+        Else
+            Return NewCard.PadRight(FITSSpec.HeaderElementLength)
+        End If
+    End Function
+    '''<summary>Ensure that the given card has the correct length.</summary>
+    Public Shared Function EnsureCorrectLength(ByVal NewCard As List(Of Byte)) As List(Of Byte)
+        If NewCard.Count > FITSSpec.HeaderElementLength Then
+            Return NewCard.GetRange(0, FITSSpec.HeaderElementLength)
+        Else
+            Return NewCard.Concat(Enumerable.Repeat(Of Byte)(HeaderSpaceCode, FITSSpec.HeaderElementLength - NewCard.Count)).ToList
+        End If
+    End Function
+End Class
+
 '================================================================================
 '''<summary>Attribute used for hold the FITS keyword.</summary>
 <AttributeUsage(AttributeTargets.All, Inherited:=True, AllowMultiple:=False)>
@@ -58,6 +92,68 @@ Public Class FITSComment
         If attributes.Length > 0 Then Return attributes(0).Comment Else Return String.Empty
     End Function
 End Class
+
+'================================================================================
+
+Public Class cFITSType
+
+    '<summary>Describes which data type a certain keyword has.</summary>
+    'Public Shared Function GetDataType(ByVal Keyword As eFITSKeywords) As String
+    '    'Set the correct data type
+    '    Select Case Keyword
+    '        Case eFITSKeywords.BITPIX, eFITSKeywords.NAXIS, eFITSKeywords.NAXIS1, eFITSKeywords.NAXIS2
+    '            Return "INTEGER"
+    '        Case eFITSKeywords.BZERO, eFITSKeywords.BSCALE, eFITSKeywords.FOV1, eFITSKeywords.FOV2, eFITSKeywords.PIXSIZE1, eFITSKeywords.PIXSIZE2, eFITSKeywords.PLATESZ1, eFITSKeywords.PLATESZ2
+    '            Return "DOUBLE"
+    '        Case Else
+    '            Return String.Empty
+    '    End Select
+    'End Function
+
+    '''<summary>Get the FITS compatible formated string.</summary>
+    Public Shared Function AsString(ByVal Value As Object) As String
+        If TypeOf Value Is String Then Return FITSString(CStr(Value))
+        If TypeOf Value Is Single Then Return FITSString(CDbl(Value))
+        If TypeOf Value Is Double Then Return FITSString(CDbl(Value))
+        If TypeOf Value Is Byte Then Return CStr(Value).Trim
+        If TypeOf Value Is Int16 Then Return CStr(Value).Trim
+        If TypeOf Value Is Int32 Then Return CStr(Value).Trim
+        If TypeOf Value Is Int64 Then Return CStr(Value).Trim
+        If TypeOf Value Is UInt16 Then Return CStr(Value).Trim
+        If TypeOf Value Is UInt32 Then Return CStr(Value).Trim
+        If TypeOf Value Is UInt64 Then Return CStr(Value).Trim
+        If TypeOf Value Is DateTime Then Return FITSString(CType(Value, DateTime))
+        If TypeOf Value Is Date Then Return FITSString(CType(Value, Date))
+        Return CStr(Value)
+    End Function
+
+    '''<summary>Formated content as a string.</summary>
+    Public Shared Function FITSString(ByVal Value As String) As String
+        Return "'" & Value & "'"
+    End Function
+
+    '''<summary>Formated content as a double number.</summary>
+    Public Shared Function FITSString(ByVal Value As Double) As String
+        Return Value.ToString.Trim.Replace(",", ".")
+    End Function
+
+    '''<summary>Formated content for all "DATE..." fields, time.</summary>
+    Public Shared Function FITSString(ByVal Moment As DateTime) As String
+        Return FITSString(Format(Moment, "yyyy-dd-MMTHH:mm:ss"))
+    End Function
+
+    '''<summary>Formated content for all "DATE..." fields, without time.</summary>
+    Public Shared Function FITSString_Date(ByVal Moment As DateTime) As String
+        Return FITSString(Format(Moment, "yyyy-MM-dd"))
+    End Function
+
+    '''<summary>Formated content for all "TIME..." fields, time.</summary>
+    Public Shared Function FITSString_Time(ByVal Moment As DateTime) As String
+        Return FITSString(Format(Moment, "HH:mm:ss.fff"))
+    End Function
+
+End Class
+
 '================================================================================
 
 '''<summary>Class to provide FITS header keywords (elements and service functions).</summary>
@@ -67,6 +163,8 @@ End Class
 '''<see cref="https://diffractionlimited.com/help/maximdl/FITS_File_Header_Definitions.htm"/>
 '''<see cref="http://eso-python.github.io/ESOPythonTutorials/FITS-images.html"/>
 '''<see cref="https://lco.global/documentation/data/fits-headers/"/>
+'''<see cref="https://proba2.sidc.be/data/SWAP/level0"/>
+'''<see cref="https://heasarc.gsfc.nasa.gov/docs/heasarc/fits/java/v1.0/javadoc/nom/tam/fits/header/extra/SBFitsExt.html"/>
 Public Enum eFITSKeywords
 
     '''<summary>Enum value is unknown.</summary>
@@ -147,6 +245,18 @@ Public Enum eFITSKeywords
     <FITSKeyword("CDELT2")>
     <FITSComment("Axis 2 pixel scale at CRPIX1,CRPIX2")>
     [CDELT2]
+
+    '''<summary>Nominal Altitude of center of image in degrees.</summary>
+    '''<see cref="https://diffractionlimited.com/help/maximdl/FITS_File_Header_Definitions.htm"/>
+    <FITSKeyword("CENTALT")>
+    <FITSComment("Nominal Altitude of center of image in degrees")>
+    [CENTALT]
+
+    '''<summary>Nominal Azimuth of center of image in degrees.</summary>
+    '''<see cref="https://diffractionlimited.com/help/maximdl/FITS_File_Header_Definitions.htm"/>
+    <FITSKeyword("CENTAZ")>
+    <FITSComment("Nominal Azimuth of center of image in degrees")>
+    [CENTAZ]
 
     '''<summary>Type of color sensor Bayer array or zero for monochrome.</summary>
     <FITSKeyword("COLORTYP")>
@@ -229,9 +339,22 @@ Public Enum eFITSKeywords
     [DATE_OBS]
 
     '''<summary>The value field gives the declination of the observation. It may be expressed either as a floating point number in units of decimal degrees, or as a character string in 'dd:mm:ss.sss' format where the decimal point and number of fractional digits are optional.</summary>
+    '''<see cref="https://heasarc.gsfc.nasa.gov/docs/fcg/common_dict.html"/>
     <FITSKeyword("DEC")>
-    <FITSComment("")>
+    <FITSComment("Declination of the observed object")>
     [DEC]
+
+    '''<summary>The value field shall contain a floating point number giving the nominal declination of the pointing direction in units of decimal degrees. The coordinate reference frame is given by the RADECSYS keyword, and the coordinate epoch is given by the EQUINOX keyword. The precise definition of this keyword is instrument-specific, but typically the nominal direction corresponds to the direction to which the instrument was requested to point. The DEC_PNT keyword should be used to give the actual pointed direction.</summary>
+    '''<see cref="https://heasarc.gsfc.nasa.gov/docs/fcg/common_dict.html"/>
+    <FITSKeyword("DEC_NOM")>
+    <FITSComment("Nominal declination of the observation")>
+    [DEC_NOM]
+
+    '''<summary>The value field shall contain a floating point number giving the declination of the observed object in units of decimal degrees. The coordinate reference frame is given by the RADECSYS keyword, and the coordinate epoch is given by the EQUINOX keyword.</summary>
+    '''<see cref="https://heasarc.gsfc.nasa.gov/docs/fcg/common_dict.html"/>
+    <FITSKeyword("DEC_OBJ")>
+    <FITSComment("Declination of the observed object")>
+    [DEC_OBJ]
 
     '''<summary>Electronic gain in photoelectrons per ADU.</summary>
     <FITSKeyword("EGAIN")>
@@ -319,6 +442,30 @@ Public Enum eFITSKeywords
     <FITSComment("Length of axis 3 or number of color channels")>
     [NAXIS3]
 
+    '''<summary>This is the Right Ascension of the center of the image in hours, minutes and secon ds. The format for this is 12 24 23.123 (HH MM SS.SSS) using a space as the separator.</summary>
+    '''<see cref="https://heasarc.gsfc.nasa.gov/docs/heasarc/fits/java/v1.0/javadoc/nom/tam/fits/header/extra/SBFitsExt.html"/>
+    <FITSKeyword("OBJCTRA")>
+    <FITSComment("This is the Right Ascension of the center of the image in hours.")>
+    [OBJCTRA]
+
+    '''<summary>This is the Declination of the center of the image in degrees. The format for this is +25 12 34.111 (SDD MM SS.SSS) using a space as the separator. For the sign, North is + and South is -.</summary>
+    '''<see cref="https://heasarc.gsfc.nasa.gov/docs/heasarc/fits/java/v1.0/javadoc/nom/tam/fits/header/extra/SBFitsExt.html"/>
+    <FITSKeyword("OBJCTDEC")>
+    <FITSComment("This is the Declination of the center of the image in degrees.")>
+    [OBJCTDEC]
+
+    '''<summary>Nominal Altitude of center of image.</summary>
+    '''<see cref="https://diffractionlimited.com/help/maximdl/FITS_File_Header_Definitions.htm"/>
+    <FITSKeyword("OBJCTALT")>
+    <FITSComment("Nominal Altitude of center of image")>
+    [OBJCTALT]
+
+    '''<summary>Nominal Azimuth of center of image.</summary>
+    '''<see cref="https://diffractionlimited.com/help/maximdl/FITS_File_Header_Definitions.htm"/>
+    <FITSKeyword("OBJCTAZ")>
+    <FITSComment("Nominal Azimuth of center of image")>
+    [OBJCTAZ]
+
     '''<summary>The value field shall contain a character string giving a name for the object observed.</summary>
     <FITSKeyword("OBJECT")>
     <FITSComment("")>
@@ -391,10 +538,23 @@ Public Enum eFITSKeywords
     <FITSComment("QHY read-out mode")>
     [QHY_MODE]
 
-    '''<summary>The value field gives the Right Ascension of the observation.  It may be expressed either as a floating point number in units of decimal degrees, or as a character string in 'HH:MM:SS.sss' format where the decimal point and number of fractional digits are optional.</summary>
+    '''<summary>The value field gives the Right Ascension of the observation. It may be expressed either as a floating point number in units of decimal degrees, or as a character string in 'HH:MM:SS.sss' format where the decimal point and number of fractional digits are optional. The coordinate reference frame is given by the RADECSYS keyword, and the coordinate epoch is given by the EQUINOX keyword. Example: 180.6904 or '12:02:45.7'.</summary>
+    '''<see cref="https://heasarc.gsfc.nasa.gov/docs/fcg/common_dict.html"/>
     <FITSKeyword("RA")>
-    <FITSComment("")>
+    <FITSComment("Right ascension of the observed object")>
     [RA]
+
+    '''<summary>The value field shall contain a floating point number giving the nominal Right Ascension of the pointing direction in units of decimal degrees. The coordinate reference frame is given by the RADECSYS keyword, and the coordinate epoch is given by the EQUINOX keyword. The precise definition of this keyword is instrument-specific, but typically the nominal direction corresponds to the direction to which the instrument was requested to point. The RA_PNT keyword should be used to give the actual pointed direction.</summary>
+    '''<see cref="https://heasarc.gsfc.nasa.gov/docs/fcg/common_dict.html"/>
+    <FITSKeyword("DEC_NOM")>
+    <FITSComment("Nominal right ascension of the observation")>
+    [RA_NOM]
+
+    '''<summary>The value field shall contain a floating point number giving the Right Ascension of the observed object in units of decimal degrees. The coordinate reference frame is given by the RADECSYS keyword, and the coordinate epoch is given by the EQUINOX keyword.</summary>
+    '''<see cref="https://heasarc.gsfc.nasa.gov/docs/fcg/common_dict.html"/>
+    <FITSKeyword("RA_OBJ")>
+    <FITSComment("Right ascension of the observed object")>
+    [RA_OBJ]
 
     '''<summary>CCD temperature setpoint in degrees C. Absent if setpoint was not entered.</summary>
     <FITSKeyword("SET-TEMP")>
@@ -562,11 +722,7 @@ Public Enum eFITSKeywords
     <FITSKeyword("CCDYBIN")>
     [CCDYBIN]
 
-    <FITSKeyword("OBJCTRA")>
-    [OBJCTRA]
 
-    <FITSKeyword("OBJCTDEC")>
-    [OBJCTDEC]
 
     <FITSKeyword("SCALE")>
     [SCALE]
@@ -598,70 +754,4 @@ Public Class cFITSKey
             Return FITSComment.GetComment(Element)
         End Get
     End Property
-End Class
-
-Public Class cFITSKeywords
-
-    '<summary>Describes which data type a certain keyword has.</summary>
-    'Public Shared Function GetDataType(ByVal Keyword As eFITSKeywords) As String
-    '    'Set the correct data type
-    '    Select Case Keyword
-    '        Case eFITSKeywords.BITPIX, eFITSKeywords.NAXIS, eFITSKeywords.NAXIS1, eFITSKeywords.NAXIS2
-    '            Return "INTEGER"
-    '        Case eFITSKeywords.BZERO, eFITSKeywords.BSCALE, eFITSKeywords.FOV1, eFITSKeywords.FOV2, eFITSKeywords.PIXSIZE1, eFITSKeywords.PIXSIZE2, eFITSKeywords.PLATESZ1, eFITSKeywords.PLATESZ2
-    '            Return "DOUBLE"
-    '        Case Else
-    '            Return String.Empty
-    '    End Select
-    'End Function
-
-    Public Shared Function AsString(ByVal Value As Object) As String
-        Dim TypeName As String = Value.GetType.Name
-        Select Case TypeName
-            Case "String"
-                Return cFITSKeywords.GetString(CStr(Value))
-            Case "Double"
-                Return cFITSKeywords.GetDouble(CDbl(Value))
-            Case "Int32"
-                Return CStr(Value).Trim
-            Case Else
-                Return CStr(Value)
-        End Select
-    End Function
-
-    '''<summary>Formated content as a string.</summary>
-    Public Shared Function GetString(ByVal Value As String) As String
-        Return "'" & Value & "'"
-    End Function
-
-    '''<summary>Formated content as a double number.</summary>
-    Public Shared Function GetDouble(ByVal Value As Double) As String
-        Return Value.ToString.Trim.Replace(",", ".")
-    End Function
-
-    '''<summary>Formated content for all "DATE..." fields, without time.</summary>
-    Public Shared Function GetDate() As String
-        Return GetDate(Now)
-    End Function
-
-    '''<summary>Formated content for all "DATE..." fields, without time.</summary>
-    Public Shared Function GetDate(ByVal Moment As DateTime) As String
-        Return Format(Moment, "yyyy-dd-MM")
-    End Function
-
-    '''<summary>Formated content for all "DATE..." fields, time.</summary>
-    Public Shared Function GetDateWithTime() As String
-        Return GetDateWithTime(Now)
-    End Function
-
-    '''<summary>Formated content for all "DATE..." fields, time.</summary>
-    Public Shared Function GetDateWithTime(ByVal Moment As DateTime) As String
-        Return Format(Moment, "yyyy-dd-MMTHH:mm:ss.fff")
-    End Function
-
-    '''<summary>Formated content for all "TIME..." fields, time.</summary>
-    Public Shared Function GetTime(ByVal Moment As DateTime) As String
-        Return Format(Moment, "HH:mm:ss.fff")
-    End Function
-
 End Class

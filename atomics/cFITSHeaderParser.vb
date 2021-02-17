@@ -195,6 +195,7 @@ Public Class cFITSHeaderParser
                 If Keyword.ToString.ToUpper = KeyWordString.ToUpper.Trim Then Return EnumKey
             Next Keyword
         Next EnumKey
+        Debug.Print(KeyWordString)
         Return eFITSKeywords.UNKNOWN
     End Function
 
