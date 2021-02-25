@@ -29,8 +29,7 @@ Public Class cImgForm
         End If
     End Sub
 
-    Public Function Show(ByVal NewTitle As String) As System.Windows.Forms.PictureBox
-        Hoster.Text = NewTitle
+    Public Function Show() As System.Windows.Forms.PictureBox
         Hoster.Show()
         Return Image
     End Function
@@ -61,6 +60,7 @@ Public Class cImgForm
         Next Y
         OutputImage.UnlockBits()
         Image.Image = OutputImage.BitmapToProcess
+        Image.Parent.Text = "Focus Window <" & (Data.GetUpperBound(0) + 1).ValRegIndep & "x" & (Data.GetUpperBound(1) + 1).ValRegIndep & "> pixel "
     End Sub
 
     '''<summary>Update the content of the focus window.</summary>

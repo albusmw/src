@@ -990,6 +990,7 @@ Public Class cFITSWriter
             ValAsString = "T"
         Else
             ValAsString = cFITSType.AsString(Card.Value)
+            If IsNothing(ValAsString) Then ValAsString = String.Empty
         End If
         If Comment.Length > 0 Then
             RetVal = (FITSKeyword.GetKeywords(Card.Key)(0).Trim.PadRight(FITSSpec.HeaderKeywordLength) & FITSSpec.HeaderEqualString & ValAsString.Trim.PadLeft(FITSSpec.HeaderValueLength) & " / " & Comment).PadRight(FITSSpec.HeaderElementLength)
