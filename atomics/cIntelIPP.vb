@@ -969,9 +969,9 @@ Partial Public Class cIntelIPP
         Using Pinner As New cPinHandler
             Dim ArrayInWidth As Integer = ArrayIn.GetUpperBound(1) + 1
             Dim ArrayInHeight As Integer = ArrayIn.GetUpperBound(0) + 1
-            ReDim ArrayOut(CInt(FirstIndexRange - 1), CInt(SecondIndexRange - 1))
+            ReDim ArrayOut(CInt(FirstIndexRange - 1), CInt(SecondIndexRange - 1))                       '-1 due to 0-based start index
             Dim srcStep As Integer = BytePerVal * ArrayInWidth                                          'Distance, in bytes, between the starting points of consecutive lines in the source image.
-            Dim dstStep As Integer = BytePerVal * SecondIndexRange                                       'Distance, in bytes, between the starting points of consecutive lines in the destination image.
+            Dim dstStep As Integer = BytePerVal * SecondIndexRange                                      'Distance, in bytes, between the starting points of consecutive lines in the destination image.
             Dim FirstValue As Integer = CInt(SecondIndexStart + (FirstIndexStart * ArrayInWidth))
             Dim ROI As New IppiSize(SecondIndexRange, FirstIndexRange)                                 'ROI [element index span - not depending on data format!]
             RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn, FirstValue), srcStep, Pinner.Pin(ArrayOut), dstStep, ROI), IppStatus)

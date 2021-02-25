@@ -8,7 +8,7 @@ Public Class cStopper
     Private TimeLog As New List(Of String)
     Private MessageCache As String = String.Empty       'message in case TIC is called with the log message and TOC is not
 
-    Public Property PadMessage As Integer = 30
+    Public Property PadMessage As Integer = 40
     Public Property PadTime As Integer = 11
 
     Private MyProc As Process = Process.GetCurrentProcess

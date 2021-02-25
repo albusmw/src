@@ -1403,4 +1403,103 @@ Public Class cFITSWriter
 
     End Sub
 
+    '''<summary>Write a FITS test file with raw data containing a box in the middle of the image.</summary>
+    '''<remarks>Does work.</remarks>
+    Public Shared Sub WriteTestFile_UInt16_Box(ByVal FileName As String)
+
+        Dim BitPix As Integer = eBitPix.Int16
+        Dim BaseOut As New System.IO.StreamWriter(FileName)
+        Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
+
+        'Create test data
+        Dim ImageSize_W As Integer = 80
+        Dim ImageSize_H As Integer = 60
+        Dim ImageData(ImageSize_W - 1, ImageSize_H - 1) As UInt16
+        'All zero
+        For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+            For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                ImageData(Idx2, Idx1) = 0
+            Next Idx2
+        Next Idx1
+        'Inner box
+        For Idx1 As Integer = 8 To ImageData.GetUpperBound(1) - 8
+            For Idx2 As Integer = 12 To ImageData.GetUpperBound(0) - 12
+                ImageData(Idx2, Idx1) = 100
+            Next Idx2
+        Next Idx1
+
+        'Load all header elements
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
+        Header.Add(eFITSKeywords.NAXIS, 2)
+        Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.BZERO, 32768)
+        Header.Add(eFITSKeywords.BSCALE, 1)
+
+        'Write header
+        BaseOut.Write(CreateFITSHeader(Header))
+        BaseOut.Flush()
+
+        'Write content
+        For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+            For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                BytesOut.Write(GetBytes_BitPix16(CType(ImageData(Idx2, Idx1) - 32768, Int16)))
+            Next Idx2
+        Next Idx1
+
+        'Finish
+        BytesOut.Flush()
+        BaseOut.Close()
+
+    End Sub
+
+    '''<summary>Write a FITS test file with raw data containing X and Y coordinated as pixel values.</summary>
+    '''<remarks>Does work.</remarks>
+    Public Shared Sub WriteTestFile_UInt16_XYCoded(ByVal FileName As String)
+
+        Dim BitPix As Integer = eBitPix.Int16
+        Dim BaseOut As New System.IO.StreamWriter(FileName)
+        Dim BytesOut As New System.IO.BinaryWriter(BaseOut.BaseStream)
+
+        'Create test data
+        Dim ImageSize_W As Integer = 100
+        Dim ImageSize_H As Integer = 50
+        Dim ImageData(ImageSize_W - 1, ImageSize_H - 1) As UInt16
+
+        'Inner box
+        For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+            For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                ImageData(Idx2, Idx1) = CUShort((Idx2 * 100) + Idx1)
+            Next Idx2
+        Next Idx1
+
+        'Load all header elements
+        Dim Header As New Dictionary(Of eFITSKeywords, Object)
+        Header.Add(eFITSKeywords.SIMPLE, "T")
+        Header.Add(eFITSKeywords.BITPIX, BitPix)
+        Header.Add(eFITSKeywords.NAXIS, 2)
+        Header.Add(eFITSKeywords.NAXIS1, ImageData.GetUpperBound(0) + 1)
+        Header.Add(eFITSKeywords.NAXIS2, ImageData.GetUpperBound(1) + 1)
+        Header.Add(eFITSKeywords.BZERO, 32768)
+        Header.Add(eFITSKeywords.BSCALE, 1)
+
+        'Write header
+        BaseOut.Write(CreateFITSHeader(Header))
+        BaseOut.Flush()
+
+        'Write content
+        For Idx1 As Integer = 0 To ImageData.GetUpperBound(1)
+            For Idx2 As Integer = 0 To ImageData.GetUpperBound(0)
+                BytesOut.Write(GetBytes_BitPix16(CType(ImageData(Idx2, Idx1) - 32768, Int16)))
+            Next Idx2
+        Next Idx1
+
+        'Finish
+        BytesOut.Flush()
+        BaseOut.Close()
+
+    End Sub
+
 End Class

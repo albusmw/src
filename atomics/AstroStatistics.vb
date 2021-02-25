@@ -387,6 +387,15 @@ Namespace AstroNET
                     Return TotalPixel
                 End Get
             End Property
+            '''<summary>Savely get the percentile value.</summary>
+            Public ReadOnly Property GetPercentile(ByVal Pct As Integer) As Int64
+                Get
+                    Dim PctInvalid As Int64 = Int64.MinValue
+                    If IsNothing(Percentile) = True Then Return PctInvalid
+                    If Percentile.ContainsKey(Pct) = False Then Return PctInvalid
+                    Return Percentile(Pct)
+                End Get
+            End Property
             '''<summary>Standard deviation (calculated as in FitsWork).</summary>
             Public ReadOnly Property Variance As Double
                 Get
@@ -446,9 +455,7 @@ Namespace AstroNET
                 RetVal.Add("Standard dev", StdDev)
                 RetVal.Add("Variance", Variance)
                 For Each Pct As Integer In DefaultPcts
-                    If IsNothing(Percentile) = False Then
-                        If Percentile.ContainsKey(Pct) Then RetVal.Add(Pct.ToString.Trim.PadLeft(2) & "th", Percentile(Pct))
-                    End If
+                    RetVal.Add(Pct.ToString.Trim.PadLeft(2) & "th", GetPercentile(Pct))
                 Next Pct
                 Return RetVal
             End Function
@@ -478,9 +485,7 @@ Namespace AstroNET
                 RetVal.Add("Variance          : " & Format(Variance, "0.000").ToString.Trim.PadLeft(ReportValueLength))
                 'Percentile report
                 For Each Pct As Integer In DefaultPcts
-                    If IsNothing(Percentile) = False Then
-                        If Percentile.ContainsKey(Pct) Then RetVal.Add(("Percentil - " & Pct.ToString.Trim.PadLeft(2) & " %  : ").PadRight(ReportHeaderLength) & Format(Percentile(Pct)).ToString.Trim.PadLeft(ReportValueLength))
-                    End If
+                    RetVal.Add(("Percentil - " & Pct.ToString.Trim.PadLeft(2) & " %  : ").PadRight(ReportHeaderLength) & Format(GetPercentile(Pct)).ToString.Trim.PadLeft(ReportValueLength))
                 Next Pct
                 Return RetVal
             End Function
@@ -770,7 +775,7 @@ Namespace AstroNET
             'Set percentiles in bin which to not have a valid entry
             Dim LastValidPct As Long = RetVal.Min.Key
             For Pct As Integer = 0 To 100
-                If RetVal.Percentile(Pct) = PCTInvalid Then
+                If RetVal.GetPercentile(Pct) = PCTInvalid Then
                     RetVal.Percentile(Pct) = LastValidPct
                 Else
                     LastValidPct = RetVal.Percentile(Pct)

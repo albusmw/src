@@ -187,8 +187,12 @@ Module DirectoryExtension
 
     ''''<summary>Get a list of all keys in the dictionary passed.</summary>
     <Extension()>
-    Public Function ToDouble(ByRef Keys As Dictionary(Of Long, ULong).KeyCollection) As Double()
-        Return Keys.ToDouble
+    Public Function ToDouble(ByRef Dict As Dictionary(Of Long, ULong).KeyCollection) As Double()
+        Dim RetVal(Dict.Count - 1) As Double
+        For Idx As Integer = 0 To Dict.Count - 1
+            RetVal(Idx) = Dict(Idx)
+        Next Idx
+        Return RetVal
     End Function
 
     '''<summary>Sort the dictionary passed.</summary>
