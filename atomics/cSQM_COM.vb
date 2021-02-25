@@ -21,12 +21,13 @@ Public Class cSQM_COM
 
         Dim InitCOMNow As Boolean = False
         If IsNothing(COM_port) = True Then
+            COM_port = New IO.Ports.SerialPort
             InitCOMNow = True
         Else
             If COM_port.IsOpen = False Then InitCOMNow = True
         End If
 
-        If InitCOMNow Then
+        If InitCOMNow And (String.IsNullOrEmpty(SerialPort) = False) Then
             COM_port = New IO.Ports.SerialPort(SerialPort, 115200, IO.Ports.Parity.None, 8, IO.Ports.StopBits.One)
             COM_port.ReadTimeout = 1000
             COM_port.Handshake = IO.Ports.Handshake.None
@@ -57,17 +58,23 @@ Public Class cSQM_COM
     End Function
 
     Public Sub Parse_rx(ByVal Answer As String, ByRef Magnitude As Double, ByRef Temperature As Double)
-        If Answer.Length < 55 Then Exit Sub
-        Try
-            Magnitude = Val(Answer.Substring(3, 5))
-        Catch ex As Exception
-            Magnitude = Double.NaN
-        End Try
-        Try
-            Temperature = Val(Answer.Substring(49, 5))
-        Catch ex As Exception
-            Temperature = Double.NaN
-        End Try
+        Dim Invalid As Double = Double.NaN
+        If IsNothing(Answer) = False Then
+            If Answer.Length < 55 Then Exit Sub
+            Try
+                Magnitude = Val(Answer.Substring(3, 5))
+            Catch ex As Exception
+                Magnitude = Invalid
+            End Try
+            Try
+                Temperature = Val(Answer.Substring(49, 5))
+            Catch ex As Exception
+                Temperature = Invalid
+            End Try
+        Else
+            Magnitude = Invalid
+            Temperature = Invalid
+        End If
     End Sub
 
     Private Sub COM_port_DataReceived(ByVal sender As Object, e As IO.Ports.SerialDataReceivedEventArgs)

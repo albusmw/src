@@ -157,6 +157,16 @@ Namespace Ato
         '================================================================================
 
         ''' <summary>Get the value of the INI file entry specified.</summary>
+        Public Function [Get](ByVal SectionAndKeyName As String, ByVal DefaultValue As Boolean) As Boolean
+            If SectionAndKeyName.Contains("::") Then
+                Dim Splitted As String() = Split(SectionAndKeyName, "::")
+                Return [Get](Splitted(0), Splitted(1), DefaultValue)
+            Else
+                Return DefaultValue
+            End If
+        End Function
+
+        ''' <summary>Get the value of the INI file entry specified.</summary>
         Public Function [Get](ByVal Section As String, ByVal KeyName As String, ByVal DefaultValue As Boolean) As Boolean
             Dim RawRead As String = [Get](Section, KeyName, String.Empty)
             If String.IsNullOrEmpty(RawRead) Then
@@ -171,6 +181,16 @@ Namespace Ato
                     Case Else
                         Return False
                 End Select
+            End If
+        End Function
+
+        ''' <summary>Get the value of the INI file entry specified.</summary>
+        Public Function [Get](ByVal SectionAndKeyName As String, ByVal DefaultValue As Integer) As Integer
+            If SectionAndKeyName.Contains("::") Then
+                Dim Splitted As String() = Split(SectionAndKeyName, "::")
+                Return [Get](Splitted(0), Splitted(1), DefaultValue)
+            Else
+                Return DefaultValue
             End If
         End Function
 
@@ -193,6 +213,16 @@ Namespace Ato
         End Function
 
         ''' <summary>Get the value of the INI file entry specified.</summary>
+        Public Function [Get](ByVal SectionAndKeyName As String, ByVal DefaultValue As Double) As Double
+            If SectionAndKeyName.Contains("::") Then
+                Dim Splitted As String() = Split(SectionAndKeyName, "::")
+                Return [Get](Splitted(0), Splitted(1), DefaultValue)
+            Else
+                Return DefaultValue
+            End If
+        End Function
+
+        ''' <summary>Get the value of the INI file entry specified.</summary>
         Public Function [Get](ByVal Section As String, ByVal KeyName As String, ByVal DefaultValue As Double) As Double
             Dim RawRead As String = [Get](Section, KeyName, String.Empty)
             If String.IsNullOrEmpty(RawRead) Then
@@ -206,6 +236,16 @@ Namespace Ato
                     [Set](Section, KeyName, CStr(DefaultValue).Trim.Replace(",", "."))                   'key does not exist -> set
                     Return DefaultValue
                 End Try
+            End If
+        End Function
+
+        ''' <summary>Get the value of the INI file entry specified.</summary>
+        Public Function [Get](ByVal SectionAndKeyName As String, ByVal DefaultValue As String) As String
+            If SectionAndKeyName.Contains("::") Then
+                Dim Splitted As String() = Split(SectionAndKeyName, "::")
+                Return [Get](Splitted(0), Splitted(1), DefaultValue)
+            Else
+                Return DefaultValue
             End If
         End Function
 
@@ -227,6 +267,8 @@ Namespace Ato
             [Set](Section, KeyName, DefaultValue)                   'key does not exist -> set
             Return DefaultValue
         End Function
+
+        '================================================================================
 
         ''' <summary>Set the value of the INI file entry specified.</summary>
         Public Sub [Set](ByVal Section As String, ByVal KeyName As String, ByVal Value As String)

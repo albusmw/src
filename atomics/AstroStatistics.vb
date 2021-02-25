@@ -82,10 +82,24 @@ Namespace AstroNET
         '''<summary>Return which data type is currenty loaded (only 1 data type can be loaded).</summary>
         Public ReadOnly Property DataMode() As eDataMode
             Get
-                If DataProcessor_UInt16.ImageData(0).Data.LongLength > 0 Then Return eDataMode.UInt16
-                If DataProcessor_UInt32.ImageData(0).Data.LongLength > 0 Then Return eDataMode.UInt32
-                If DataProcessor_Int32.ImageData.LongLength > 0 Then Return eDataMode.Int32
-                If DataProcessor_Float32.ImageData(0).Data.LongLength > 0 Then Return eDataMode.Float32
+                '1.) Try to return data with content and data
+                If IsNothing(DataProcessor_UInt16.ImageData(0).Data) = False Then
+                    If DataProcessor_UInt16.ImageData(0).Data.LongLength > 0 Then Return eDataMode.UInt16
+                End If
+                If IsNothing(DataProcessor_UInt32.ImageData(0).Data) = False Then
+                    If DataProcessor_UInt32.ImageData(0).Data.LongLength > 0 Then Return eDataMode.UInt32
+                End If
+                If IsNothing(DataProcessor_Int32.ImageData) = False Then
+                    If DataProcessor_Int32.ImageData.LongLength > 0 Then Return eDataMode.Int32
+                End If
+                If IsNothing(DataProcessor_Float32.ImageData(0).Data) = False Then
+                    If DataProcessor_Float32.ImageData(0).Data.LongLength > 0 Then Return eDataMode.Float32
+                End If
+                '2.) Return data that are not nothing
+                If IsNothing(DataProcessor_UInt16.ImageData(0).Data) = False Then Return eDataMode.UInt16
+                If IsNothing(DataProcessor_UInt32.ImageData(0).Data) = False Then Return eDataMode.UInt32
+                If IsNothing(DataProcessor_Int32.ImageData) = False Then Return eDataMode.Int32
+                If IsNothing(DataProcessor_Float32.ImageData(0).Data) = False Then Return eDataMode.Float32
                 Return Nothing
             End Get
         End Property
