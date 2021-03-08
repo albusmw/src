@@ -120,18 +120,18 @@ Public Class cStatMultiThread_UInt16
 
     '''<summary>Get a list of pixel above a certain value.</summary>
     '''<param name="ValueAbove">Value (included) to search for.</param>
-    Public Function GetAbove(ByVal ValueAbove As UInt16) As Dictionary(Of UInt16, List(Of Point))
+    Public Function GetAbove(ByVal ValueAbove As UInt16) As Dictionary(Of UInt16, List(Of Drawing.Point))
 
         'Find top 1% of values and create a dictionary for the values and all pixel with this value
-        Dim RetVal As New Dictionary(Of UInt16, List(Of Point))
+        Dim RetVal As New Dictionary(Of UInt16, List(Of Drawing.Point))
         With ImageData(0)
             For Idx1 As Integer = 0 To .NAXIS1 - 1
                 For Idx2 As Integer = 0 To .NAXIS2 - 1
                     If .Data(Idx1, Idx2) >= ValueAbove Then
                         If RetVal.ContainsKey(.Data(Idx1, Idx2)) = False Then
-                            RetVal.Add(.Data(Idx1, Idx2), New List(Of Point)({New Point(Idx1, Idx2)}))
+                            RetVal.Add(.Data(Idx1, Idx2), New List(Of Drawing.Point)({New Drawing.Point(Idx1, Idx2)}))
                         Else
-                            RetVal(.Data(Idx1, Idx2)).Add(New Point(Idx1, Idx2))
+                            RetVal(.Data(Idx1, Idx2)).Add(New Drawing.Point(Idx1, Idx2))
                         End If
                     End If
                 Next Idx2

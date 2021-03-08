@@ -3,7 +3,7 @@ Option Strict On
 
 '''<summary>Format helper and converter for the SER format handling.</summary>
 '''<see cref="https://free-astro.org/index.php/SER"/>
-Public Class cSERFormat
+Partial Public Class cSERFormat
 
     Public Enum eColorID As Int32
         MONO = 0
@@ -22,6 +22,10 @@ Public Class cSERFormat
 
         '''<summary>Header size.</summary>
         Public Const SERHeaderLength As Integer = 178
+        '''<summary>SER time has a resolution of 100 ns, so this divider generates seconds from SER times.</summary>
+        Public Const SERTimeToSecDivider As UInt64 = 10000000
+        '''<summary>Moment 0 in the SER timestamp meaning.</summary>
+        Public ReadOnly Property SERTimeZero As New DateTime(1, 1, 1, 0, 0, 0)
 
         '''<summary>"LUCAM-RECORDER".</summary>
         Public Header As String = String.Empty
@@ -32,13 +36,13 @@ Public Class cSERFormat
         '''<summary>0 for big-endian, 1 for little-endian byte order in 16 bit image data.</summary>
         Public LittleEndian As Int32 = Int32.MinValue
         '''<summary>Width of every image in pixel.</summary>
-        Public FrameWidth As Int32 = Int32.MinValue
+        Public FrameWidth As Int32 = 0
         '''<summary>Height of every image in pixel.</summary>
-        Public FrameHeight As Int32 = Int32.MinValue
+        Public FrameHeight As Int32 = 0
         '''<summary>True bit depth per pixel per plane, see http://www.grischa-hahn.homepage.t-online.de/astro/ser/SER%20Doc%20V3b.pdf for details.</summary>
-        Public PixelDepthPerPlane As Int32 = Int32.MinValue
+        Public PixelDepthPerPlane As Int32 = 0
         '''<summary>Number of image frames in SER file.</summary>
-        Public FrameCount As Int32 = Int32.MinValue
+        Public FrameCount As Int32 = 0
         '''<summary>Name of observer.</summary>
         Public Observer As String = String.Empty
         '''<summary>Name of used camera.</summary>
@@ -46,17 +50,25 @@ Public Class cSERFormat
         '''<summary>Name of used telescope.</summary>
         Public Telescope As String = String.Empty
         '''<summary>Start time of image stream (local time) - If 12_DateTime <= 0 Then 12_DateTime Is invalid And the SER file does Not contain a time stamp trailer.</summary>
-        Public DateTimeLocalRaw As Int64 = Int64.MinValue
+        Public DateTimeLocalRaw As Int64 = 0
         '''<summary>Start time of image stream in UTC.</summary>
-        Public DateTimeUTCRaw As Int64 = Int64.MinValue
+        Public DateTimeUTCRaw As Int64 = 0
 
-        Private MyTrailerLength As Int64 = Int64.MinValue
+        '''<summary>Raw data of the trailer.</summary>
+        Public TrailerSeconds() As UInt64 = {}
 
         Public Sub New()
-
+            MyValidSERFile = False
         End Sub
 
+        '''<summary>Start reading the passed binary reader stream as a SER file.</summary>
+        '''<param name="BinaryIN">Binary stream.</param>
         Public Sub New(ByRef BinaryIN As System.IO.BinaryReader)
+            'Check if the size is at least the header size
+            MyValidSERFile = False
+            If BinaryIN.BaseStream.Length < SERHeaderLength Then Exit Sub
+            BinaryIN.BaseStream.Seek(0, IO.SeekOrigin.Begin)
+            'Read the header
             Header = System.Text.Encoding.ASCII.GetString(BinaryIN.ReadBytes(14))
             LuID = BitConverter.ToInt32(BinaryIN.ReadBytes(4), 0)
             ColorID = CType(BitConverter.ToInt32(BinaryIN.ReadBytes(4), 0), eColorID)
@@ -71,43 +83,115 @@ Public Class cSERFormat
             DateTimeLocalRaw = BitConverter.ToInt64(BinaryIN.ReadBytes(8), 0)
             DateTimeUTCRaw = BitConverter.ToInt64(BinaryIN.ReadBytes(8), 0)
             MyTrailerLength = BinaryIN.BaseStream.Length - SERHeaderLength - TotalImageBytes
+            'Validate if the file is valid
+            Dim ExpectedTrailerSize As Long = FrameCount * 8
+            Dim StreamLength As Long = BinaryIN.BaseStream.Length
+            If StreamLength = SERHeaderLength + TotalImageBytes + ExpectedTrailerSize Then
+                'Full SER file with time
+                MyFileFrames = FrameCount
+                MyTrailerPresent = True
+                MyValidSERFile = True
+            Else
+                If StreamLength = SERHeaderLength + TotalImageBytes Then
+                    'Full SER file without time
+                    MyFileFrames = FrameCount
+                    MyTrailerPresent = False
+                    MyValidSERFile = True
+                Else
+                    'Cut SER file
+                    MyFileFrames = CInt(Math.Floor((StreamLength - SERHeaderLength) / BytePerFrame))
+                    MyTrailerPresent = False
+                    MyValidSERFile = True
+                End If
+            End If
         End Sub
 
-        Public ReadOnly Property DateTimeSubSec() As UInt64
+        '''<summary>Determin if the loaded SER file is a valid SER file.</summary>
+        Public ReadOnly Property ValidSERFile As Boolean = MyValidSERFile
+        Private MyValidSERFile As Boolean = False
+
+        '''<summary>Number of frames according to the file size (may not be the same as the header indicates).</summary>
+        Public ReadOnly Property FileFrames As Integer
             Get
-                Return CULng(DateTimeLocalRaw - ((DateTimeLocalRaw \ 10000000) * 10000000))
+                Return MyFileFrames
+            End Get
+        End Property
+        Private MyFileFrames As Integer = 0
+
+        '''<summary>Is a valid and full trailer present?.</summary>
+        Public ReadOnly Property TrailerPresent As Boolean
+            Get
+                Return MyTrailerPresent
+            End Get
+        End Property
+        Private MyTrailerPresent As Boolean = False
+
+        Public ReadOnly Property DateTimeSubSec As UInt64
+            Get
+                Return CULng(DateTimeLocalRaw - ((DateTimeLocalRaw / SERTimeToSecDivider) * SERTimeToSecDivider))
             End Get
         End Property
 
-        Public ReadOnly Property DateTimeLocal() As DateTime
+        Public ReadOnly Property DateTimeLocal As DateTime
             Get
-                Return New DateTime(1, 1, 1, 0, 0, 0).AddSeconds(DateTimeLocalRaw \ 10000000)
+                Return SerTimestampToDateTime(DateTimeLocalRaw)
             End Get
         End Property
 
-        Public ReadOnly Property DateTimeUTC() As DateTime
+        '''<summary>Start time of image stream in UTC.</summary>
+        Public ReadOnly Property DateTimeUTC As DateTime
             Get
-                Return New DateTime(1, 1, 1, 0, 0, 0).AddSeconds(DateTimeUTCRaw \ 10000000)
+                Return SerTimestampToDateTime(DateTimeUTCRaw)
             End Get
         End Property
 
-        Public ReadOnly Property BytePerPixel() As Integer
+        '''<summary>Bytes per pixel.</summary>
+        Public ReadOnly Property BytePerPixel As Integer
             Get
                 Return PixelDepthPerPlane \ 8
             End Get
         End Property
 
-        Public ReadOnly Property TotalImageBytes() As Long
+        '''<summary>Number of bytes a full frame consumes.</summary>
+        Public ReadOnly Property BytePerFrame As Long
             Get
-                Return CLng(FrameCount) * CLng(FrameWidth) * CLng(FrameHeight) * CLng(BytePerPixel)
+                Return CLng(FrameWidth) * CLng(FrameHeight) * CLng(BytePerPixel)
             End Get
         End Property
 
-        Public ReadOnly Property TrailerLength() As Long
+        '''<summary>Number of bytes all frame consumes (according to the header information).</summary>
+        Public ReadOnly Property TotalImageBytes As Long
+            Get
+                Return CLng(FrameCount) * BytePerFrame
+            End Get
+        End Property
+
+        '''<summary>Length of the trailer [byte].</summary>
+        Public ReadOnly Property TrailerLength As Long
             Get
                 Return MyTrailerLength
             End Get
         End Property
+        Private MyTrailerLength As Int64 = 0
+
+        ''<summary>Convert a SER formated time stamp to a "common" DateTime value.</summary>
+        Public Function SerTimestampToDateTime(ByVal TimeStamp As Int64) As DateTime
+            Return SERTimeZero.AddSeconds(TimeStamp / SERTimeToSecDivider)
+        End Function
+
+        ''<summary>Get a list of all time stamps.</summary>
+        Public Sub ReadTrailer(ByRef BinaryIN As System.IO.BinaryReader)
+            Dim OldPos As Long = BinaryIN.BaseStream.Position
+            BinaryIN.BaseStream.Seek(BinaryIN.BaseStream.Length - TrailerLength, IO.SeekOrigin.Begin)
+            Dim TrailerSeconds(FrameCount - 1) As UInt64
+            For Ptr As Integer = 0 To FrameCount - 1
+                TrailerSeconds(Ptr) = BitConverter.ToUInt64(BinaryIN.ReadBytes(8), 0)
+                Dim Seconds As Double = RawDate / SERTimeToSecDivider
+                RetVal(Ptr) = SERTimeZero.AddSeconds(Seconds)
+            Next Ptr
+            'Restore old stream position and return list of DateTime
+            BinaryIN.BaseStream.Seek(OldPos, IO.SeekOrigin.Begin)
+        End Sub
 
         Public Function PrintInfo() As List(Of String)
             Dim RetVal As New List(Of String)
@@ -135,51 +219,5 @@ Public Class cSERFormat
         End Function
 
     End Class
-
-    Public Class cSerFormatWriter
-
-        Dim FileIO As System.IO.FileStream
-        Dim BinaryOUT As System.IO.BinaryWriter
-
-        Public Property Header As New cSERHeader
-
-        Public Sub InitForWrite(ByVal NewSERFile As String)
-
-            FileIO = New System.IO.FileStream(NewSERFile, IO.FileMode.Create, IO.FileAccess.Write)
-            BinaryOUT = New System.IO.BinaryWriter(FileIO)
-
-            BinaryOUT.Write(System.Text.Encoding.ASCII.GetBytes("LUCAM-RECORDER"))                  'Header
-            BinaryOUT.Write(BitConverter.GetBytes(CType(4660, Int32)))                              'LuID
-            BinaryOUT.Write(BitConverter.GetBytes(CType(0, Int32)))                                 'ColorID
-            BinaryOUT.Write(BitConverter.GetBytes(CType(0, Int32)))                                 'LittleEndian
-            BinaryOUT.Write(BitConverter.GetBytes(CType(Header.FrameWidth, Int32)))                 'ImageWidth
-            BinaryOUT.Write(BitConverter.GetBytes(CType(Header.FrameHeight, Int32)))                'ImageHeight
-            BinaryOUT.Write(BitConverter.GetBytes(CType(Header.PixelDepthPerPlane, Int32)))         'PixelDepthPerPlane
-            BinaryOUT.Write(BitConverter.GetBytes(CType(Header.FrameCount, Int32)))                 'FrameCount
-            BinaryOUT.Write(System.Text.Encoding.ASCII.GetBytes(Header.Observer.PadRight(40)))      'Observer
-            BinaryOUT.Write(System.Text.Encoding.ASCII.GetBytes(Header.Instrument.PadRight(40)))    'Instrument
-            BinaryOUT.Write(System.Text.Encoding.ASCII.GetBytes(Header.Telescope.PadRight(40)))     'Telescope
-            BinaryOUT.Write(BitConverter.GetBytes(CType(Header.DateTimeLocalRaw, Int64)))           'FrameCount
-            BinaryOUT.Write(BitConverter.GetBytes(CType(Header.DateTimeUTCRaw, Int64)))             'FrameCount
-
-        End Sub
-
-        Public Sub AppendFrame(ByRef Frame(,) As UInt16)
-            For Idx1 As Integer = 0 To Frame.GetUpperBound(0)
-                For Idx2 As Integer = 0 To Frame.GetUpperBound(1)
-                    BinaryOUT.Write(BitConverter.GetBytes(Frame(Idx1, Idx2)))
-                Next Idx2
-            Next Idx1
-        End Sub
-
-        Public Sub CloseSerFile()
-            BinaryOUT.Flush()
-            FileIO.Flush()
-            BinaryOUT.Close()
-            FileIO.Close()
-        End Sub
-
-    End Class
-
 
 End Class

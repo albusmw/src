@@ -642,7 +642,7 @@ Public Class cFITSReader
     '''<param name="BaseIn">Stream to read data in from.</param>
     '''<param name="DataStartPos">0-based index where the data start.</param>
     '''<returns>List of header elements.</returns>
-    Private Function ReadHeader(ByRef BaseIn As System.IO.StreamReader, ByRef DataStartPos As Integer) As List(Of cFITSHeaderParser.sHeaderElement)
+    Public Shared Function ReadHeader(ByRef BaseIn As System.IO.StreamReader, ByRef DataStartPos As Integer) As List(Of cFITSHeaderParser.sHeaderElement)
 
         Dim EndReached As Boolean = False
         Dim RetVal As New List(Of cFITSHeaderParser.sHeaderElement)

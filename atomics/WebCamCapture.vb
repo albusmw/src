@@ -1,11 +1,7 @@
 Option Explicit On
 Option Strict Off
 
-Imports System
-Imports System.Runtime
-Imports System.Runtime.InteropServices
-
-Module modWebcam
+Public Class modWebcam
 
     Public Const WM_CAP As Short = &H400S
 
@@ -28,7 +24,7 @@ Module modWebcam
 
     Public Declare Function SendMessage Lib "user32" Alias "SendMessageA" _
         (ByVal hwnd As Integer, ByVal wMsg As Integer, ByVal wParam As Integer,
-        <MarshalAs(UnmanagedType.AsAny)> ByVal lParam As Object) As Integer
+        <System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.AsAny)> ByVal lParam As Object) As Integer
 
     Public Declare Function SetWindowPos Lib "user32" Alias "SetWindowPos" (ByVal hwnd As Integer,
         ByVal hWndInsertAfter As Integer, ByVal x As Integer, ByVal y As Integer,
@@ -46,4 +42,4 @@ Module modWebcam
         ByVal lpszName As String, ByVal cbName As Integer, ByVal lpszVer As String,
         ByVal cbVer As Integer) As Boolean
 
-End Module
+End Class

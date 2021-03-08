@@ -143,7 +143,7 @@ Public Class cZEDGraphForm
         Return GetGraphControl()
     End Function
 
-    Public Shared Widening Operator CType(v As Form) As cZEDGraphForm
+    Public Shared Widening Operator CType(v As Windows.Forms.Form) As cZEDGraphForm
         Throw New NotImplementedException()
     End Operator
 

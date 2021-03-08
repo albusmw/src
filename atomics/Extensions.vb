@@ -307,7 +307,7 @@ Module DataGridViewExtensions
 
     '''<summary>Create an ASCII table from the passed table.</summary>
     <Extension()>
-    Public Function ASCIITable(ByRef dgv As DataGridView) As List(Of String)
+    Public Function ASCIITable(ByRef dgv As Windows.Forms.DataGridView) As List(Of String)
 
         'Get a list of all lines
         Dim Lines As New List(Of List(Of String))
