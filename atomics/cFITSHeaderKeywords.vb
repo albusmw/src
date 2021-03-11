@@ -124,6 +124,7 @@ Public Class cFITSType
         If TypeOf Value Is UInt64 Then Return CStr(Value).Trim
         If TypeOf Value Is DateTime Then Return FITSString(CType(Value, DateTime))
         If TypeOf Value Is Date Then Return FITSString(CType(Value, Date))
+        If TypeOf Value Is TimeSpan Then Return FITSString(CType(Value, TimeSpan))
         Return CStr(Value)
     End Function
 
@@ -139,17 +140,21 @@ Public Class cFITSType
 
     '''<summary>Formated content for all "DATE..." fields, time.</summary>
     Public Shared Function FITSString(ByVal Moment As DateTime) As String
-        Return FITSString(Format(Moment, "yyyy-dd-MMTHH:mm:ss"))
-    End Function
-
-    '''<summary>Formated content for all "DATE..." fields, without time.</summary>
-    Public Shared Function FITSString_Date(ByVal Moment As DateTime) As String
-        Return FITSString(Format(Moment, "yyyy-MM-dd"))
+        If Moment.Hour = 0 And Moment.Minute = 0 And Moment.Second = 0 And Moment.Millisecond = 0 Then
+            Return FITSString(Format(Moment, "yyyy-MM-dd"))
+        Else
+            Return FITSString(Format(Moment, "yyyy-dd-MMTHH:mm:ss"))
+        End If
     End Function
 
     '''<summary>Formated content for all "TIME..." fields, time.</summary>
-    Public Shared Function FITSString_Time(ByVal Moment As DateTime) As String
-        Return FITSString(Format(Moment, "HH:mm:ss.fff"))
+    Public Shared Function FITSString(ByVal Moment As TimeSpan) As String
+        Return FITSString(Format(Moment.Hours, "00") & ":" & Format(Moment.Minutes, "00") & ":" & Format(Moment.Seconds, "00") & "." & Format(Moment.Milliseconds, "000"))
+    End Function
+
+    '''<summary>Formated content for all "TIME..." fields, time.</summary>
+    Public Shared Function FITSString_DateTime(ByVal Moment As DateTime) As String
+        Return FITSString(Format(Moment, "yyyy-MM-dd HH:mm:ss.fff"))
     End Function
 
 End Class
@@ -214,7 +219,7 @@ Public Enum eFITSKeywords
 
     '''<summary>Configured BRIGHTNESS value of the camera.</summary>
     <FITSKeyword("BRIGHTN")>
-    <FITSComment("")>
+    <FITSComment("Configured BRIGHTNESS value of the camera")>
     [BRIGHTNESS]
 
     '''<summary>Scaling factor in scaling equation.</summary>
@@ -330,12 +335,12 @@ Public Enum eFITSKeywords
 
     '''<summary>The value field shall contain a character string that gives the date on which the observation ended, format 'yyyy-mm-dd', or 'yyyy-mm-ddThh:mm:ss.sss'.</summary>
     <FITSKeyword({"DATE_END", "DATE-END"})>
-    <FITSComment("")>
+    <FITSComment("Observation end date, UT")>
     [DATE_END]
 
     '''<summary>The value field shall contain a character string that gives the date on which the observation started, format 'yyyy-mm-dd', or 'yyyy-mm-ddThh:mm:ss.sss'.</summary>
     <FITSKeyword({"DATE_OBS", "DATE-OBS"})>
-    <FITSComment("observation start, UT")>
+    <FITSComment("Observation start date, UT")>
     [DATE_OBS]
 
     '''<summary>The value field gives the declination of the observation. It may be expressed either as a floating point number in units of decimal degrees, or as a character string in 'dd:mm:ss.sss' format where the decimal point and number of fractional digits are optional.</summary>
@@ -424,7 +429,7 @@ Public Enum eFITSKeywords
 
     '''<summary>Primary HDU - Number of data axes. Always = 2 for two-dimensional images.</summary>
     <FITSKeyword("NAXIS")>
-    <FITSComment("number of axes")>
+    <FITSComment("Number of axes")>
     [NAXIS]
 
     '''<summary>Primary HDU - Length of data axis 1 or number of columns in image.</summary>
@@ -585,7 +590,7 @@ Public Enum eFITSKeywords
 
     '''<summary>Clear aperture of the telescope [m].</summary>
     <FITSKeyword("TELAPER")>
-    <FITSComment("")>
+    <FITSComment("Clear aperture of the telescope -m")>
     [TELAPER]
 
     '''<summary>The value field shall contain a character string identifying the telescope used to acquire the data associated with the header.</summary>
@@ -605,12 +610,12 @@ Public Enum eFITSKeywords
 
     '''<summary>The value field shall contain a character string that gives the time at which the observation ended, format 'hh:mm:ss.sss'.</summary>
     <FITSKeyword({"TIME_END", "TIME-END"})>
-    <FITSComment("")>
+    <FITSComment("Observation time end, UT")>
     [TIME_END]
 
     ''''<summary>The value field shall contain a character string that gives the time at which the observation started, format 'hh:mm:ss.sss'.</summary>
     <FITSKeyword({"TIME_OBS", "TIME-OBS"})>
-    <FITSComment("")>
+    <FITSComment("Observation time start, UT")>
     [TIME_OBS]
 
     ''''<summary>Binning factor in width.</summary>
