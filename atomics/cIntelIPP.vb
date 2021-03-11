@@ -260,9 +260,11 @@ Partial Public Class cIntelIPP
     Private Class CallSignature
         Public Delegate Function Single_IntPtr_Integer(ByVal val As Single, ByVal pSrcDst As IntPtr, ByVal len As Integer) As IppStatus
         Public Delegate Function IntPtr_IntPtr_Integer(ByVal pSrc As IntPtr, ByVal pDst As IntPtr, ByVal len As Integer) As IppStatus
+        Public Delegate Function IntPtr_IntPtr_Integer_Integer(ByVal pSrc As IntPtr, ByVal pDst As IntPtr, ByVal len As Integer, ByVal Factor As Integer) As IppStatus
         Public Delegate Function IntPtr_Integer_IntPtr_Integer(ByVal pSrc As IntPtr, ByVal len As Integer, ByVal pMin As IntPtr, ByVal scaleFactor As Integer) As IppStatus
         Public Delegate Function IntPtr_IntPtr_Integer_IppRoundMode_Integer(ByVal pSrc As IntPtr, ByVal pDst As IntPtr, ByVal len As Integer, ByVal rndMode As IppRoundMode, ByVal scaleFactor As Integer) As IppStatus
-        Public Delegate Function IntPtr_Integer_IntPtr_IntPtr(ByVal pSrc As IntPtr, ByVal len As Integer, ByVal pMin As IntPtr, ByVal pMax As IntPtr) As IppStatus
+        Public Delegate Function IntPtr_Integer_IntPtr_IntPtr(ByVal pSrc As IntPtr, ByVal len As Integer, ByVal Ptr1 As IntPtr, ByVal Ptr2 As IntPtr) As IppStatus
+        Public Delegate Function IntPtr_Integer_IntPtr_IntPtr_IntPtr_IntPtr(ByVal pSrc As IntPtr, ByVal len As Integer, ByVal Ptr1 As IntPtr, ByVal Ptr2 As IntPtr, ByVal Ptr3 As IntPtr, ByVal Ptr4 As IntPtr) As IppStatus
         Public Delegate Function Double_IntPtr_Integer(ByVal val As Double, ByVal pSrcDst As IntPtr, ByVal len As Integer) As IppStatus
         Public Delegate Function IntPtr_Integer(ByVal pSrcDst As IntPtr, ByVal len As Integer) As IppStatus
         Public Delegate Function UInt16_IntPtr_Integer(ByVal val As UInt16, ByVal pSrcDst As IntPtr, ByVal len As Integer) As IppStatus
@@ -604,6 +606,55 @@ Partial Public Class cIntelIPP
         End Using : Return RetVal
     End Function
 
+    Public Function Add(ByRef Src(,) As Single, ByRef SrcDst(,) As Single) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsAdd_32f_I", GetType(CallSignature.IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            AdjustSize(Src, SrcDst)
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(SrcDst), Src.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    Public Function Add(ByRef Src(,) As Double, ByRef SrcDst(,) As Double) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsAdd_64f_I", GetType(CallSignature.IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            AdjustSize(Src, SrcDst)
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(SrcDst), Src.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    '________________________________________________________________________________
+    'Sub
+    '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+
+    Public Function [Sub](ByRef Src(,) As Single, ByRef SrcDst(,) As Single) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsSub_32f_I", GetType(CallSignature.IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            AdjustSize(Src, SrcDst)
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(SrcDst), Src.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    Public Function [Sub](ByRef Src(,) As UInt32, ByRef SrcDst(,) As UInt32) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsSub_32s_ISfs", GetType(CallSignature.IntPtr_IntPtr_Integer_Integer))
+        Using Pinner As New cPinHandler
+            AdjustSize(Src, SrcDst)
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(SrcDst), Src.Length, 0), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    Public Function [Sub](ByRef Src(,) As Double, ByRef SrcDst(,) As Double) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsSub_64f_I", GetType(CallSignature.IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            AdjustSize(Src, SrcDst)
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(SrcDst), Src.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
+
     '________________________________________________________________________________
     'AddC
     '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
@@ -679,6 +730,14 @@ Partial Public Class cIntelIPP
     'Mul
     '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
 
+    Public Function Mul(ByRef ArraySrc(,) As Single, ByRef ArraySrcDst(,) As Single) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsMul_32f_I", GetType(CallSignature.IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArraySrc), Pinner.Pin(ArraySrcDst), ArraySrc.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
+
     Public Function Mul(ByRef ArraySrc(,) As Double, ByRef ArraySrcDst(,) As Double) As IppStatus
         Dim RetVal As IppStatus = IppStatus.NoErr
         Dim Caller As System.Delegate = CallIPPS("ippsMul_64f_I", GetType(CallSignature.IntPtr_IntPtr_Integer))
@@ -706,7 +765,19 @@ Partial Public Class cIntelIPP
 
     '________________________________________________________________________________
     'DivC
-    '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+    '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    '''<summary>Divides each element of a vector by a constant value.</summary>
+    '''<param name="Array"></param>
+    '''<returns></returns>
+    '''<remarks>https://software.intel.com/en-us/ipp-dev-reference-divc</remarks>
+    Public Function DivC(ByRef Array(,) As Single, ByRef ScaleFactor As Single) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsDivC_32f_I", GetType(CallSignature.Single_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            RetVal = CType(Caller.DynamicInvoke(ScaleFactor, Pinner.Pin(Array), Array.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
 
     '''<summary>Divides each element of a vector by a constant value.</summary>
     '''<param name="Array"></param>
@@ -746,6 +817,32 @@ Partial Public Class cIntelIPP
     End Function
 
     '________________________________________________________________________________
+    'PowerSpectr (square of)
+    '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+
+    ''' <summary>Convert UInt16 to UInt32 (using RealToCplx as the convert function does not exist).</summary>
+    ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-realtocplx</remarks>
+    Public Function PowerSpectr(ByRef ArrayInRe(,) As Single, ByRef ArrayInIm(,) As Single, ByRef ArrayOut(,) As Single) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsPowerSpectr_32f", GetType(CallSignature.IntPtr_IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            AdjustSize(ArrayInRe, ArrayOut)
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayInRe), Pinner.Pin(ArrayInIm), Pinner.Pin(ArrayOut), ArrayOut.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    ''' <summary>Convert UInt16 to UInt32 (using RealToCplx as the convert function does not exist).</summary>
+    ''' <remarks>https://software.intel.com/en-us/ipp-dev-reference-realtocplx</remarks>
+    Public Function PowerSpectr(ByRef ArrayInRe(,) As Double, ByRef ArrayInIm(,) As Double, ByRef ArrayOut(,) As Double) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsPowerSpectr_64f", GetType(CallSignature.IntPtr_IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            AdjustSize(ArrayInRe, ArrayOut)
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayInRe), Pinner.Pin(ArrayInIm), Pinner.Pin(ArrayOut), ArrayOut.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    '________________________________________________________________________________
     'Convert (not a real IPP function but used to get from UInt16 to UInt32)
     '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
 
@@ -775,6 +872,33 @@ Partial Public Class cIntelIPP
         Using Pinner As New cPinHandler
             AdjustSize(ArrayIn, ArrayOut)
             RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(ArrayIn), Pinner.Pin(ArrayOut), ArrayIn.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    Public Function Convert(ByRef Src(,) As UInt16, ByRef Dst(,) As Single) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsConvert_16u32f", GetType(CallSignature.IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            AdjustSize(Src, Dst)
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(Dst), Src.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    Public Function Convert(ByRef Src(,) As UInt32, ByRef Dst(,) As Double) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsConvert_32s64f", GetType(CallSignature.IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            AdjustSize(Src, Dst)
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(Dst), Src.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    Public Function Convert(ByRef Src(,) As UInt32, ByRef Dst(,) As Single) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsConvert_32s32f", GetType(CallSignature.IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            AdjustSize(Src, Dst)
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(Dst), Src.Length), IppStatus)
         End Using : Return RetVal
     End Function
 
@@ -868,18 +992,136 @@ Partial Public Class cIntelIPP
     End Function
 
     '________________________________________________________________________________
-    'MaxIdx
+    'MaxEvery
+    '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+
+    '''<summary>Computes maximum value for each pair of elements of two vectors.</summary>
+    '''<param name="Src">1st source vector.</param>
+    '''<param name="SrcDst">2nd source vector which is also the destination vector.</param>
+    Public Function MaxEvery(ByRef Src(,) As Int32, ByRef SrcDst(,) As Int32) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsMaxEvery_32s_I", GetType(CallSignature.IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            AdjustSize(Src, SrcDst)
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(SrcDst), Src.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    '''<summary>Computes maximum value for each pair of elements of two vectors.</summary>
+    '''<param name="Src">1st source vector.</param>
+    '''<param name="SrcDst">2nd source vector which is also the destination vector.</param>
+    '''<remarks>The function is designed for 32-bit signed values, but runs with unsigned if the values are below 2^31.</remarks>
+    Public Function MaxEvery(ByRef Src(,) As UInt32, ByRef SrcDst(,) As UInt32) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsMaxEvery_32s_I", GetType(CallSignature.IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            AdjustSize(Src, SrcDst)
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(SrcDst), Src.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    '________________________________________________________________________________
+    'MinEvery
+    '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+
+    '''<summary>Computes minimum value for each pair of elements of two vectors.</summary>
+    '''<param name="Src">1st source vector.</param>
+    '''<param name="SrcDst">2nd source vector which is also the destination vector.</param>
+    Public Function MinEvery(ByRef Src(,) As Int32, ByRef SrcDst(,) As Int32) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsMinEvery_32s_I", GetType(CallSignature.IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            AdjustSize(Src, SrcDst)
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(SrcDst), Src.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    '''<summary>Computes minimum value for each pair of elements of two vectors.</summary>
+    '''<param name="Src">1st source vector.</param>
+    '''<param name="SrcDst">2nd source vector which is also the destination vector.</param>
+    '''<remarks>The function is designed for 32-bit signed values, but runs with unsigned if the values are below 2^31.</remarks>
+    Public Function MinEvery(ByRef Src(,) As UInt32, ByRef SrcDst(,) As UInt32) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsMinEvery_32s_I", GetType(CallSignature.IntPtr_IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            AdjustSize(Src, SrcDst)
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Src), Pinner.Pin(SrcDst), Src.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
+
+    '________________________________________________________________________________
+    'MaxIndx
     '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
 
     '''<summary>Returns the maximum value of a vector and the index of the maximum element.</summary>
+    '''<remarks>The function is designed for 32-bit signed values, but runs with unsigned if the values are below 2^31.</remarks>
     '''<see cref="https://software.intel.com/en-us/ipp-dev-reference-maxindx"/>
-    Public Function MaxIndx(ByRef Array(,) As Double, ByRef Maximum As Double, ByRef MaximumIdx As Integer) As IppStatus
+    Public Function MaxIndx(ByRef Array(,) As UInt32, ByRef Maximum As UInt32, ByRef Index As Integer) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsMaxIndx_32s", GetType(CallSignature.IntPtr_Integer_IntPtr_IntPtr))
+        Using Pinner As New cPinHandler
+            Dim RefUInt32(0) As UInt32 : Dim RefInt(0) As Integer
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(RefUInt32), Pinner.Pin(RefInt)), IppStatus)
+            Maximum = RefUInt32(0) : Index = RefInt(0)
+        End Using : Return RetVal
+    End Function
+
+    '''<summary>Returns the maximum value of a vector and the index of the maximum element.</summary>
+    '''<see cref="https://software.intel.com/en-us/ipp-dev-reference-maxindx"/>
+    Public Function MaxIndx(ByRef Array(,) As Double, ByRef Maximum As Double, ByRef Index As Integer) As IppStatus
         Dim RetVal As IppStatus = IppStatus.NoErr
         Dim Caller As System.Delegate = CallIPPS("ippsMaxIndx_64f", GetType(CallSignature.IntPtr_Integer_IntPtr_IntPtr))
         Using Pinner As New cPinHandler
             Dim RefDbl(0) As Double : Dim RefInt(0) As Integer
             RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(RefDbl), Pinner.Pin(RefInt)), IppStatus)
-            Maximum = RefDbl(0) : MaximumIdx = RefInt(0)
+            Maximum = RefDbl(0) : Index = RefInt(0)
+        End Using : Return RetVal
+    End Function
+
+    '________________________________________________________________________________
+    'MinIndx
+    '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+
+    '''<summary>Returns the maximum value of a vector and the index of the maximum element.</summary>
+    '''<remarks>The function is designed for 32-bit signed values, but runs with unsigned if the values are below 2^31.</remarks>
+    '''<see cref="https://software.intel.com/en-us/ipp-dev-reference-maxindx"/>
+    Public Function MinIndx(ByRef Array(,) As UInt32, ByRef Minimum As UInt32, ByRef Index As Integer) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsMinIdx_32s", GetType(CallSignature.IntPtr_Integer_IntPtr_IntPtr))
+        Using Pinner As New cPinHandler
+            Dim RefUInt32(0) As UInt32 : Dim RefInt(0) As Integer
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(RefUInt32), Pinner.Pin(RefInt)), IppStatus)
+            Minimum = RefUInt32(0) : Index = RefInt(0)
+        End Using : Return RetVal
+    End Function
+
+    '''<summary>Returns the maximum value of a vector and the index of the maximum element.</summary>
+    '''<see cref="https://software.intel.com/en-us/ipp-dev-reference-maxindx"/>
+    Public Function MinIndx(ByRef Array(,) As Double, ByRef Minimum As Double, ByRef Index As Integer) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsMinIndx_64f", GetType(CallSignature.IntPtr_Integer_IntPtr_IntPtr))
+        Using Pinner As New cPinHandler
+            Dim RefDbl(0) As Double : Dim RefInt(0) As Integer
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(RefDbl), Pinner.Pin(RefInt)), IppStatus)
+            Minimum = RefDbl(0) : Index = RefInt(0)
+        End Using : Return RetVal
+    End Function
+
+    '________________________________________________________________________________
+    'MinIndx
+    '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+
+    '''<summary>Returns the minimum and maximum value of a vector and the index of the element.</summary>
+    '''<see cref="https://software.intel.com/en-us/ipp-dev-reference-maxindx"/>
+    Public Function MinMaxIndx(ByRef Array(,) As UInt32, ByRef Minimum As UInt32, ByRef MinumumIndex As Integer, ByRef Maximum As UInt32, ByRef MaximumIndex As Integer) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsMinMaxIndx_32u", GetType(CallSignature.IntPtr_Integer_IntPtr_IntPtr_IntPtr_IntPtr))
+        Using Pinner As New cPinHandler
+            Dim RefMinimum(0) As UInt32 : Dim RefMinumumIndex(0) As Integer
+            Dim RefMaximum(0) As UInt32 : Dim RefMaximumIndex(0) As Integer
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length, Pinner.Pin(RefMinimum), Pinner.Pin(RefMinumumIndex), Pinner.Pin(RefMaximum), Pinner.Pin(RefMaximumIndex)), IppStatus)
+            Minimum = RefMinimum(0) : MinumumIndex = RefMinumumIndex(0)
+            Maximum = RefMaximum(0) : MaximumIndex = RefMaximumIndex(0)
         End Using : Return RetVal
     End Function
 
@@ -899,6 +1141,14 @@ Partial Public Class cIntelIPP
     'Sqrt
     '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
 
+    Public Function Sqrt(ByRef Array(,) As Single) As IppStatus
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsSqrt_32f_I", GetType(CallSignature.IntPtr_Integer))
+        Using Pinner As New cPinHandler
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Array), Array.Length), IppStatus)
+        End Using : Return RetVal
+    End Function
+
     Public Function Sqrt(ByRef Array(,) As Double) As IppStatus
         Dim RetVal As IppStatus = IppStatus.NoErr
         Dim Caller As System.Delegate = CallIPPS("ippsSqrt_64f_I", GetType(CallSignature.IntPtr_Integer))
@@ -910,6 +1160,16 @@ Partial Public Class cIntelIPP
     '________________________________________________________________________________
     'Copy
     '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+
+    Public Function Copy(ByRef Vector As Single(,)) As Single(,)
+        Dim RetVal As IppStatus = IppStatus.NoErr
+        Dim Caller As System.Delegate = CallIPPS("ippsCopy_32f", GetType(CallSignature.IntPtr_IntPtr_Integer))
+        Dim RetVector(Vector.GetUpperBound(0), Vector.GetUpperBound(1)) As Single
+        Using Pinner As New cPinHandler
+            RetVal = CType(Caller.DynamicInvoke(Pinner.Pin(Vector), Pinner.Pin(RetVector), RetVector.Length), IppStatus)
+            If RetVal <> IppStatus.NoErr Then Return New Single(,) {}
+        End Using : Return RetVector
+    End Function
 
     Public Function Copy(ByRef Vector As Double(,)) As Double(,)
         Dim RetVal As IppStatus = IppStatus.NoErr
@@ -1330,6 +1590,13 @@ Partial Public Class cIntelIPP
 
     ' UTILITY FUNCTIONS
 
+    ''' <summary>Get the 2D index for the passed matrix.</summary>
+    Public Shared Function Index2D(ByRef Matrix(,) As UInt32, ByVal Index1D As Integer) As Integer()
+        Dim WrapSize As Integer = Matrix.GetUpperBound(1) + 1
+        Dim Idx2 As Integer = Index1D Mod WrapSize
+        Dim Idx1 As Integer = (Index1D - Idx2) \ WrapSize
+        Return New Integer() {Idx1, Idx2}
+    End Function
 
     ''' <summary>Build some test data by just counting from 1.</summary>
     ''' <param name="FirstIndexRange">Range of the first index of the returned matrix.</param>

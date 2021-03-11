@@ -12,16 +12,6 @@ Namespace Ato
     '''<todo>Try to make this generic ...</todo>
     Public Class cSingleValueStatistics
 
-        '''<summary>Type of values to apply statistics to.</summary>
-        Public Enum eValueType
-            '''<summary>Linear.</summary>
-            Linear = 0
-            '''<summary>Values are logarithmic, factor 10.</summary>
-            LogBase10 = 1
-            '''<summary>Values are logarithmic, factor 20.</summary>
-            LogBase20 = 2
-        End Enum
-
         Public Enum eAspects
             Maximum
             Minimum
@@ -39,8 +29,6 @@ Namespace Ato
 
         '''<summary>Internal values used for aggregation.</summary>
         Private Structure sIntProps
-            '''<summary>Averaging type (lin, log10 or log20).</summary>
-            Public ValueType As eValueType
             '''<summary>Number of values aggregated.</summary>
             Public ValueCount As Long
             '''<summary>Values that did NOT contribute to the statistics.</summary>
@@ -97,12 +85,6 @@ Namespace Ato
             End Set
         End Property
         Private MyConfidenceMultiplier As Double = 2
-
-        Public ReadOnly Property ValueType() As eValueType
-            Get
-                Return IntProps.ValueType
-            End Get
-        End Property
 
         '''<summary>Number of values used to calculate statistics.</summary>
         Public ReadOnly Property ValueCount() As Long
@@ -173,34 +155,14 @@ Namespace Ato
         '''<summary>Mean value (calculation depends on value type (linear, log).</summary>
         Public ReadOnly Property Mean() As Double
             Get
-                Dim LinMean As Double = IntProps.Sum / IntProps.ValueCount
-                Select Case IntProps.ValueType
-                    Case eValueType.Linear
-                        Return LinMean
-                    Case eValueType.LogBase10
-                        Return 10 * System.Math.Log10(LinMean)
-                    Case eValueType.LogBase20
-                        Return 20 * System.Math.Log10(LinMean)
-                    Case Else
-                        Throw New Exception("Requested mean value type is not defined.")
-                End Select
+                Return IntProps.Sum / IntProps.ValueCount
             End Get
         End Property
 
         '''<summary>RMS value (calculation depends on value type (linear, log).</summary>
         Public ReadOnly Property RMS() As Double
             Get
-                Dim RMSInt As Double = System.Math.Sqrt(IntProps.SquareSum / IntProps.ValueCount)
-                Select Case IntProps.ValueType
-                    Case eValueType.Linear
-                        Return RMSInt
-                    Case eValueType.LogBase10
-                        Return 10 * System.Math.Log10(RMSInt)
-                    Case eValueType.LogBase20
-                        Return 20 * System.Math.Log10(RMSInt)
-                    Case Else
-                        Throw New Exception("Requested RMS value type is not defined.")
-                End Select
+                Return System.Math.Sqrt(IntProps.SquareSum / IntProps.ValueCount)
             End Get
         End Property
 
@@ -208,18 +170,7 @@ Namespace Ato
         '''<todo>Check if the calculation of the logarithmic values are correct.</todo>
         Public ReadOnly Property Sigma() As Double
             Get
-                Dim LinSigma As Double = System.Math.Sqrt(LinVariance)
-                Dim LinMean As Double = IntProps.Sum / IntProps.ValueCount
-                Select Case IntProps.ValueType
-                    Case eValueType.Linear
-                        Return LinSigma
-                    Case eValueType.LogBase10
-                        Return ((10 * System.Math.Log10(LinMean + LinSigma)) - (10 * System.Math.Log10(LinMean - LinSigma))) / 2
-                    Case eValueType.LogBase20
-                        Return ((20 * System.Math.Log10(LinMean + LinSigma)) - (20 * System.Math.Log10(LinMean - LinSigma))) / 2
-                    Case Else
-                        Throw New Exception("Requested sigma value type is not defined.")
-                End Select
+                Return System.Math.Sqrt(LinVariance)
             End Get
         End Property
 
@@ -318,19 +269,10 @@ Namespace Ato
         Public Sub AddValueUnsave(ByVal Value As Double)
             Sorted = Nothing
             If StoreRawValues = True Then RawValueStorage.Add(Value)
-            Dim LinValue As Double
             IntProps.ValueCount += 1
             If Value > IntProps.Maximum Then IntProps.Maximum = Value Else If Value < IntProps.Minimum Then IntProps.Minimum = Value
-            Select Case IntProps.ValueType
-                Case eValueType.Linear
-                    LinValue = Value
-                Case eValueType.LogBase10
-                    LinValue = 10 ^ (Value / 10)
-                Case eValueType.LogBase20
-                    LinValue = 10 ^ (Value / 20)
-            End Select
-            IntProps.Sum += LinValue
-            IntProps.SquareSum += LinValue * LinValue
+            IntProps.Sum += Value
+            IntProps.SquareSum += Value * Value
         End Sub
 
         '''<summary>Add 1 new value to the statistics.</summary>
@@ -339,20 +281,11 @@ Namespace Ato
             Sorted = Nothing
             If StoreRawValues = True Then RawValueStorage.Add(Value)
             If Double.IsNaN(Value) = False And Double.IsPositiveInfinity(Value) = False And Double.IsNegativeInfinity(Value) = False Then
-                Dim LinValue As Double
                 IntProps.ValueCount += 1
                 If Value > IntProps.Maximum Then IntProps.Maximum = Value
                 If Value < IntProps.Minimum Then IntProps.Minimum = Value
-                Select Case IntProps.ValueType
-                    Case eValueType.Linear
-                        LinValue = Value
-                    Case eValueType.LogBase10
-                        LinValue = 10 ^ (Value / 10)
-                    Case eValueType.LogBase20
-                        LinValue = 10 ^ (Value / 20)
-                End Select
-                IntProps.Sum += LinValue
-                IntProps.SquareSum += LinValue * LinValue
+                IntProps.Sum += Value
+                IntProps.SquareSum += Value * Value
             Else
                 IntProps.InvalidValueCount += 1
             End If
@@ -360,28 +293,21 @@ Namespace Ato
 
         '''<summary>Initialize the statistics calculator with the given type of elements.</summary>
         '''<param name="ValueType">Type of elements (linear, log, ...).</param>
-        Public Sub New(ByVal Name As String, ByVal ValueType As eValueType)
-            Me.New(ValueType, False)
+        Public Sub New(ByVal StoreRawValues As Boolean)
+            Me.New(String.Empty, StoreRawValues)
+        End Sub
+
+        '''<summary>Initialize the statistics calculator with the given type of elements.</summary>
+        '''<param name="ValueType">Type of elements (linear, log, ...).</param>
+        Public Sub New(ByVal Name As String)
+            Me.New(Name, False)
             Me.Name = Name
         End Sub
 
         '''<summary>Initialize the statistics calculator with the given type of elements.</summary>
         '''<param name="ValueType">Type of elements (linear, log, ...).</param>
-        Public Sub New(ByVal Name As String, ByVal ValueType As eValueType, ByVal StoreRawValues As Boolean)
-            Me.New(ValueType, StoreRawValues)
+        Public Sub New(ByVal Name As String, ByVal StoreRawValues As Boolean)
             Me.Name = Name
-        End Sub
-
-        '''<summary>Initialize the statistics calculator with the given type of elements.</summary>
-        '''<param name="ValueType">Type of elements (linear, log, ...).</param>
-        Public Sub New(ByVal ValueType As eValueType)
-            Me.New(ValueType, False)
-        End Sub
-
-        '''<summary>Initialize the statistics calculator with the given type of elements.</summary>
-        '''<param name="ValueType">Type of elements (linear, log, ...).</param>
-        Public Sub New(ByVal ValueType As eValueType, ByVal StoreRawValues As Boolean)
-            IntProps.ValueType = ValueType
             Me.StoreRawValues = StoreRawValues
             Clear()
         End Sub

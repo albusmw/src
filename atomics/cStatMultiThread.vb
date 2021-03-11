@@ -48,6 +48,16 @@ Public Class cStatMultiThread_UInt16
     '''<summary>The real image data - 3 is the maximum NAXIS3 value for e.g. LRGB images.</summary>
     Public ImageData(3) As sImgData_UInt16
 
+    '''<summary>Load UInt32 data to the internal UInt16 structure.</summary>
+    Public Sub LoadImageData(ByVal Data(,) As UInt32)
+        ReDim ImageData(0).Data(Data.GetUpperBound(0), Data.GetUpperBound(1))
+        Threading.Tasks.Parallel.For(0, Data.GetUpperBound(0), Sub(Idx1 As Integer)
+                                                                   For Idx2 As Integer = 0 To Data.GetUpperBound(1)
+                                                                       ImageData(0).Data(Idx1, Idx2) = CUShort(Data(Idx1, Idx2))
+                                                                   Next Idx2
+                                                               End Sub)
+    End Sub
+
     '''<summary>Perform a calculation with 4 threads, one for each bayer channel.</summary>
     Public Sub RunHistoCalc(ByVal NAXIS3 As Integer, ByRef Results(,) As cStatMultiThread.cStatObjFixed)
 

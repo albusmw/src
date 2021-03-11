@@ -12,7 +12,7 @@ Imports ADUFixed = System.Int64
 ' - C:\GIT\src\atomics\cStatistics.vb
 Namespace AstroNET
 
-    Public Class Statistics
+    Public Class Statistics : Implements IDisposable
 
         Public Enum eDataMode
             [Invalid] = 1
@@ -41,15 +41,19 @@ Namespace AstroNET
 
         Public Sub ResetAllProcessors()
             Reset_UInt16()
+            Reset_Int32()
             Reset_UInt32()
             Reset_Float32()
-            DataProcessor_Int32.ImageData = {{}}
         End Sub
 
         Public Sub Reset_UInt16()
             For Idx As Integer = 0 To 3
                 DataProcessor_UInt16.ImageData(Idx).Data = {}
             Next Idx
+        End Sub
+
+        Public Sub Reset_Int32()
+            DataProcessor_Int32.ImageData = {{}}
         End Sub
 
         Public Sub Reset_UInt32()
@@ -642,6 +646,28 @@ Namespace AstroNET
                     End If
             End Select
 
+            'Set width and height values
+            If DataFixFloat = AstroNET.Statistics.sStatistics.eDataMode.Fixed Then
+                RetVal.MonoStatistics_Int.Width = NAXIS1
+                RetVal.MonoStatistics_Int.Height = NAXIS2
+                For BayerIdx1 As Integer = 0 To 1
+                    For BayerIdx2 As Integer = 0 To 1
+                        RetVal.BayerStatistics_Int(BayerIdx1, BayerIdx2).Width = NAXIS1 \ 2
+                        RetVal.BayerStatistics_Int(BayerIdx1, BayerIdx2).Height = NAXIS2 \ 2
+                    Next BayerIdx2
+                Next BayerIdx1
+            Else
+                RetVal.MonoStatistics_Float32.Width = NAXIS1
+                RetVal.MonoStatistics_Float32.Height = NAXIS2
+                RetVal.MonoStatistics_Int.Height = NAXIS2
+                For BayerIdx1 As Integer = 0 To 1
+                    For BayerIdx2 As Integer = 0 To 1
+                        RetVal.BayerStatistics_Float32(BayerIdx1, BayerIdx2).Width = NAXIS1 \ 2
+                        RetVal.BayerStatistics_Float32(BayerIdx1, BayerIdx2).Height = NAXIS2 \ 2
+                    Next BayerIdx2
+                Next BayerIdx1
+            End If
+
             'Return results
             Return RetVal
 
@@ -1005,6 +1031,10 @@ Namespace AstroNET
             Return RetVal
 
         End Function
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            ResetAllProcessors()
+        End Sub
 
     End Class
 
