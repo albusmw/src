@@ -83,6 +83,15 @@ Module StringExtension
         Return Value.ToString(Globalization.CultureInfo.InvariantCulture).Trim
     End Function
 
+    <Extension()>
+    Public Function ValRegIndep(ByVal Values() As Integer) As String
+        Dim Out As New List(Of String)
+        For Each Value As Integer In Values
+            Out.Add(Value.ToString(Globalization.CultureInfo.InvariantCulture).Trim)
+        Next Value
+        Return Join(Out.ToArray, ":")
+    End Function
+
 End Module
 
 Module DoubleExtension
