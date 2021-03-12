@@ -396,7 +396,7 @@ Namespace ComponentModelEx
                 Case ePredefFormats.Volt
                     Return "V"
                 Case ePredefFormats.VoltVolt
-                    Return "V�"
+                    Return "V²"
                 Case ePredefFormats.dBVolt
                     Return "dBV"
                 Case ePredefFormats.Watt
